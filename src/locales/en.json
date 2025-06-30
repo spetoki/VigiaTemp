@@ -535,5 +535,16 @@
   "traceability.saveSuccessDescription": "The traceability record was saved and the QR code has been generated.",
   "traceability.qrCodeErrorTitle": "QR Code Generation Error",
   "traceability.qrCodeErrorDescription": "Could not generate the QR code for this lot.",
-  "traceability.qrCodeAlt": "QR Code for lot {name}"
+  "traceability.qrCodeAlt": "QR Code for lot {name}",
+  "traceability.viewSavedLotsButton": "View Saved Lots",
+  "traceability.registerNewLotButton": "Register New Lot",
+  "traceability.savedLotsTitle": "Registered Cocoa Lots",
+  "traceability.savedLotsDescription": "View and manage all the cocoa lots you have registered.",
+  "traceability.tableHeader.lotName": "Lot/Producer Name",
+  "traceability.tableHeader.createdAt": "Creation Date",
+  "traceability.tableHeader.dryWeight": "Dry Weight (kg)",
+  "traceability.tableHeader.actions": "Actions",
+  "traceability.viewDetailsButton": "View Details",
+  "traceability.noLotsFound": "No lots registered yet. Start by registering a new lot.",
+  "traceability.backToListButton": "Back to List"
 }

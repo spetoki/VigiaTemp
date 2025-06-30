@@ -535,5 +535,16 @@
   "traceability.saveSuccessDescription": "O registro de rastreabilidade foi salvo e o QR code foi gerado.",
   "traceability.qrCodeErrorTitle": "Erro na Geração do QR Code",
   "traceability.qrCodeErrorDescription": "Não foi possível gerar o QR code para este lote.",
-  "traceability.qrCodeAlt": "QR Code para o lote {name}"
+  "traceability.qrCodeAlt": "QR Code para o lote {name}",
+  "traceability.viewSavedLotsButton": "Ver Lotes Salvos",
+  "traceability.registerNewLotButton": "Registrar Novo Lote",
+  "traceability.savedLotsTitle": "Lotes de Cacau Registrados",
+  "traceability.savedLotsDescription": "Visualize e gerencie todos os lotes de cacau que você registrou.",
+  "traceability.tableHeader.lotName": "Nome do Lote/Produtor",
+  "traceability.tableHeader.createdAt": "Data de Criação",
+  "traceability.tableHeader.dryWeight": "Peso Seco (kg)",
+  "traceability.tableHeader.actions": "Ações",
+  "traceability.viewDetailsButton": "Ver Detalhes",
+  "traceability.noLotsFound": "Nenhum lote registrado ainda. Comece registrando um novo lote.",
+  "traceability.backToListButton": "Voltar para a Lista"
 }
