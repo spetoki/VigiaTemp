@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -128,4 +127,5 @@ export default function OptimizeAlarmsForm() {
     </>
   );
 }
+
 

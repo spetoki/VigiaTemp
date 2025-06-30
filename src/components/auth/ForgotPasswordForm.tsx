@@ -2,8 +2,7 @@
 'use client';
 
 import React from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { forgotPassword, ForgotPasswordFormState } from '@/app/forgot-password/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
