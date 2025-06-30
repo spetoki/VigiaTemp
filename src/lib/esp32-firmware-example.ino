@@ -1,165 +1,121 @@
-/**
- * @file esp32-firmware-example.ino
- * @brief Firmware de exemplo para o ESP32 com sensor de temperatura DS18B20.
- * 
- * Este código conecta o ESP32 a uma rede WiFi, lê a temperatura de um sensor DS18B20
- * a cada 30 segundos e envia os dados para a API do aplicativo VigiaTemp.
- * 
- * Dependências (Instalar via Gerenciador de Bibliotecas da Arduino IDE):
- * - OneWire by Paul Stoffregen
- * - DallasTemperature by Miles Burton
- * - ArduinoJson by Benoit Blanchon
- */
+/*
+  VigiaTemp - Firmware de Exemplo para ESP32 e Sensor DS18B20
+
+  Este código:
+  1. Conecta o ESP32 a uma rede WiFi.
+  2. Lê a temperatura de um sensor DS18B20 a cada 30 segundos.
+  3. Envia os dados (endereço MAC e temperatura) para a API do seu aplicativo VigiaTemp.
+
+  == Pré-requisitos (Arduino IDE) ==
+  1. Instale o suporte para a placa ESP32 no seu Gerenciador de Placas.
+  2. Instale as seguintes bibliotecas através do "Gerenciador de Bibliotecas":
+     - "DallasTemperature" por Miles Burton (e suas dependências, como a OneWire).
+*/
 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h> // Para conexões HTTPS
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <ArduinoJson.h>
 
-// --- Configurações do Usuário (ALTERE AQUI!) ---
-const char* ssid = "RPNET_DAYANE"; // O nome da sua rede WiFi
-const char* password = "Designer!1los"; // A senha da sua rede WiFi
+// --- Configurações do WiFi ---
+const char* ssid = "RPNET_DAYANE";
+const char* password = "Designer!1los";
 
-// IMPORTANTE: Substitua pela URL principal do seu aplicativo implantado no App Hosting.
-// Deve terminar com /api/sensor
-// Exemplo: "https://seu-app-id.web.app/api/sensor"
-const char* serverUrl = "https://SEU_APP_URL.web.app/api/sensor"; 
+// --- Configurações do Servidor ---
+// IMPORTANTE: Substitua "https://SEU_APP_URL" pela URL principal do seu aplicativo.
+// Exemplo: https://meu-app-incrivel.firebaseapp.com/api/sensor
+String serverUrl = "https://SEU_APP_URL/api/sensor"; 
 
-// Pino do ESP32 onde o pino de dados do sensor DS18B20 está conectado
-const int oneWireBus = 4; // GPIO 4
-
-// --- Fim das Configurações ---
-
-// Configuração do sensor OneWire
-OneWire oneWire(oneWireBus);
+// --- Configurações do Sensor de Temperatura ---
+#define ONE_WIRE_BUS 4 // Pino GPIO onde o pino de DADOS do sensor DS18B20 está conectado
+OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-DeviceAddress sensorDeviceAddress;
-
-// Variáveis de controle
-unsigned long lastTempRequest = 0;
-const long tempRequestInterval = 30000; // Enviar dados a cada 30 segundos (30000 ms)
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  Serial.println("\n--- VigiaTemp Sensor ---");
-  connectToWifi();
-  
+  // Inicializa o sensor
   sensors.begin();
-  Serial.print("Localizando sensor DS18B20... ");
-  if (!sensors.getAddress(sensorDeviceAddress, 0)) {
-    Serial.println("Não foi possível encontrar o sensor. Verifique as conexões!");
-    // Para aqui se o sensor não for encontrado
-    while(true); 
-  } else {
-    Serial.print("Sensor encontrado no endereço: ");
-    printAddress(sensorDeviceAddress);
-    Serial.println();
+
+  // Conectar ao WiFi
+  Serial.println();
+  Serial.print("Conectando a ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
+  Serial.println("\nWiFi conectado!");
+  Serial.print("Endereço IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.print("Endereço MAC do ESP32 (use este no app): ");
+  Serial.println(WiFi.macAddress());
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
-
-  // Verifica se o intervalo de tempo para enviar dados foi atingido
-  if (currentMillis - lastTempRequest >= tempRequestInterval) {
-    lastTempRequest = currentMillis;
-
-    // Se o WiFi não estiver conectado, tenta reconectar
-    if (WiFi.status() != WL_CONNECTED) {
-      Serial.println("WiFi desconectado. Tentando reconectar...");
-      connectToWifi();
-    }
-
-    // Se o WiFi estiver conectado, lê a temperatura e envia para o servidor
-    if (WiFi.status() == WL_CONNECTED) {
-      float tempC = getTemperature();
-      if (tempC != DEVICE_DISCONNECTED_C) {
-        sendTemperature(tempC);
-      }
-    }
-  }
-}
-
-void connectToWifi() {
-  Serial.print("Conectando ao WiFi: ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  int attempt = 0;
-  while (WiFi.status() != WL_CONNECTED && attempt < 20) {
-    delay(500);
-    Serial.print(".");
-    attempt++;
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nConectado ao WiFi!");
-    Serial.print("Endereço IP: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("Endereço MAC: ");
-    Serial.println(WiFi.macAddress());
-  } else {
-    Serial.println("\nFalha ao conectar ao WiFi. Verifique suas credenciais.");
-  }
-}
-
-float getTemperature() {
-  Serial.print("Solicitando temperatura... ");
+  // Solicita a leitura da temperatura
   sensors.requestTemperatures(); 
-  float tempC = sensors.getTempC(sensorDeviceAddress);
+  float temperatureC = sensors.getTempCByIndex(0); // Lê a temperatura do primeiro sensor no barramento
 
-  if(tempC == DEVICE_DISCONNECTED_C) {
-    Serial.println("Erro: Não foi possível ler a temperatura do sensor.");
-    return DEVICE_DISCONNECTED_C;
+  // Verifica se a leitura foi bem-sucedida
+  if (temperatureC == DEVICE_DISCONNECTED_C) {
+    Serial.println("Erro: Não foi possível ler a temperatura do sensor! Verifique a conexão.");
+    delay(5000); // Tenta novamente em 5 segundos
+    return;
   }
   
-  Serial.print(tempC);
+  Serial.print("Temperatura lida: ");
+  Serial.print(temperatureC);
   Serial.println(" °C");
-  return tempC;
-}
 
-void sendTemperature(float temperature) {
-  HTTPClient http;
-  
-  Serial.print("Enviando dados para o servidor: ");
-  Serial.println(serverUrl);
+  // Verifica se o WiFi está conectado antes de enviar os dados
+  if(WiFi.status() == WL_CONNECTED) {
+    
+    WiFiClientSecure client;
+    HTTPClient http;
+    
+    // IMPORTANTE: A linha abaixo desativa a verificação de certificado SSL.
+    // Isso simplifica a conexão para este protótipo, mas é inseguro para produção.
+    client.setInsecure();
 
-  http.begin(serverUrl);
-  http.addHeader("Content-Type", "application/json");
+    // Inicia a conexão segura (HTTPS)
+    http.begin(client, serverUrl);
+    
+    // Adiciona o cabeçalho para indicar que estamos enviando dados em formato JSON
+    http.addHeader("Content-Type", "application/json");
 
-  // Cria o corpo da requisição JSON
-  StaticJsonDocument<100> doc;
-  doc["macAddress"] = WiFi.macAddress();
-  doc["temperature"] = temperature;
+    // Cria o corpo da requisição (payload JSON)
+    String macAddress = WiFi.macAddress();
+    String jsonPayload = "{\"macAddress\":\"" + macAddress + "\",\"temperature\":" + String(temperatureC) + "}";
 
-  String requestBody;
-  serializeJson(doc, requestBody);
+    Serial.print("Enviando payload para o servidor: ");
+    Serial.println(jsonPayload);
 
-  // Envia a requisição POST
-  int httpResponseCode = http.POST(requestBody);
-
-  if (httpResponseCode > 0) {
-    String response = http.getString();
-    Serial.print("Código de resposta HTTP: ");
-    Serial.println(httpResponseCode);
-    Serial.print("Resposta do servidor: ");
-    Serial.println(response);
+    // Envia a requisição POST
+    int httpResponseCode = http.POST(jsonPayload);
+    
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.print("Código de resposta HTTP: ");
+      Serial.println(httpResponseCode);
+      Serial.print("Resposta do servidor: ");
+      Serial.println(response);
+    } else {
+      Serial.print("Erro na requisição POST, código de erro: ");
+      Serial.println(httpResponseCode);
+    }
+    
+    // Fecha a conexão
+    http.end();
   } else {
-    Serial.print("Erro no envio do POST. Código: ");
-    Serial.println(httpResponseCode);
+    Serial.println("Erro na conexão WiFi, tentando reconectar...");
+    WiFi.begin(ssid, password); // Tenta reconectar
   }
 
-  http.end();
-}
-
-// Função auxiliar para imprimir o endereço do sensor
-void printAddress(DeviceAddress deviceAddress) {
-  for (uint8_t i = 0; i < 8; i++) {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-  }
+  // Aguarda 30 segundos antes da próxima leitura e envio
+  Serial.println("Aguardando 30 segundos para a próxima leitura...");
+  delay(30000);
 }
