@@ -10,10 +10,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function SignUpPage() {
   const { authState } = useAuth();
   const router = useRouter();
+  const { t } = useSettings();
 
   useEffect(() => {
     if (authState === 'user' || authState === 'admin') {
@@ -48,15 +50,16 @@ export default function SignUpPage() {
              <Link href="/" className="inline-block mb-4">
                 <ThermometerSnowflake className="h-12 w-12 text-primary mx-auto" />
             </Link>
-            <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
-            <CardDescription>Preencha os campos abaixo para se cadastrar.</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t('signup.createAccountButton', 'Criar Conta')}</CardTitle>
+            <CardDescription>{t('signup.pageDescription', 'Preencha os campos abaixo para se cadastrar.')}</CardDescription>
           </CardHeader>
           <CardContent>
             <SignUpForm />
             <div className="mt-6 text-center text-sm">
-              Já tem uma conta?{' '}
+              {t('signup.hasAccount', 'Já tem uma conta?')}
+              {' '}
               <Link href="/login" className="font-medium text-primary hover:underline">
-                Faça login
+                {t('login.loginLink', 'Faça login')}
               </Link>
             </div>
           </CardContent>

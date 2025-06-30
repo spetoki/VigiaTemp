@@ -18,13 +18,6 @@ interface MultiSensorTemperatureChartProps {
   initialTimePeriod?: 'hour' | 'day' | 'week' | 'month';
 }
 
-const timePeriodTranslations: Record<'hour' | 'day' | 'week' | 'month', string> = {
-  hour: 'hora',
-  day: 'dia',
-  week: 'semana',
-  month: 'mês',
-};
-
 const filterDataByTimePeriod = (data: HistoricalDataPoint[], timePeriod: 'hour' | 'day' | 'week' | 'month'): HistoricalDataPoint[] => {
   const now = Date.now();
   let startTime: number;
@@ -158,18 +151,32 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   const timeFormatOptions: Intl.DateTimeFormatOptions = 
     currentTimePeriod === 'hour' || currentTimePeriod === 'day' ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' };
 
-  const translatedTimePeriod = timePeriodTranslations[currentTimePeriod];
+  const translatedTimePeriod = t(`temperatureChart.timePeriod.${currentTimePeriod}`);
   
-  let cardDescriptionText = `Comparativo - Última(o) ${translatedTimePeriod}`;
-  if (displayedSensors.length === 1) {
-    cardDescriptionText = `${displayedSensors[0].name} - Última(o) ${translatedTimePeriod}`;
-  } else if (displayedSensors.length < sensors.length && displayedSensors.length > 0) {
-    cardDescriptionText = `Comparativo de ${displayedSensors.length} sensores - Última(o) ${translatedTimePeriod}`;
-  } else if (displayedSensors.length === 0) {
-    cardDescriptionText = `Nenhum sensor selecionado - Última(o) ${translatedTimePeriod}`;
-  } else if (displayedSensors.length === sensors.length && sensors.length > 0) {
-    cardDescriptionText = `Todos os Sensores - Última(o) ${translatedTimePeriod}`;
-  }
+  const cardDescriptionText = useMemo(() => {
+    const fallback = `Comparativo - Última(o) {timePeriod}`;
+    if (displayedSensors.length === 1) {
+        return t('multiSensorChart.desc.single', '{sensorName} - Última(o) {timePeriod}', {
+            sensorName: displayedSensors[0].name,
+            timePeriod: translatedTimePeriod
+        });
+    }
+    if (displayedSensors.length < sensors.length && displayedSensors.length > 0) {
+        return t('multiSensorChart.desc.multiple', 'Comparativo de {count} sensores - Última(o) {timePeriod}', {
+            count: displayedSensors.length,
+            timePeriod: translatedTimePeriod
+        });
+    }
+    if (displayedSensors.length === 0) {
+        return t('multiSensorChart.desc.none', 'Nenhum sensor selecionado - Última(o) {timePeriod}', {
+            timePeriod: translatedTimePeriod
+        });
+    }
+    // All sensors are selected
+    return t('multiSensorChart.desc.all', 'Todos os Sensores - Última(o) {timePeriod}', {
+        timePeriod: translatedTimePeriod
+    });
+  }, [displayedSensors, sensors.length, t, translatedTimePeriod]);
 
 
   const handleSensorSelectionChange = (sensorId: string, checked: boolean) => {
@@ -200,19 +207,19 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     <Card className="shadow-lg w-full">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
         <div>
-          <CardTitle className="text-lg font-headline">Tendência de Temperatura dos Sensores</CardTitle>
+          <CardTitle className="text-lg font-headline">{t('multiSensorChart.title', 'Tendência de Temperatura dos Sensores')}</CardTitle>
           <CardDescription>{cardDescriptionText}</CardDescription>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Select value={currentTimePeriod} onValueChange={(value) => setCurrentTimePeriod(value as 'hour' | 'day' | 'week' | 'month')}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Período" />
+              <SelectValue placeholder={t('temperatureChart.selectPeriod', 'Período')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="hour">{t('multiSensorChart.lastHour', 'Última Hora')}</SelectItem>
-              <SelectItem value="day">{t('multiSensorChart.lastDay', 'Último Dia')}</SelectItem>
-              <SelectItem value="week">{t('multiSensorChart.lastWeek', 'Última Semana')}</SelectItem>
-              <SelectItem value="month">{t('multiSensorChart.lastMonth', 'Último Mês')}</SelectItem>
+              <SelectItem value="hour">{t('temperatureChart.lastHour', 'Última Hora')}</SelectItem>
+              <SelectItem value="day">{t('temperatureChart.lastDay', 'Último Dia')}</SelectItem>
+              <SelectItem value="week">{t('temperatureChart.lastWeek', 'Última Semana')}</SelectItem>
+              <SelectItem value="month">{t('temperatureChart.lastMonth', 'Último Mês')}</SelectItem>
             </SelectContent>
           </Select>
           <DropdownMenu>
@@ -320,5 +327,3 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     </Card>
   );
 }
-
-    

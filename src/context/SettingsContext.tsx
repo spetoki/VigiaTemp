@@ -17,7 +17,7 @@ interface SettingsContextType {
   setLanguage: (lang: LanguageCode) => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  t: (key: string, fallback?: string) => string;
+  t: (key: string, fallback?: string, replacements?: Record<string, string | number>) => string;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -97,8 +97,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setThemeState(newTheme);
   };
 
-  const t = useCallback((key: string, fallback?: string): string => {
-    return translations[key] || fallback || key;
+  const t = useCallback((key: string, fallback?: string, replacements?: Record<string, string | number>): string => {
+    let text = translations[key] || fallback || key;
+    if (replacements) {
+      for (const rKey in replacements) {
+        text = text.replace(new RegExp(`\\{${rKey}\\}`, 'g'), String(replacements[rKey]));
+      }
+    }
+    return text;
   }, [translations]);
 
   return (
@@ -115,4 +121,3 @@ export const useSettings = () => {
   }
   return context;
 };
-

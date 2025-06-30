@@ -13,13 +13,13 @@ interface SensorCardProps {
 }
 
 export default function SensorCard({ sensor }: SensorCardProps) {
-  const { temperatureUnit } = useSettings();
+  const { temperatureUnit, t } = useSettings();
   const status = getSensorStatus(sensor);
 
   const statusConfig: Record<SensorStatus, { icon: React.ElementType; colorClass: string; label: string }> = {
-    normal: { icon: CheckCircle2, colorClass: 'text-green-600', label: 'Normal' },
-    warning: { icon: AlertTriangle, colorClass: 'text-yellow-500', label: 'Atenção' },
-    critical: { icon: AlertTriangle, colorClass: 'text-accent', label: 'Crítico' },
+    normal: { icon: CheckCircle2, colorClass: 'text-green-600', label: t('sensorCard.label.normal', 'Normal') },
+    warning: { icon: AlertTriangle, colorClass: 'text-yellow-500', label: t('sensorCard.label.warning', 'Atenção') },
+    critical: { icon: AlertTriangle, colorClass: 'text-accent', label: t('sensorCard.label.critical', 'Crítico') },
   };
 
   const CurrentStatusIcon = statusConfig[status].icon;
@@ -47,8 +47,8 @@ export default function SensorCard({ sensor }: SensorCardProps) {
           </p>
         </div>
         <div className="text-xs text-muted-foreground grid grid-cols-2 gap-2">
-          <p>Limite Inferior: {formatTemperature(sensor.lowThreshold, temperatureUnit)}</p>
-          <p>Limite Superior: {formatTemperature(sensor.highThreshold, temperatureUnit)}</p>
+          <p>{t('sensorCard.lowThreshold', 'Limite Inferior')}: {formatTemperature(sensor.lowThreshold, temperatureUnit)}</p>
+          <p>{t('sensorCard.highThreshold', 'Limite Superior')}: {formatTemperature(sensor.highThreshold, temperatureUnit)}</p>
         </div>
       </CardContent>
     </Card>

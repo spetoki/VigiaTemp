@@ -45,9 +45,9 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
   };
 
   const statusTranslations: Record<ReturnType<typeof getSensorStatus>, string> = {
-    normal: t('sensorCard.status.normal', 'Normal'),
-    warning: t('sensorCard.status.warning', 'Atenção'),
-    critical: t('sensorCard.status.critical', 'Crítico'),
+    normal: t('sensorCard.label.normal', 'Normal'),
+    warning: t('sensorCard.label.warning', 'Atenção'),
+    critical: t('sensorCard.label.critical', 'Crítico'),
   };
 
   return (
@@ -124,5 +124,3 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
     </>
   );
 }
-
-    

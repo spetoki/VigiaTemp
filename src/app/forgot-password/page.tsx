@@ -10,10 +10,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function ForgotPasswordPage() {
   const { authState } = useAuth();
   const router = useRouter();
+  const { t } = useSettings();
 
   useEffect(() => {
     if (authState === 'user' || authState === 'admin') {
@@ -48,17 +50,18 @@ export default function ForgotPasswordPage() {
             <Link href="/" className="inline-block mb-4">
                 <ThermometerSnowflake className="h-12 w-12 text-primary mx-auto" />
             </Link>
-            <CardTitle className="text-2xl font-bold">Esqueceu sua Senha?</CardTitle>
+            <CardTitle className="text-2xl font-bold">{t('login.forgotPassword', 'Esqueceu a senha?')}</CardTitle>
             <CardDescription>
-              Não se preocupe! Insira seu email abaixo para enviarmos um link de redefinição.
+              {t('forgotPassword.pageDescription', 'Não se preocupe! Insira seu email abaixo para enviarmos um link de redefinição.')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ForgotPasswordForm />
             <div className="mt-6 text-center text-sm">
-              Lembrou sua senha?{' '}
+              {t('forgotPassword.remembered', 'Lembrou sua senha?')}
+              {' '}
               <Link href="/login" className="font-medium text-primary hover:underline">
-                Faça login
+                {t('login.loginLink', 'Faça login')}
               </Link>
             </div>
           </CardContent>

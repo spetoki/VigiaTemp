@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -170,19 +171,19 @@ export default function TicTacToe() {
   let status;
   if (winner) {
     if (winner === 'Draw') {
-      status = t('games.ticTacToe.draw', 'Empate!');
+      status = t('ticTacToe.draw', 'Empate!');
     } else {
-      status = t('games.ticTacToe.winner', 'Vencedor: {winner}', { winner });
+      status = t('ticTacToe.winner', 'Vencedor: {winner}', { winner });
     }
   } else {
-     status = isXNext ? t('games.ticTacToe.yourTurn', 'Sua vez (X)') : t('games.ticTacToe.aiTurn', 'Vez da IA (O)...');
+     status = isXNext ? t('ticTacToe.yourTurn', 'Sua vez (X)') : t('ticTacToe.aiTurn', 'Vez da IA (O)...');
   }
 
   return (
     <Card className="w-full max-w-sm mx-auto shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline">{t('games.ticTacToe.title', 'Jogo da Velha')}</CardTitle>
-        <CardDescription>{t('games.ticTacToe.description', 'Desafie a nossa IA imbatível.')}</CardDescription>
+        <CardDescription>{t('ticTacToe.description', 'Desafie a nossa IA imbatível.')}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <div className="grid grid-cols-3 gap-2">
@@ -197,7 +198,7 @@ export default function TicTacToe() {
         </div>
         <Button onClick={resetGame}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          {t('games.ticTacToe.playAgain', 'Jogar Novamente')}
+          {t('ticTacToe.playAgain', 'Jogar Novamente')}
         </Button>
       </CardContent>
     </Card>

@@ -15,13 +15,6 @@ interface TemperatureChartProps {
   timePeriod: 'hour' | 'day' | 'week' | 'month';
 }
 
-const timePeriodTranslations: Record<'hour' | 'day' | 'week' | 'month', string> = {
-  hour: 'hora',
-  day: 'dia',
-  week: 'semana',
-  month: 'mês',
-};
-
 const filterDataByTimePeriod = (data: HistoricalDataPoint[], timePeriod: 'hour' | 'day' | 'week' | 'month'): HistoricalDataPoint[] => {
   const now = Date.now();
   let startTime: number;
@@ -87,15 +80,15 @@ export default function TemperatureChart({ sensor, timePeriod: initialTimePeriod
 
   const chartConfig = {
     temperature: {
-      label: `Temperatura (°${temperatureUnit})`,
+      label: t('temperatureChart.tempLabel', 'Temperatura (°{unit})', { unit: temperatureUnit }),
       color: "hsl(var(--primary))",
     },
     lowThreshold: {
-      label: `Mín. (°${temperatureUnit})`,
+      label: t('temperatureChart.lowThresholdLabel', 'Mín. (°{unit})', { unit: temperatureUnit }),
       color: "hsl(var(--accent))",
     },
     highThreshold: {
-      label: `Máx. (°${temperatureUnit})`,
+      label: t('temperatureChart.highThresholdLabel', 'Máx. (°{unit})', { unit: temperatureUnit }),
       color: "hsl(var(--accent))",
     },
   } satisfies React.ComponentProps<typeof ChartContainer>["config"];
@@ -103,14 +96,14 @@ export default function TemperatureChart({ sensor, timePeriod: initialTimePeriod
   const timeFormatOptions: Intl.DateTimeFormatOptions = 
     currentTimePeriod === 'hour' || currentTimePeriod === 'day' ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' };
 
-  const translatedTimePeriod = t(`temperatureChart.timePeriod.${currentTimePeriod}`, timePeriodTranslations[currentTimePeriod]);
+  const translatedTimePeriod = t(`temperatureChart.timePeriod.${currentTimePeriod}`);
 
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-lg font-headline">{t('temperatureChart.title', 'Tendência Histórica de Temperatura')}</CardTitle>
-          <CardDescription>{t('temperatureChart.description', '{sensorName} - Última(o) {timePeriod}', { sensorName: sensor.name, timePeriod: translatedTimePeriod })}</CardDescription>
+          <CardDescription>{t('temperatureChart.desc.template', '{sensorName} - Última(o) {timePeriod}', { sensorName: sensor.name, timePeriod: translatedTimePeriod })}</CardDescription>
         </div>
         <Select value={currentTimePeriod} onValueChange={(value) => setCurrentTimePeriod(value as 'hour' | 'day' | 'week' | 'month')}>
           <SelectTrigger className="w-[140px]">
@@ -181,13 +174,13 @@ export default function TemperatureChart({ sensor, timePeriod: initialTimePeriod
             />
             <ReferenceLine 
               y={parseFloat(convertTemperature(sensor.lowThreshold, temperatureUnit).toFixed(1))} 
-              label={{ value: `Mín: ${formatTemperature(sensor.lowThreshold, temperatureUnit)}`, position: 'insideBottomLeft', fill: 'hsl(var(--accent))' }} 
+              label={{ value: t('temperatureChart.lowThresholdRef', 'Mín: {value}', { value: formatTemperature(sensor.lowThreshold, temperatureUnit) }), position: 'insideBottomLeft', fill: 'hsl(var(--accent))' }} 
               stroke="hsl(var(--accent))" 
               strokeDasharray="3 3" 
             />
             <ReferenceLine 
               y={parseFloat(convertTemperature(sensor.highThreshold, temperatureUnit).toFixed(1))} 
-              label={{ value: `Máx: ${formatTemperature(sensor.highThreshold, temperatureUnit)}`, position: 'insideTopLeft', fill: 'hsl(var(--accent))' }}
+              label={{ value: t('temperatureChart.highThresholdRef', 'Máx: {value}', { value: formatTemperature(sensor.highThreshold, temperatureUnit) }), position: 'insideTopLeft', fill: 'hsl(var(--accent))' }}
               stroke="hsl(var(--accent))" 
               strokeDasharray="3 3" 
             />
@@ -203,5 +196,3 @@ export default function TemperatureChart({ sensor, timePeriod: initialTimePeriod
     </Card>
   );
 }
-
-    

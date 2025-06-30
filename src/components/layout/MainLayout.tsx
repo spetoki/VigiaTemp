@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -12,7 +13,7 @@ interface MainLayoutProps {
 }
 
 function LayoutContent({ children }: MainLayoutProps) {
-  const { t, language } = useSettings();
+  const { t } = useSettings();
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   useEffect(() => {
@@ -24,10 +25,9 @@ function LayoutContent({ children }: MainLayoutProps) {
   
   // By waiting for currentYear to be set, we ensure the server-rendered HTML
   // and the initial client render are identical, preventing a hydration error.
-  const footerText = currentYear !== null 
-    ? baseFooterText.replace('{year}', currentYear.toString())
+  const footerText = currentYear 
+    ? t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados ao Irineu bonitão.', { year: currentYear })
     : baseFooterText.replace(' {year}', ''); // Render without the year on the server and initial client render.
-
 
   return (
     <div className="flex flex-col min-h-screen">

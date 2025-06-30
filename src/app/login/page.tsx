@@ -10,10 +10,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function LoginPage() {
   const { authState } = useAuth();
   const router = useRouter();
+  const { t } = useSettings();
 
   useEffect(() => {
     if (authState === 'user') {
@@ -56,15 +58,16 @@ export default function LoginPage() {
             <Link href="/" className="inline-block mb-4">
                 <ThermometerSnowflake className="h-12 w-12 text-primary mx-auto" />
             </Link>
-            <CardTitle className="text-2xl font-bold">Login</CardTitle>
-            <CardDescription>Bem-vindo de volta! Acesse sua conta.</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t('nav.login', 'Login')}</CardTitle>
+            <CardDescription>{t('login.pageDescription', 'Bem-vindo de volta! Acesse sua conta.')}</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />
             <div className="mt-6 text-center text-sm">
-              Não tem uma conta?{' '}
+              {t('login.noAccount', 'Não tem uma conta?')}
+              {' '}
               <Link href="/signup" className="font-medium text-primary hover:underline">
-                Cadastre-se
+                {t('signup.signUpLink', 'Cadastre-se')}
               </Link>
             </div>
           </CardContent>

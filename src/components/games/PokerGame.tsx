@@ -149,13 +149,13 @@ export default function PokerGame() {
   return (
     <UICard className="w-full max-w-4xl mx-auto shadow-xl p-4">
       <CardContent className="flex flex-col items-center gap-4">
-        <h2 className="text-xl font-bold">{t('games.poker.hand', 'Mão {handNumber}', {handNumber: gameState.handCount})}</h2>
+        <h2 className="text-xl font-bold">{t('poker.hand', 'Mão #{handNumber}', {handNumber: gameState.handCount})}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
             {gameState.players.filter(p => p.isBot).map(p => <Player key={p.id} player={p} isActive={gameState.activePlayerIndex === gameState.players.indexOf(p)} stage={gameState.stage} />)}
         </div>
         
         <div className="flex flex-col items-center gap-2 my-4 p-4 rounded-lg border w-full">
-            <h3 className="font-bold text-lg">{t('games.poker.pot', 'Pot')}: ${gameState.pot}</h3>
+            <h3 className="font-bold text-lg">{t('poker.pot', 'Pote')}: ${gameState.pot}</h3>
             <div className="flex gap-2 h-24">
                 {Array(5).fill(null).map((_, i) => (
                     <CardComponent key={i} card={gameState.communityCards[i] || null} faceUp={!!gameState.communityCards[i]} />
@@ -163,7 +163,7 @@ export default function PokerGame() {
             </div>
             {gameState.winnerInfo && (
               <div className="text-center font-bold text-primary mt-2">
-                  <p>{t('games.poker.winnerIs', '{winnerName} wins with a {handRank}!', { winnerName: gameState.winnerInfo.winners.map(w => w.name).join(', '), handRank: gameState.winnerInfo.hand?.description || t('games.poker.thePot', 'o pote') })}</p>
+                  <p>{t('poker.winnerIs', '{winnerName} ganha com {handRank}!', { winnerName: gameState.winnerInfo.winners.map(w => w.name).join(', '), handRank: gameState.winnerInfo.hand?.description || t('poker.thePot', 'o pote') })}</p>
               </div>
             )}
         </div>
@@ -176,34 +176,32 @@ export default function PokerGame() {
           {gameState.stage === 'showdown' ? (
             <Button onClick={startNewHand}>
                 <Undo className="mr-2 h-4 w-4" />
-                {t('games.poker.newHand', 'Nova Mão')}
+                {t('poker.newHand', 'Nova Mão')}
             </Button>
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-2">
-                <Button variant="destructive" onClick={() => handlePlayerAction('Fold')} disabled={!isPlayerTurn}>{t('games.poker.fold', 'Desistir')}</Button>
+                <Button variant="destructive" onClick={() => handlePlayerAction('Fold')} disabled={!isPlayerTurn}>{t('poker.fold', 'Desistir')}</Button>
                 {canCheck ? (
-                     <Button variant="secondary" onClick={() => handlePlayerAction('Check')} disabled={!isPlayerTurn}>{t('games.poker.check', 'Passar')}</Button>
+                     <Button variant="secondary" onClick={() => handlePlayerAction('Check')} disabled={!isPlayerTurn}>{t('poker.check', 'Passar')}</Button>
                 ) : (
                     <Button variant="secondary" onClick={() => handlePlayerAction('Call')} disabled={!isPlayerTurn}>
-                        {t('games.poker.call', 'Pagar')} ${gameState.currentBet - userPlayer.currentBet}
+                        {t('poker.call', 'Pagar')} ${gameState.currentBet - userPlayer.currentBet}
                     </Button>
                 )}
                 <div className="flex items-center gap-2">
                     <Input type="number" value={betAmount} onChange={e => setBetAmount(parseInt(e.target.value) || 0)} className="w-24" disabled={!isPlayerTurn} />
                     <Button onClick={() => handlePlayerAction(gameState.currentBet > 0 ? 'Raise' : 'Bet', betAmount)} disabled={!isPlayerTurn}>
-                      {t(gameState.currentBet > 0 ? 'games.poker.raise' : 'games.poker.bet', gameState.currentBet > 0 ? 'Aumentar' : 'Apostar')}
+                      {t(gameState.currentBet > 0 ? 'poker.raise' : 'poker.bet', gameState.currentBet > 0 ? 'Aumentar' : 'Apostar')}
                     </Button>
                 </div>
             </div>
           )}
            <div className="text-sm text-muted-foreground mt-2 h-4">
-             {isPlayerTurn && t('games.poker.yourTurn', 'Sua Vez')}
-             {isBotTurn && t('games.poker.botThinking', 'O bot está pensando...')}
+             {isPlayerTurn && t('poker.yourTurn', 'Sua Vez')}
+             {isBotTurn && t('poker.botThinking', 'O bot está pensando...')}
           </div>
         </div>
       </CardContent>
     </UICard>
   );
 }
-
-    

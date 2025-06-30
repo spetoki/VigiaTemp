@@ -244,7 +244,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                   <FormItem>
                     <FormLabel>{t('sensorForm.ipAddressLabel', 'Endereço IP (Opcional)')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: 192.168.1.100" {...field} />
+                      <Input placeholder={t('sensorForm.placeholder.ip', "Ex: 192.168.1.100")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -257,7 +257,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                   <FormItem>
                     <FormLabel>{t('sensorForm.macAddressLabel', 'Endereço MAC (Opcional)')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: 00:1A:2B:3C:4D:5E" {...field} />
+                      <Input placeholder={t('sensorForm.placeholder.mac', "Ex: 00:1A:2B:3C:4D:5E")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
