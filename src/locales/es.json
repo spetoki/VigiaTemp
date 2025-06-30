@@ -3,6 +3,7 @@
   "nav.dashboard": "Panel",
   "nav.sensors": "Sensores",
   "nav.alerts": "Alertas",
+  "nav.traceability": "Trazabilidad",
   "nav.optimizeAlarms": "Optimizar Alarmas",
   "nav.sensorCharts": "Gráficos de Sensores",
   "nav.wifiDiscovery": "Descubrimiento WiFi",
@@ -506,5 +507,23 @@
   "forgotPassword.emailPlaceholder": "tu@email.com",
   "forgotPassword.successMessage": "Si existe una cuenta con este email, se ha enviado un enlace para restablecer la contraseña.",
   "forgotPassword.validationError": "Error de validación.",
-  "forgotPassword.invalidEmail": "Por favor, ingrese un email válido."
+  "forgotPassword.invalidEmail": "Por favor, ingrese un email válido.",
+
+  "traceability.pageTitle": "Trazabilidad de Lotes de Cacao",
+  "traceability.pageDescription": "Registre toda la información importante de cada lote de cacao para garantizar la calidad y la trazabilidad.",
+  "traceability.formTitle": "Formulario de Trazabilidad del Lote",
+  "traceability.formDescription": "Complete todos los campos a continuación para crear un nuevo registro.",
+  "traceability.nameLabel": "Nombre del Productor/Lote",
+  "traceability.namePlaceholder": "Ej: Finca Esperanza - Lote 01/24",
+  "traceability.lotDescriptionLabel": "Descripción del Lote",
+  "traceability.lotDescriptionPlaceholder": "Ej: Cacao de la cosecha de Junio",
+  "traceability.wetCocoaWeightLabel": "Peso Cacao Húmedo (kg)",
+  "traceability.dryCocoaWeightLabel": "Peso Cacao Seco (kg)",
+  "traceability.fermentationTimeLabel": "Tiempo de Fermentación (días)",
+  "traceability.dryingTimeLabel": "Tiempo de Secado (días)",
+  "traceability.isoClassificationLabel": "Clasificación Física (ISO-2451)",
+  "traceability.isoClassificationPlaceholder": "Ej: Grado I, Tipo A",
+  "traceability.boardImageLabel": "Imagen de la Tabla de Clasificación",
+  "traceability.boardImagePreviewAlt": "Vista previa de la imagen de la tabla",
+  "traceability.saveButton": "Guardar Registro de Trazabilidad"
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LogIn, LayoutPanelLeft, LogOut, Bell, Bluetooth, Wifi, Wrench, Gamepad2 } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LogIn, LayoutPanelLeft, LogOut, Bell, Bluetooth, Wifi, Wrench, Gamepad2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,7 @@ export default function AppHeader() {
     { href: '/', labelKey: 'nav.dashboard', icon: Home, defaultLabel: 'Painel' },
     { href: '/alerts', labelKey: 'nav.alerts', icon: Bell, defaultLabel: 'Alertas' },
     { href: '/sensors', labelKey: 'nav.sensors', icon: Settings, defaultLabel: 'Sensores' },
+    { href: '/traceability', labelKey: 'nav.traceability', icon: ClipboardList, defaultLabel: 'Rastreabilidade' },
     { href: '/optimize-alarms', labelKey: 'nav.optimizeAlarms', icon: BrainCircuit, defaultLabel: 'Otimizar Alarmes' },
     { href: '/sensor-charts', labelKey: 'nav.sensorCharts', icon: LineChart, defaultLabel: 'Gráficos dos Sensores' },
     { href: '/wifi-discovery', labelKey: 'nav.wifiDiscovery', icon: Wifi, defaultLabel: 'Descoberta WiFi' },

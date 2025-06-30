@@ -1,0 +1,208 @@
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useSettings } from '@/context/SettingsContext';
+import { ClipboardList, Leaf, Save } from 'lucide-react';
+import Image from 'next/image';
+
+interface TraceabilityData {
+  lotDescription: string;
+  name: string;
+  wetCocoaWeight: number | '';
+  dryCocoaWeight: number | '';
+  fermentationTime: number | '';
+  dryingTime: number | '';
+  isoClassification: string;
+  classificationBoardImage: File | null;
+  classificationBoardImagePreview: string | null;
+}
+
+export default function TraceabilityPage() {
+  const { t } = useSettings();
+  const [formData, setFormData] = useState<TraceabilityData>({
+    lotDescription: '',
+    name: '',
+    wetCocoaWeight: '',
+    dryCocoaWeight: '',
+    fermentationTime: '',
+    dryingTime: '',
+    isoClassification: '',
+    classificationBoardImage: null,
+    classificationBoardImagePreview: null,
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setFormData((prev) => ({
+      ...prev,
+      classificationBoardImage: file,
+      classificationBoardImagePreview: file ? URL.createObjectURL(file) : null,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, you would upload the image and save the data.
+    console.log('Form submitted:', {
+        ...formData,
+        classificationBoardImage: formData.classificationBoardImage?.name, // just log the name for simplicity
+    });
+    // Here you would typically show a success toast.
+    // e.g., toast({ title: "Success", description: "Traceability record saved." });
+  };
+
+  return (
+    <div className="space-y-8 max-w-4xl mx-auto">
+       <div className="text-left">
+          <h1 className="text-3xl font-bold font-headline text-primary flex items-center">
+            <ClipboardList className="mr-3 h-8 w-8" />
+            {t('traceability.pageTitle', 'Rastreabilidade de Lotes de Cacau')}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {t('traceability.pageDescription', 'Registre todas as informações importantes de cada lote de cacau para garantir a qualidade e a rastreabilidade.')}
+          </p>
+        </div>
+
+      <Card className="w-full shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Leaf className="h-5 w-5 text-primary" />
+            {t('traceability.formTitle', 'Formulário de Rastreabilidade do Lote')}
+          </CardTitle>
+          <CardDescription>
+            {t('traceability.formDescription', 'Preencha todos os campos abaixo para criar um novo registro.')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">{t('traceability.nameLabel', 'Nome do Produtor/Lote')}</Label>
+                  <Input type="text" id="name" value={formData.name} onChange={handleChange} required placeholder={t('traceability.namePlaceholder', 'Ex: Sítio Esperança - Lote 01/24')} />
+                </div>
+                
+                 <div className="space-y-2">
+                  <Label htmlFor="lotDescription">{t('traceability.lotDescriptionLabel', 'Descrição do Lote')}</Label>
+                  <Textarea
+                    id="lotDescription"
+                    value={formData.lotDescription}
+                    onChange={handleChange}
+                    required
+                    placeholder={t('traceability.lotDescriptionPlaceholder', 'Ex: Cacau da colheita de Junho')}
+                  />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="space-y-2">
+                    <Label htmlFor="wetCocoaWeight">{t('traceability.wetCocoaWeightLabel', 'Peso Cacau Mole (kg)')}</Label>
+                    <Input
+                        type="number"
+                        id="wetCocoaWeight"
+                        value={formData.wetCocoaWeight}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ex: 500.5"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="dryCocoaWeight">{t('traceability.dryCocoaWeightLabel', 'Peso Cacau Seco (kg)')}</Label>
+                    <Input
+                        type="number"
+                        id="dryCocoaWeight"
+                        value={formData.dryCocoaWeight}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ex: 210.2"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <Label htmlFor="fermentationTime">{t('traceability.fermentationTimeLabel', 'Tempo de Fermentação (dias)')}</Label>
+                    <Input
+                        type="number"
+                        id="fermentationTime"
+                        value={formData.fermentationTime}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ex: 7"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="dryingTime">{t('traceability.dryingTimeLabel', 'Tempo de Secagem (dias)')}</Label>
+                    <Input
+                        type="number"
+                        id="dryingTime"
+                        value={formData.dryingTime}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ex: 10"
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="isoClassification">{t('traceability.isoClassificationLabel', 'Classificação Física (ISO-2451)')}</Label>
+              <Input
+                type="text"
+                id="isoClassification"
+                value={formData.isoClassification}
+                onChange={handleChange}
+                required
+                placeholder={t('traceability.isoClassificationPlaceholder', 'Ex: Grau I, Tipo A')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="classificationBoardImage">{t('traceability.boardImageLabel', 'Imagem da Tábua de Classificação')}</Label>
+              <Input
+                type="file"
+                id="classificationBoardImage"
+                accept="image/*"
+                onChange={handleFileChange}
+                required
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              />
+              {formData.classificationBoardImagePreview && (
+                <div className="mt-4">
+                  <Image
+                    src={formData.classificationBoardImagePreview}
+                    alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')}
+                    width={200}
+                    height={200}
+                    className="rounded-md border object-cover"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4">
+                <Button type="submit">
+                    <Save className="mr-2 h-4 w-4" />
+                    {t('traceability.saveButton', 'Salvar Registro de Rastreabilidade')}
+                </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

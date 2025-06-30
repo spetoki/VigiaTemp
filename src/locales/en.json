@@ -3,6 +3,7 @@
   "nav.dashboard": "Dashboard",
   "nav.sensors": "Sensors",
   "nav.alerts": "Alerts",
+  "nav.traceability": "Traceability",
   "nav.optimizeAlarms": "Optimize Alarms",
   "nav.sensorCharts": "Sensor Charts",
   "nav.wifiDiscovery": "WiFi Discovery",
@@ -506,5 +507,23 @@
   "forgotPassword.emailPlaceholder": "your@email.com",
   "forgotPassword.successMessage": "If an account with this email exists, a password reset link has been sent.",
   "forgotPassword.validationError": "Validation error.",
-  "forgotPassword.invalidEmail": "Please enter a valid email."
+  "forgotPassword.invalidEmail": "Please enter a valid email.",
+
+  "traceability.pageTitle": "Cocoa Lot Traceability",
+  "traceability.pageDescription": "Record all important information for each cocoa lot to ensure quality and traceability.",
+  "traceability.formTitle": "Lot Traceability Form",
+  "traceability.formDescription": "Fill in all the fields below to create a new record.",
+  "traceability.nameLabel": "Producer/Lot Name",
+  "traceability.namePlaceholder": "E.g., Hope Farm - Lot 01/24",
+  "traceability.lotDescriptionLabel": "Lot Description",
+  "traceability.lotDescriptionPlaceholder": "E.g., Cocoa from the June harvest",
+  "traceability.wetCocoaWeightLabel": "Wet Cocoa Weight (kg)",
+  "traceability.dryCocoaWeightLabel": "Dry Cocoa Weight (kg)",
+  "traceability.fermentationTimeLabel": "Fermentation Time (days)",
+  "traceability.dryingTimeLabel": "Drying Time (days)",
+  "traceability.isoClassificationLabel": "Physical Classification (ISO-2451)",
+  "traceability.isoClassificationPlaceholder": "E.g., Grade I, Type A",
+  "traceability.boardImageLabel": "Image of Classification Board",
+  "traceability.boardImagePreviewAlt": "Classification board image preview",
+  "traceability.saveButton": "Save Traceability Record"
 }

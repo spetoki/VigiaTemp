@@ -3,6 +3,7 @@
   "nav.dashboard": "Painel",
   "nav.sensors": "Sensores",
   "nav.alerts": "Alertas",
+  "nav.traceability": "Rastreabilidade",
   "nav.optimizeAlarms": "Otimizar Alarmes",
   "nav.sensorCharts": "Gráficos dos Sensores",
   "nav.wifiDiscovery": "Descoberta WiFi",
@@ -506,5 +507,23 @@
   "forgotPassword.emailPlaceholder": "seu@email.com",
   "forgotPassword.successMessage": "Se uma conta com este email existir, um link de redefinição de senha foi enviado.",
   "forgotPassword.validationError": "Erro de validação.",
-  "forgotPassword.invalidEmail": "Por favor, insira um email válido."
+  "forgotPassword.invalidEmail": "Por favor, insira um email válido.",
+
+  "traceability.pageTitle": "Rastreabilidade de Lotes de Cacau",
+  "traceability.pageDescription": "Registre todas as informações importantes de cada lote de cacau para garantir a qualidade e a rastreabilidade.",
+  "traceability.formTitle": "Formulário de Rastreabilidade do Lote",
+  "traceability.formDescription": "Preencha todos os campos abaixo para criar um novo registro.",
+  "traceability.nameLabel": "Nome do Produtor/Lote",
+  "traceability.namePlaceholder": "Ex: Sítio Esperança - Lote 01/24",
+  "traceability.lotDescriptionLabel": "Descrição do Lote",
+  "traceability.lotDescriptionPlaceholder": "Ex: Cacau da colheita de Junho",
+  "traceability.wetCocoaWeightLabel": "Peso Cacau Mole (kg)",
+  "traceability.dryCocoaWeightLabel": "Peso Cacau Seco (kg)",
+  "traceability.fermentationTimeLabel": "Tempo de Fermentação (dias)",
+  "traceability.dryingTimeLabel": "Tempo de Secagem (dias)",
+  "traceability.isoClassificationLabel": "Classificação Física (ISO-2451)",
+  "traceability.isoClassificationPlaceholder": "Ex: Grau I, Tipo A",
+  "traceability.boardImageLabel": "Imagem da Tábua de Classificação",
+  "traceability.boardImagePreviewAlt": "Prévia da imagem da tábua",
+  "traceability.saveButton": "Salvar Registro de Rastreabilidade"
 }
