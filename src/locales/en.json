@@ -525,5 +525,15 @@
   "traceability.isoClassificationPlaceholder": "E.g., Grade I, Type A",
   "traceability.boardImageLabel": "Image of Classification Board",
   "traceability.boardImagePreviewAlt": "Classification board image preview",
-  "traceability.saveButton": "Save Traceability Record"
+  "traceability.saveButton": "Save Traceability Record",
+  "traceability.qrCodeTitle": "Lot Registered and QR Code Generated",
+  "traceability.qrCodeDescription": "The QR Code below contains all the lot information. Print it to attach to the physical lot.",
+  "traceability.printButton": "Print Label",
+  "traceability.newLotButton": "Register New Lot",
+  "traceability.lotDetails": "Lot Details",
+  "traceability.saveSuccessTitle": "Success!",
+  "traceability.saveSuccessDescription": "The traceability record was saved and the QR code has been generated.",
+  "traceability.qrCodeErrorTitle": "QR Code Generation Error",
+  "traceability.qrCodeErrorDescription": "Could not generate the QR code for this lot.",
+  "traceability.qrCodeAlt": "QR Code for lot {name}"
 }

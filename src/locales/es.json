@@ -525,5 +525,15 @@
   "traceability.isoClassificationPlaceholder": "Ej: Grado I, Tipo A",
   "traceability.boardImageLabel": "Imagen de la Tabla de Clasificación",
   "traceability.boardImagePreviewAlt": "Vista previa de la imagen de la tabla",
-  "traceability.saveButton": "Guardar Registro de Trazabilidad"
+  "traceability.saveButton": "Guardar Registro de Trazabilidad",
+  "traceability.qrCodeTitle": "Lote Registrado y Código QR Generado",
+  "traceability.qrCodeDescription": "El Código QR a continuación contiene toda la información del lote. Imprímalo para adjuntarlo al lote físico.",
+  "traceability.printButton": "Imprimir Etiqueta",
+  "traceability.newLotButton": "Registrar Nuevo Lote",
+  "traceability.lotDetails": "Detalles del Lote",
+  "traceability.saveSuccessTitle": "¡Éxito!",
+  "traceability.saveSuccessDescription": "El registro de trazabilidad se guardó y se ha generado el código QR.",
+  "traceability.qrCodeErrorTitle": "Error al Generar el Código QR",
+  "traceability.qrCodeErrorDescription": "No se pudo generar el código QR para este lote.",
+  "traceability.qrCodeAlt": "Código QR para el lote {name}"
 }
