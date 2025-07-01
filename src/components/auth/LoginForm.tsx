@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { login, LoginFormState } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +39,7 @@ function SubmitButton() {
 }
 
 export default function LoginForm() {
-  const [state, formAction] = useActionState(login, initialState);
+  const [state, formAction] = useFormState(login, initialState);
   const [showPassword, setShowPassword] = useState(false);
   const { login: authLogin } = useAuth();
   const { t } = useSettings();

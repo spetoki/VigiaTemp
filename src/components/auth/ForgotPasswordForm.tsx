@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { forgotPassword, ForgotPasswordFormState } from '@/app/forgot-password/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,7 @@ function SubmitButton() {
 }
 
 export default function ForgotPasswordForm() {
-  const [state, formAction] = useActionState(forgotPassword, initialState);
+  const [state, formAction] = useFormState(forgotPassword, initialState);
   const { t } = useSettings();
 
   if (state?.success) {

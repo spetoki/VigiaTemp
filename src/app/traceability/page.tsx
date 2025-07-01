@@ -26,8 +26,7 @@ interface TraceabilityData {
   fermentationTime: number | '';
   dryingTime: number | '';
   isoClassification: string;
-  classificationBoardImage: File | null;
-  classificationBoardImagePreview: string | null;
+  classificationBoardImageBase64: string | null; // Changed to store Base64
 }
 
 // Separate type for form state, without id/createdAt
@@ -39,8 +38,7 @@ interface TraceabilityFormData {
   fermentationTime: number | '';
   dryingTime: number | '';
   isoClassification: string;
-  classificationBoardImage: File | null;
-  classificationBoardImagePreview: string | null;
+  classificationBoardImageBase64: string | null; // Changed to store Base64
 }
 
 const initialFormData: TraceabilityFormData = {
@@ -51,11 +49,20 @@ const initialFormData: TraceabilityFormData = {
     fermentationTime: '',
     dryingTime: '',
     isoClassification: '',
-    classificationBoardImage: null,
-    classificationBoardImagePreview: null,
+    classificationBoardImageBase64: null,
 };
 
 const LS_LOTS_KEY = 'traceability_lots';
+
+// Helper to convert a file to a Base64 string
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default function TraceabilityPage() {
   const { t } = useSettings();
@@ -73,7 +80,15 @@ export default function TraceabilityPage() {
     try {
       const storedLots = localStorage.getItem(LS_LOTS_KEY);
       if (storedLots) {
-        setLots(JSON.parse(storedLots));
+        // Basic migration: ensure old data structure doesn't break the new one
+        const parsedLots = JSON.parse(storedLots).map((lot: any) => {
+            if (lot.classificationBoardImagePreview && !lot.classificationBoardImageBase64) {
+                // Cannot recover old blob URLs, but can prevent crashes
+                return { ...lot, classificationBoardImageBase64: null };
+            }
+            return lot;
+        });
+        setLots(parsedLots);
       }
     } catch (error) {
       console.error("Failed to load lots from localStorage", error);
@@ -114,13 +129,20 @@ export default function TraceabilityPage() {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setFormData((prev) => ({
-      ...prev,
-      classificationBoardImage: file,
-      classificationBoardImagePreview: file ? URL.createObjectURL(file) : null,
-    }));
+    if (file) {
+      const base64 = await fileToBase64(file);
+      setFormData((prev) => ({
+        ...prev,
+        classificationBoardImageBase64: base64,
+      }));
+    } else {
+       setFormData((prev) => ({
+        ...prev,
+        classificationBoardImageBase64: null,
+      }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -131,14 +153,11 @@ export default function TraceabilityPage() {
       createdAt: new Date().toISOString(),
     };
     
-    // Create a new array with the new lot at the beginning
     const updatedLots = [newLot, ...lots];
     
-    // Update state and localStorage
     setLots(updatedLots);
     localStorage.setItem(LS_LOTS_KEY, JSON.stringify(updatedLots));
     
-    // Switch to details view for the newly created lot
     setSelectedLot(newLot);
     setView('details');
     
@@ -234,9 +253,9 @@ export default function TraceabilityPage() {
                         <div className="space-y-2">
                             <Label htmlFor="classificationBoardImage">{t('traceability.boardImageLabel', 'Imagem da Tábua de Classificação')}</Label>
                             <Input type="file" id="classificationBoardImage" accept="image/*" onChange={handleFileChange} required className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                            {formData.classificationBoardImagePreview && (
+                            {formData.classificationBoardImageBase64 && (
                                 <div className="mt-4">
-                                <Image src={formData.classificationBoardImagePreview} alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')} width={200} height={200} className="rounded-md border object-cover" />
+                                <Image src={formData.classificationBoardImageBase64} alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')} width={200} height={200} className="rounded-md border object-cover" />
                                 </div>
                             )}
                         </div>
@@ -325,10 +344,10 @@ export default function TraceabilityPage() {
                             <p><strong>{t('traceability.fermentationTimeLabel', 'Tempo de Fermentação (dias)')}:</strong> {selectedLot.fermentationTime}</p>
                             <p><strong>{t('traceability.dryingTimeLabel', 'Tempo de Secagem (dias)')}:</strong> {selectedLot.dryingTime}</p>
                             <p><strong>{t('traceability.isoClassificationLabel', 'Classificação Física (ISO-2451)')}:</strong> {selectedLot.isoClassification}</p>
-                            {selectedLot.classificationBoardImagePreview && (
+                            {selectedLot.classificationBoardImageBase64 && (
                                 <div>
                                 <strong>{t('traceability.boardImageLabel', 'Imagem da Tábua de Classificação')}:</strong>
-                                <Image src={selectedLot.classificationBoardImagePreview} alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')} width={100} height={100} className="rounded-md border object-cover mt-2" />
+                                <Image src={selectedLot.classificationBoardImageBase64} alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')} width={100} height={100} className="rounded-md border object-cover mt-2" />
                                 </div>
                             )}
                         </div>

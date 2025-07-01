@@ -61,7 +61,7 @@ export default function WifiDiscoveryPage() {
     const SENSORS_KEY = `sensors_${currentUser.email}`;
     const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
     const existingSensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
-    const existingMacs = new Set(existingSensors.map(s => s.macAddress));
+    const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => mac !== undefined));
     
     setAddedMacs(existingMacs);
     setDiscoveredDevices(mockDiscoveredDevices);

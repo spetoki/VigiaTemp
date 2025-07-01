@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useFormStatus } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,7 +38,7 @@ function SubmitButton() {
 }
 
 export default function OptimizeAlarmsForm() {
-  const [state, formAction] = useActionState(handleOptimizeAlarms, initialState);
+  const [state, formAction] = useFormState(handleOptimizeAlarms, initialState);
 
   return (
     <>
@@ -127,5 +127,3 @@ export default function OptimizeAlarmsForm() {
     </>
   );
 }
-
-

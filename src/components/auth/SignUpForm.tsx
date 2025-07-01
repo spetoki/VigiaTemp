@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { signup, SignUpFormState } from '@/app/signup/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,7 @@ function SubmitButton() {
 }
 
 export default function SignUpForm() {
-  const [state, formAction] = useActionState(signup, initialState);
+  const [state, formAction] = useFormState(signup, initialState);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { t } = useSettings();
