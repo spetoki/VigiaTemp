@@ -16,16 +16,6 @@ const AmbientTemperatureOutputSchema = z.object({
 });
 export type AmbientTemperatureOutput = z.infer<typeof AmbientTemperatureOutputSchema>;
 
-// Define the prompt outside the flow for efficiency
-const getAmbientTemperaturePrompt = ai.definePrompt({
-    name: 'getAmbientTemperaturePrompt',
-    tools: [getRealTimeWeather],
-    // The output schema tells the LLM what we expect back
-    output: { schema: AmbientTemperatureOutputSchema },
-    prompt: 'What is the current temperature in São Paulo, Brazil? Use the available tools.'
-});
-
-
 export async function getAmbientTemperature(): Promise<AmbientTemperatureOutput> {
   return getAmbientTemperatureFlow();
 }
@@ -38,21 +28,14 @@ const getAmbientTemperatureFlow = ai.defineFlow(
   },
   async () => {
     try {
-      // Call the pre-defined prompt
-      const result = await getAmbientTemperaturePrompt();
-
-      const temp = result.output?.temperature;
-
-      if (temp === undefined) {
-        // Fallback in case the tool use fails silently.
-        return { temperature: 18 };
-      }
-
-      return { temperature: temp };
+      // Call the tool directly instead of using an LLM prompt for this simple task.
+      // This is more efficient and robust.
+      const weather = await getRealTimeWeather({ location: 'São Paulo, Brazil' });
+      return { temperature: weather.temperature };
     } catch (e) {
-      // AI features are disabled if the API key is missing or invalid.
-      // Return a default temperature to allow the app to function.
-      console.error("AI feature failed (getAmbientTemperature):", e);
+      // The direct tool call is local, but a fallback is still good practice
+      // in case of unexpected errors.
+      console.error("Feature failed (getAmbientTemperature):", e);
       return { temperature: 18 };
     }
   }
