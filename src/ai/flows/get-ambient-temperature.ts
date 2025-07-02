@@ -13,7 +13,7 @@
  */
 
 import {z} from 'zod';
-import { fetchSimulatedWeather } from '@/ai/tools/weather-tool';
+import { fetchSimulatedWeather } from '@/services/weather-service';
 
 const AmbientTemperatureOutputSchema = z.object({
   temperature: z.number().describe('The current ambient temperature in Celsius.'),

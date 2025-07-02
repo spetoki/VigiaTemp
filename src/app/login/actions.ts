@@ -6,12 +6,11 @@ import { z } from 'zod';
 // LoginSchema is now a local constant, not exported
 const LoginSchema = z.object({
   email: z.preprocess(
-    (val) => (typeof val === 'string' ? val.trim() : val), // Reverted to sync
+    (val) => (typeof val === 'string' ? val.trim() : val),
     z.string().refine(
-      (val) => { // Reverted to sync
-        if (val === 'admin') return true; // Permite 'admin' como username
-        // Valida como email para outros casos
-        return z.string().email().safeParse(val).success; 
+      (val) => {
+        if (typeof val === 'string' && val.toLowerCase() === 'admin') return true;
+        return z.string().email().safeParse(val).success;
       },
       { message: 'Por favor, insira um email válido ou "admin".' }
     )
@@ -54,9 +53,10 @@ export async function login(
   }
 
   const { email, password, rememberMe } = validatedFields.data;
+  const lowercasedEmail = email.toLowerCase();
 
   // Simulação de chamada de API de login
-  console.log('Tentativa de login:', { email, password, rememberMe });
+  console.log('Tentativa de login:', { email: lowercasedEmail, password, rememberMe });
   await new Promise(resolve => setTimeout(resolve, 1000));
 
   const adminUsers: Record<string, string> = {
@@ -65,12 +65,12 @@ export async function login(
   };
 
   // Login de Administrador
-  if (adminUsers[email]) {
-    if (password === adminUsers[email]) {
+  if (adminUsers[lowercasedEmail]) {
+    if (password === adminUsers[lowercasedEmail]) {
       return {
           message: 'login.adminSuccess',
           redirectTo: '/admin',
-          user: { email, role: 'admin' },
+          user: { email: lowercasedEmail, role: 'admin' },
       };
     } else {
       // Senha incorreta para o usuário admin
@@ -95,7 +95,7 @@ export async function login(
   return { 
     message: 'login.userSuccess',
     redirectTo: '/',
-    user: { email, role: 'user' },
+    user: { email: lowercasedEmail, role: 'user' },
   };
 }
 
