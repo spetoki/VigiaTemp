@@ -496,6 +496,8 @@
   "login.userSuccess": "Login bem-sucedido!",
   "login.authError": "Email ou senha inválidos.",
   "login.validationError": "Erro de validação.",
+  "login.pendingApproval": "Sua conta está pendente de aprovação por um administrador.",
+  "login.inactiveAccount": "Esta conta está inativa.",
 
   "forgotPassword.pageDescription": "Não se preocupe! Insira seu email abaixo para enviarmos um link de redefinição.",
   "forgotPassword.remembered": "Lembrou sua senha?",

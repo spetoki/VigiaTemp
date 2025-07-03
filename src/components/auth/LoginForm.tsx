@@ -1,9 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { login, LoginFormState } from '@/app/login/actions';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,11 +11,13 @@ import { Eye, EyeOff, AlertCircle, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
+import { demoUsers } from '@/lib/mockData';
+import type { User } from '@/types';
 
-const initialState: LoginFormState = {};
+// The LS_USERS_KEY needs to be consistent with the admin page and signup page
+const LS_USERS_KEY = 'vigiatemp_admin_users';
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ pending }: { pending: boolean }) {
   const { t } = useSettings();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
@@ -39,41 +39,104 @@ function SubmitButton() {
 }
 
 export default function LoginForm() {
-  const [state, formAction] = useFormState(login, initialState);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const { login: authLogin } = useAuth();
   const { t } = useSettings();
 
-  useEffect(() => {
-    if (state?.redirectTo && state.user) {
-      authLogin(state.user.role, state.user.email);
-    }
-  }, [state, authLogin]);
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = (formData.get('email') as string || '').toLowerCase().trim();
+    const password = formData.get('password') as string;
+
+    // Simulate async operation
+    setTimeout(() => {
+      let users: User[] = [];
+      try {
+        const storedUsers = localStorage.getItem(LS_USERS_KEY);
+        if (storedUsers) {
+          users = JSON.parse(storedUsers);
+        } else {
+          // If no users are in localStorage, initialize with demo data
+          users = demoUsers;
+          localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
+        }
+      } catch (e) {
+        users = demoUsers;
+      }
+
+      const foundUser = users.find(u => u.email.toLowerCase() === email);
+
+      // --- Admin login logic ---
+      const adminUsers: Record<string, string> = {
+        'admin': 'admin',
+        'spetoki@gmail.com': '123456',
+      };
+
+      if (adminUsers[email]) {
+        if (password === adminUsers[email]) {
+          authLogin('admin', email);
+          // Redirect is handled by the AuthContext now
+          return;
+        } else {
+          setError(t('login.authError', 'Email ou senha inválidos.'));
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // --- Regular user login logic ---
+      if (!foundUser) {
+        setError(t('login.authError', 'Email ou senha inválidos.'));
+        setIsLoading(false);
+        return;
+      }
+      
+      // For demo purposes, any password is correct unless it's "fail"
+      if (password === 'fail') {
+        setError(t('login.authError', 'Email ou senha inválidos.'));
+        setIsLoading(false);
+        return;
+      }
+
+      if (foundUser.status === 'Pending') {
+        setError(t('login.pendingApproval', 'Sua conta está pendente de aprovação por um administrador.'));
+        setIsLoading(false);
+        return;
+      }
+      
+      if (foundUser.status === 'Inactive') {
+        setError(t('login.inactiveAccount', 'Esta conta está inativa.'));
+        setIsLoading(false);
+        return;
+      }
+
+      if (foundUser.status === 'Active') {
+        authLogin('user', email);
+        return;
+      }
+
+      // Fallback error
+      setError(t('login.authError', 'Email ou senha inválidos.'));
+      setIsLoading(false);
+    }, 1000);
+  };
 
   return (
-    <form action={formAction} className="space-y-6">
-      {state?.errors?.form && (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>{t('login.errorTitle', 'Erro de Login')}</AlertTitle>
-          <AlertDescription>{t(state.errors.form.join(', '), state.errors.form.join(', '))}</AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-       {state?.message && !state.errors && !state.redirectTo && (
-        <Alert variant="default">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('login.successTitle', 'Sucesso')}</AlertTitle>
-          <AlertDescription>{t(state.message, state.message)}</AlertDescription>
-        </Alert>
-      )}
-      {state?.message && state.redirectTo && (
-         <Alert variant="default">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('login.successTitle', 'Sucesso')}</AlertTitle>
-          <AlertDescription>{t(state.message, state.message)}</AlertDescription>
-        </Alert>
-      )}
-
 
       <div className="space-y-2">
         <Label htmlFor="email">{t('login.emailLabel', 'Email ou "admin"')}</Label>
@@ -83,15 +146,7 @@ export default function LoginForm() {
           type="text" 
           placeholder={t('login.emailPlaceholder', 'seu@email.com ou admin')}
           required
-          defaultValue={state?.fields?.email}
-          aria-describedby="email-error"
-          className={state?.errors?.email ? 'border-destructive' : ''}
         />
-        {state?.errors?.email && (
-          <p id="email-error" className="text-sm text-destructive">
-            {t(state.errors.email.join(', '), state.errors.email.join(', '))}
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -111,8 +166,6 @@ export default function LoginForm() {
             type={showPassword ? 'text' : 'password'}
             placeholder={t('login.passwordPlaceholder', 'Sua senha')}
             required
-            aria-describedby="password-error"
-            className={state?.errors?.password ? 'border-destructive' : ''}
           />
           <Button
             type="button"
@@ -125,23 +178,16 @@ export default function LoginForm() {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
         </div>
-        {state?.errors?.password && (
-          <p id="password-error" className="text-sm text-destructive">
-            {t(state.errors.password.join(', '), state.errors.password.join(', '))}
-          </p>
-        )}
       </div>
 
       <div className="flex items-center space-x-2">
-        <Checkbox id="rememberMe" name="rememberMe" defaultChecked={!!state?.fields?.rememberMe} />
+        <Checkbox id="rememberMe" name="rememberMe" />
         <Label htmlFor="rememberMe" className="text-sm font-normal">
           {t('login.rememberMe', 'Lembrar-me')}
         </Label>
       </div>
       
-      <SubmitButton />
+      <SubmitButton pending={isLoading} />
     </form>
   );
 }
-
-    
