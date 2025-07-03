@@ -219,6 +219,7 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>(user.status);
   const [subscriptionTier, setSubscriptionTier] = useState(user.subscriptionTier || 'None');
   const [tempCoins, setTempCoins] = useState(user.tempCoins || 0);
+  const [password, setPassword] = useState('');
 
   const handleSave = () => {
     const updatedUser: User = {
@@ -228,6 +229,7 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
       status,
       subscriptionTier: subscriptionTier === 'None' ? null : subscriptionTier as User['subscriptionTier'],
       tempCoins,
+      password: password ? password : user.password,
     };
     onSave(updatedUser);
   };
@@ -251,6 +253,11 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="edit-email">{t('admin.usersTable.email', 'Email')}</Label>
             <Input id="edit-email" value={user.email} disabled />
+          </div>
+          {/* Password */}
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="edit-password">{t('admin.editUserDialog.passwordLabel', 'Nova Senha (deixe em branco para não alterar)')}</Label>
+            <Input id="edit-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
           {/* Role */}
           <div className="space-y-2">
