@@ -84,7 +84,7 @@ export default function LoginForm() {
       if (adminUsers[email]) {
         if (password === adminUsers[email]) {
           authLogin('admin', email);
-          router.push('/admin'); // Explicit redirect
+          router.push('/admin');
           return;
         } else {
           setError(t('login.authError', 'Email ou senha inválidos.'));
@@ -100,8 +100,16 @@ export default function LoginForm() {
         return;
       }
       
-      // For demo purposes, any password is correct unless it's "fail"
+      // For demo purposes, the password "fail" always fails
       if (password === 'fail') {
+        setError(t('login.authError', 'Email ou senha inválidos.'));
+        setIsLoading(false);
+        return;
+      }
+
+      // If the user has a password set (i.e., created by admin), check it.
+      // Otherwise, for original demo users, any password works (except "fail").
+      if (foundUser.password && password !== foundUser.password) {
         setError(t('login.authError', 'Email ou senha inválidos.'));
         setIsLoading(false);
         return;
@@ -121,7 +129,7 @@ export default function LoginForm() {
 
       if (foundUser.status === 'Active') {
         authLogin('user', email);
-        router.push('/'); // Explicit redirect
+        router.push('/');
         return;
       }
 

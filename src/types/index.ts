@@ -7,6 +7,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string; // For user creation by admin; not for secure storage in this demo.
   role: 'Admin' | 'User';
   status: 'Active' | 'Inactive' | 'Pending';
   joinedDate: string;

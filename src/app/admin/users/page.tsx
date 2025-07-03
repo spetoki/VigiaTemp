@@ -333,6 +333,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<'User' | 'Admin'>('User');
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
   const [subscriptionTier, setSubscriptionTier] = useState<User['subscriptionTier'] | 'None'>('Free');
@@ -341,8 +342,8 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
 
   const handleSave = () => {
     setError('');
-    if (!name || !email) {
-      setError('Nome e email são obrigatórios.');
+    if (!name || !email || !password) {
+      setError('Nome, email e senha são obrigatórios.');
       return;
     }
     if (existingUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
@@ -353,6 +354,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
     const newUser: Omit<User, 'id' | 'joinedDate'> = {
       name,
       email,
+      password,
       role,
       status,
       subscriptionTier: subscriptionTier === 'None' ? null : subscriptionTier,
@@ -378,6 +380,10 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="add-email">{t('admin.usersTable.email', 'Email')}</Label>
             <Input id="add-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="add-password">Senha</Label>
+            <Input id="add-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
            <div className="space-y-2">
             <Label htmlFor="add-role">{t('admin.usersTable.role', 'Função')}</Label>
