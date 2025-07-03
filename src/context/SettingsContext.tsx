@@ -27,17 +27,17 @@ async function importLocale(locale: LanguageCode): Promise<Translations> {
   try {
     switch (langShort) {
       case 'en':
-        return await import('@/locales/en.json');
+        return (await import('@/locales/en.json')).default;
       case 'es':
-        return await import('@/locales/es.json');
+        return (await import('@/locales/es.json')).default;
       case 'pt':
       default:
-        return await import('@/locales/pt.json');
+        return (await import('@/locales/pt.json')).default;
     }
   } catch (error) {
     console.error(`Could not load locale: ${locale}`, error);
     if (locale !== 'pt-BR') {
-        return await import('@/locales/pt.json'); // Fallback to PT if EN or ES fails
+        return (await import('@/locales/pt.json')).default; // Fallback to PT if EN or ES fails
     }
     return {};
   }
