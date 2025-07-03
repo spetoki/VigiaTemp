@@ -420,7 +420,7 @@
   "signup.creatingAccountButton": "Criando conta...",
   "signup.optionalInfoHint": "As informações abaixo são opcionais.",
 
-  "footer.copyright": "© {year} VigiaTemp. Todos os direitos reservados ao Irineu bonitão.",
+  "footer.copyright": "© {year} VigiaTemp. Todos os direitos reservados a I.M.B",
 
   "hardwareAssembly.title": "Guia de Montagem do Hardware",
   "hardwareAssembly.description": "Siga este guia passo a passo para montar seu primeiro protótipo de sensor de temperatura com ESP32 e DS18B20.",

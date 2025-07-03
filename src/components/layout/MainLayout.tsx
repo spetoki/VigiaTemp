@@ -21,12 +21,12 @@ function LayoutContent({ children }: MainLayoutProps) {
     setCurrentYear(new Date().getFullYear());
   }, []);
   
-  const baseFooterText = t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados ao Irineu bonitão.');
+  const baseFooterText = t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a I.M.B');
   
   // By waiting for currentYear to be set, we ensure the server-rendered HTML
   // and the initial client render are identical, preventing a hydration error.
   const footerText = currentYear 
-    ? t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados ao Irineu bonitão.', { year: currentYear })
+    ? t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a I.M.B', { year: currentYear })
     : baseFooterText.replace(' {year}', ''); // Render without the year on the server and initial client render.
 
   return (
