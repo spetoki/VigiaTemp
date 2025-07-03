@@ -7,7 +7,7 @@ import { demoUsers } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, UserPlus, Users, Crown, CalendarClock, Coins, Save } from 'lucide-react';
+import { Edit3, Trash2, UserPlus, Users, Crown, Coins, Save } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -27,6 +27,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
   useEffect(() => {
     if (authState === 'unauthenticated' || authState === 'user') {
@@ -69,6 +70,20 @@ export default function AdminUsersPage() {
     });
     setEditingUser(null);
   };
+  
+  const handleAddNewUser = (newUser: Omit<User, 'id' | 'joinedDate'>) => {
+    const finalNewUser: User = {
+        id: `user-${Date.now()}`,
+        joinedDate: new Date().toISOString().split('T')[0],
+        ...newUser
+    };
+    setUsers(currentUsers => {
+        const newUsers = [finalNewUser, ...currentUsers];
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(newUsers));
+        return newUsers;
+    });
+    setIsAddUserDialogOpen(false);
+  };
 
 
   if (isLoading || authState === 'loading' || authState !== 'admin') {
@@ -92,7 +107,7 @@ export default function AdminUsersPage() {
             <Users className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold font-headline text-primary">{t('admin.usersPage.title', 'Gerenciamento de Usuários')}</h1>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddUserDialogOpen(true)}>
             <UserPlus className="mr-2 h-4 w-4" /> {t('admin.usersPage.addUserButton', 'Adicionar Novo Usuário')}
           </Button>
         </div>
@@ -175,6 +190,13 @@ export default function AdminUsersPage() {
           user={editingUser}
           onSave={handleSaveUser}
           onClose={() => setEditingUser(null)}
+        />
+      )}
+       {isAddUserDialogOpen && (
+        <AddUserDialog
+          onSave={handleAddNewUser}
+          onClose={() => setIsAddUserDialogOpen(false)}
+          existingUsers={users}
         />
       )}
     </>
@@ -299,4 +321,126 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
   );
 }
 
-    
+// --- Add User Dialog Component ---
+interface AddUserDialogProps {
+  onSave: (user: Omit<User, 'id' | 'joinedDate'>) => void;
+  onClose: () => void;
+  existingUsers: User[];
+}
+
+function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
+  const { t } = useSettings();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState<'User' | 'Admin'>('User');
+  const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
+  const [subscriptionTier, setSubscriptionTier] = useState<User['subscriptionTier'] | 'None'>('Free');
+  const [tempCoins, setTempCoins] = useState(0);
+  const [error, setError] = useState('');
+
+  const handleSave = () => {
+    setError('');
+    if (!name || !email) {
+      setError('Nome e email são obrigatórios.');
+      return;
+    }
+    if (existingUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+        setError('Este email já está em uso.');
+        return;
+    }
+
+    const newUser: Omit<User, 'id' | 'joinedDate'> = {
+      name,
+      email,
+      role,
+      status,
+      subscriptionTier: subscriptionTier === 'None' ? null : subscriptionTier,
+      tempCoins,
+    };
+    onSave(newUser);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t('admin.usersPage.addUserButton', 'Adicionar Novo Usuário')}</DialogTitle>
+          <DialogDescription>
+            Preencha os dados abaixo para criar uma nova conta de usuário.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto px-2">
+          <div className="space-y-2">
+            <Label htmlFor="add-name">{t('admin.usersTable.name', 'Nome')}</Label>
+            <Input id="add-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-email">{t('admin.usersTable.email', 'Email')}</Label>
+            <Input id="add-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="add-role">{t('admin.usersTable.role', 'Função')}</Label>
+            <Select value={role} onValueChange={(value) => setRole(value as 'Admin' | 'User')}>
+              <SelectTrigger id="add-role">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="User">{t('admin.userRole.user', 'User')}</SelectItem>
+                <SelectItem value="Admin">{t('admin.userRole.admin', 'Admin')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-status">{t('admin.usersTable.status', 'Status')}</Label>
+            <Select value={status} onValueChange={(value) => setStatus(value as 'Active' | 'Inactive' | 'Pending')}>
+              <SelectTrigger id="add-status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">{t('admin.userStatus.active', 'Active')}</SelectItem>
+                <SelectItem value="Inactive">{t('admin.userStatus.inactive', 'Inactive')}</SelectItem>
+                <SelectItem value="Pending">{t('admin.userStatus.pending', 'Pending')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-subscriptionTier">{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</Label>
+            <Select value={subscriptionTier} onValueChange={(value) => setSubscriptionTier(value as any)}>
+              <SelectTrigger id="add-subscriptionTier">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                 <SelectItem value="None">{t('admin.usersTable.notApplicable', 'N/A')}</SelectItem>
+                 <SelectItem value="Free">{t('admin.userTier.free', 'Free')}</SelectItem>
+                 <SelectItem value="VIP1">{t('admin.userTier.vip1', 'VIP 1')}</SelectItem>
+                 <SelectItem value="VIP2">{t('admin.userTier.vip2', 'VIP 2')}</SelectItem>
+                 <SelectItem value="VIP4">{t('admin.userTier.vip4', 'VIP 4')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-tempCoins" className="flex items-center gap-2">
+              <Coins className="h-4 w-4 text-yellow-500" />
+              {t('admin.usersTable.tempCoins', 'TempCoins')}
+            </Label>
+            <Input
+              id="add-tempCoins"
+              type="number"
+              value={tempCoins}
+              onChange={(e) => setTempCoins(parseInt(e.target.value, 10) || 0)}
+            />
+          </div>
+          {error && <p className="text-destructive text-sm col-span-2">{error}</p>}
+        </div>
+        <DialogFooter className="border-t pt-4 mt-4">
+          <Button variant="outline" onClick={onClose}>{t('sensorForm.cancelButton', 'Cancelar')}</Button>
+          <Button onClick={handleSave}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            {t('admin.usersPage.addUserButton', 'Adicionar Usuário')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

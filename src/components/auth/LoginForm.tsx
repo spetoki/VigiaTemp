@@ -13,6 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
 import { demoUsers } from '@/lib/mockData';
 import type { User } from '@/types';
+import { useRouter } from 'next/navigation';
 
 // The LS_USERS_KEY needs to be consistent with the admin page and signup page
 const LS_USERS_KEY = 'vigiatemp_admin_users';
@@ -45,6 +46,7 @@ export default function LoginForm() {
 
   const { login: authLogin } = useAuth();
   const { t } = useSettings();
+  const router = useRouter();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -82,7 +84,7 @@ export default function LoginForm() {
       if (adminUsers[email]) {
         if (password === adminUsers[email]) {
           authLogin('admin', email);
-          // Redirect is handled by the AuthContext now
+          router.push('/admin'); // Explicit redirect
           return;
         } else {
           setError(t('login.authError', 'Email ou senha inválidos.'));
@@ -119,6 +121,7 @@ export default function LoginForm() {
 
       if (foundUser.status === 'Active') {
         authLogin('user', email);
+        router.push('/'); // Explicit redirect
         return;
       }
 

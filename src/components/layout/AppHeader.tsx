@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LogIn, LayoutPanelLeft, LogOut, Bell, Bluetooth, Wifi, Wrench, Gamepad2, ClipboardList } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LogIn, LayoutPanelLeft, LogOut, Bell, Bluetooth, Wifi, Wrench, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -39,7 +39,6 @@ export default function AppHeader() {
     { href: '/wifi-discovery', labelKey: 'nav.wifiDiscovery', icon: Wifi, defaultLabel: 'Descoberta WiFi' },
     { href: '/bluetooth-discovery', labelKey: 'nav.bluetoothDiscovery', icon: Bluetooth, defaultLabel: 'Descoberta Bluetooth' },
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
-    { href: '/games', labelKey: 'nav.games', icon: Gamepad2, defaultLabel: 'Jogos' },
   ];
 
   const userNavItems = [
