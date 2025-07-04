@@ -10,8 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { handleOptimizeAlarms, OptimizeFormState } from '@/app/optimize-alarms/actions';
 import { BrainCircuit, AlertCircle } from 'lucide-react';
 import React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import OptimizationResultCard from './OptimizationResultCard';
+import { useFormState } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 
 const initialState: OptimizeFormState = {};
 
