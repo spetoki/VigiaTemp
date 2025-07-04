@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useFormState, useFormStatus } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { forgotPassword, ForgotPasswordFormState } from '@/app/forgot-password/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,7 +71,7 @@ export default function ForgotPasswordForm() {
           className={state?.errors?.email ? 'border-destructive' : ''}
         />
         {state?.errors?.email && (
-          <p id="email-error" className="text-sm text-destructive">
+          <p id=\"email-error\" className=\"text-sm text-destructive\">
             {t(state.errors.email.join(', '), state.errors.email.join(', '))}
           </p>
         )}
