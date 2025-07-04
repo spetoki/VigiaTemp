@@ -269,7 +269,7 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
           {/* Subscription Tier */}
           <div className="space-y-2">
             <Label htmlFor="edit-subscriptionTier">{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</Label>
-            <Select value={subscriptionTier} onValueChange={(value) => setSubscriptionTier(value as any)}>
+            <Select value={subscriptionTier || 'None'} onValueChange={(value) => setSubscriptionTier(value === 'None' ? null : value as User['subscriptionTier'])}>
               <SelectTrigger id="edit-subscriptionTier">
                 <SelectValue />
               </SelectTrigger>
