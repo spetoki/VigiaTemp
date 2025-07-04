@@ -91,10 +91,11 @@ export default function TraceabilityPage() {
         setLots(parsedLots);
       }
     } catch (error) {
-      console.error("Failed to load lots from localStorage", error);
+      console.error("Failed to load lots from localStorage, defaulting to empty.", error);
       setLots([]);
+    } finally {
+        setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {

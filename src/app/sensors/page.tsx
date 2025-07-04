@@ -67,10 +67,11 @@ export default function SensorsPage() {
           setSensors([]);
         }
       } catch (error) {
-        console.error("Failed to access localStorage or parse sensors", error);
+        console.error("Failed to parse sensors from localStorage, defaulting to empty.", error);
         setSensors([]); // Default to empty array on error
+      } finally {
+          setIsLoading(false);
       }
-      setIsLoading(false);
     }
   }, [authState, currentUser, router]);
 

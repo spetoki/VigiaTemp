@@ -63,27 +63,30 @@ export default function LoginForm() {
       try {
         const storedUsers = localStorage.getItem(LS_USERS_KEY);
         if (storedUsers) {
-          const parsedUsers: any[] = JSON.parse(storedUsers);
-          users = parsedUsers.map(u => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            password: u.password,
-            role: u.role,
-            status: u.status,
-            joinedDate: u.joinedDate,
-            tempCoins: u.tempCoins,
-          }));
+          users = JSON.parse(storedUsers);
         } else {
           // If no users are in localStorage, initialize with demo data
           users = demoUsers;
           localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
         }
       } catch (e) {
+        console.error("Failed to load users from storage, using demo data.", e);
         users = demoUsers;
       }
 
-      const foundUser = users.find(u => u.email.toLowerCase() === email);
+      // Ensure users are cleaned
+      const cleanedUsers = users.map((u: any) => ({
+            id: u.id || `user-${Math.random()}`,
+            name: u.name || 'Unknown User',
+            email: u.email || 'unknown@email.com',
+            password: u.password,
+            role: u.role || 'User',
+            status: u.status || 'Pending',
+            joinedDate: u.joinedDate || new Date().toISOString(),
+            tempCoins: u.tempCoins || 0
+        }));
+
+      const foundUser = cleanedUsers.find(u => u.email.toLowerCase() === email);
 
       // --- Admin login logic ---
       const adminUsers: Record<string, string> = {

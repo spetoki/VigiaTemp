@@ -96,9 +96,9 @@ export default function DashboardPage() {
     if (!currentUser) return;
     
     const SENSORS_KEY = `sensors_${currentUser.email}`;
-    const storedSensors = localStorage.getItem(SENSORS_KEY);
-    if (storedSensors) {
-        try {
+    try {
+        const storedSensors = localStorage.getItem(SENSORS_KEY);
+        if (storedSensors) {
             const parsedSensors: any[] = JSON.parse(storedSensors);
             const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
                 id: s.id || `sensor-${Date.now()}`,
@@ -114,13 +114,15 @@ export default function DashboardPage() {
                 criticalAlertSound: s.criticalAlertSound,
             }));
             setSensors(cleanedSensors);
-        } catch (e) {
-            setSensors([]); // Default to empty if parsing fails
+        } else {
+            setSensors([]); // New user starts with no sensors
         }
-    } else {
-        setSensors([]); // New user starts with no sensors
+    } catch (e) {
+        console.error("Failed to parse sensors from localStorage, defaulting to empty.", e);
+        setSensors([]);
+    } finally {
+        setIsLoading(false);
     }
-    setIsLoading(false);
 
     const intervalId = setInterval(() => {
         if (ambientTemperature === null) return;
@@ -142,8 +144,10 @@ export default function DashboardPage() {
             
             let currentAlerts: Alert[] = [];
             try {
-                currentAlerts = JSON.parse(localStorage.getItem(ALERTS_KEY) || '[]') as Alert[];
+                const storedAlerts = localStorage.getItem(ALERTS_KEY);
+                currentAlerts = storedAlerts ? JSON.parse(storedAlerts) : [];
             } catch (e) {
+                console.error("Failed to parse alerts from localStorage, starting fresh.", e);
                 currentAlerts = [];
             }
             

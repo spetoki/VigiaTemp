@@ -48,10 +48,11 @@ export default function SensorChartsPage() {
           setSensors([]);
         }
       } catch (error) {
-        console.error("Failed to load sensors for charts", error);
+        console.error("Failed to load sensors for charts, defaulting to empty.", error);
         setSensors([]);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
   }, [currentUser]);
 

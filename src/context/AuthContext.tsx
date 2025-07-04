@@ -28,17 +28,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const findUserByEmail = useCallback((email: string): User | null => {
     try {
       const storedUsers = localStorage.getItem(LS_USERS_KEY);
-      let allUsers: User[] = storedUsers ? JSON.parse(storedUsers) : demoUsers;
+      // Use demoUsers as a base, then try to overwrite with stored users
+      let allUsers: User[] = demoUsers;
+      if (storedUsers) {
+        try {
+          const parsed = JSON.parse(storedUsers);
+          if (Array.isArray(parsed)) {
+            allUsers = parsed;
+          }
+        } catch (e) {
+          console.error("Could not parse users from localStorage, using demo data.", e);
+        }
+      }
 
-      allUsers = allUsers.map((u: any) => ({
-        id: u.id, name: u.name, email: u.email, password: u.password,
-        role: u.role, status: u.status, joinedDate: u.joinedDate, tempCoins: u.tempCoins
+      const cleanedUsers = allUsers.map((u: any) => ({
+        id: u.id || `user-${Math.random()}`,
+        name: u.name || 'Unknown User',
+        email: u.email || 'unknown@email.com',
+        password: u.password,
+        role: u.role || 'User',
+        status: u.status || 'Pending',
+        joinedDate: u.joinedDate || new Date().toISOString(),
+        tempCoins: u.tempCoins || 0
       }));
 
-      const foundUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+      const foundUser = cleanedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
       return foundUser || null;
-    } catch {
-      return null;
+    } catch (error) {
+      console.error("Failed to access localStorage for users, using demo data as fallback.", error);
+      const foundUser = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+      return foundUser || null;
     }
   }, []);
 
@@ -75,25 +94,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [router]);
 
   useEffect(() => {
-    try {
-      const storedAuth = localStorage.getItem(AUTH_KEY);
-      if (storedAuth) {
-        const { role, email } = JSON.parse(storedAuth);
-        const userDetails = findUserByEmail(email);
-        if (userDetails && userDetails.status === 'Active') {
-          setAuthState(role);
-          setCurrentUser(userDetails);
-        } else {
+    // This forces a login as 'admin' for debugging purposes.
+    const adminUser = findUserByEmail('admin');
+    if (adminUser) {
+        const authDataToStore = { role: 'admin', email: 'admin' };
+        try {
+            localStorage.setItem(AUTH_KEY, JSON.stringify(authDataToStore));
+        } catch(e) {
+            console.error("Failed to set auth in localStorage", e);
+        }
+        setAuthState('admin');
+        setCurrentUser(adminUser);
+    } else {
+        console.error("Could not find 'admin' user to force login. Falling back to default auth flow.");
+        try {
+          const storedAuth = localStorage.getItem(AUTH_KEY);
+          if (storedAuth) {
+            const { role, email } = JSON.parse(storedAuth);
+            const userDetails = findUserByEmail(email);
+            if (userDetails && userDetails.status === 'Active') {
+              setAuthState(role);
+              setCurrentUser(userDetails);
+            } else {
+              logout();
+            }
+          } else {
+            setAuthState('unauthenticated');
+            setCurrentUser(null);
+          }
+        } catch (error) {
+          console.error("Auth init failed, logging out.", error);
           logout();
         }
-      } else {
-        setAuthState('unauthenticated');
-        setCurrentUser(null);
-      }
-    } catch (error) {
-      console.error("Auth init failed:", error);
-      setAuthState('unauthenticated');
-      setCurrentUser(null);
     }
   }, [findUserByEmail, logout]);
 

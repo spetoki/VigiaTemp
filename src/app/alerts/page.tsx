@@ -38,7 +38,7 @@ export default function AlertsPage() {
         setAlerts([]);
       }
     } catch (error) {
-      console.error("Failed to parse alerts from localStorage", error);
+      console.error("Failed to parse alerts from localStorage, defaulting to empty.", error);
       setAlerts([]);
     } finally {
       setIsLoading(false);
