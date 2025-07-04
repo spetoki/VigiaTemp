@@ -18,6 +18,7 @@
   "nav.adminMenu": "Administration",
   "nav.closeMenu": "Close Menu",
   "nav.adminPanel": "Admin Panel",
+  "nav.deviceConfigurator": "Device Configurator",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
@@ -449,11 +450,14 @@
   "hardwareAssembly.step4Description": "Connect the 4.7kΩ resistor between the DATA pin of the sensor (the same one connected to GPIO 4) and the positive power rail (+). This resistor is crucial for stable communication with the sensor.",
   "hardwareAssembly.step5Title": "Final Check and Connection",
   "hardwareAssembly.step5Description": "Review all connections to ensure they are correct and firm. Once confirmed, connect the USB cable from your computer to the ESP32 board. An LED on the board should light up, indicating it is powered on.",
-  "hardwareAssembly.nextStepsTitle": "Next Steps",
+  "hardwareAssembly.nextStepsTitle": "Next Steps: Programming the ESP32",
   "hardwareAssembly.nextStepsDescription": "With the hardware assembled, the next step is to program the ESP32. You can use the free **Arduino IDE** software to write and upload code to your ESP32 (no physical Arduino board is needed). PlatformIO is another great alternative.",
   "hardwareAssembly.changeImage": "Change Image",
   "hardwareAssembly.enterEditMode": "Edit Page",
   "hardwareAssembly.exitEditMode": "Exit Edit Mode",
+  "hardwareAssembly.configuratorCard.title": "Generate Your Custom Code",
+  "hardwareAssembly.configuratorCard.description": "Instead of manually editing code, use our interactive configurator to generate the exact code for your device with just a few clicks. It's easier and less error-prone.",
+  "hardwareAssembly.configuratorCard.button": "Open Device Configurator",
 
   "login.pageDescription": "Welcome back! Access your account.",
   "login.noAccount": "Don't have an account?",
@@ -526,7 +530,29 @@
   "traceability.noLotsFound": "No lots registered yet. Start by registering a new lot.",
   "traceability.backToListButton": "Back to List",
   "traceability.saveErrorTitle": "Error Saving",
-  "traceability.saveErrorNoUser": "User not authenticated. Cannot save lot."
-}
+  "traceability.saveErrorNoUser": "User not authenticated. Cannot save lot.",
 
-    
+  "deviceConfigurator.title": "ESP32 Code Configurator",
+  "deviceConfigurator.description": "Fill in the fields below to generate custom code for your ESP32 device. This ensures it connects to your network and sends data to this application.",
+  "deviceConfigurator.formTitle": "Device Settings",
+  "deviceConfigurator.formDescription": "Enter your network and hardware details. Fields marked with * are required.",
+  "deviceConfigurator.ssidLabel": "WiFi Network Name (SSID)",
+  "deviceConfigurator.passwordLabel": "WiFi Password",
+  "deviceConfigurator.appUrlLabel": "Application URL",
+  "deviceConfigurator.appUrlDescription": "Enter the full URL of your deployed application, ending with /api/sensor.",
+  "deviceConfigurator.pinLabel": "Sensor Pin (GPIO)",
+  "deviceConfigurator.pinDescription": "Data pin for the DS18B20 sensor. Default is 4.",
+  "deviceConfigurator.intervalLabel": "Send Interval (seconds)",
+  "deviceConfigurator.intervalDescription": "Frequency of data transmission. Default is 30s.",
+  "deviceConfigurator.generateButton": "Generate Code",
+  "deviceConfigurator.generatedCodeTitle": "Generated Code for Arduino IDE",
+  "deviceConfigurator.generatedCodeDescription": "Copy and paste this code into your Arduino IDE.",
+  "deviceConfigurator.copyButton": "Copy Code",
+  "deviceConfigurator.copiedButton": "Copied!",
+  "deviceConfigurator.errorTitle": "Required Fields",
+  "deviceConfigurator.errorDescription": "Please fill in the Network Name, Password, and Application URL.",
+  "deviceConfigurator.copySuccessTitle": "Copied!",
+  "deviceConfigurator.copySuccessDescription": "The code has been copied to your clipboard.",
+  "deviceConfigurator.copyErrorTitle": "Copy Failed",
+  "deviceConfigurator.copyErrorDescription": "Could not copy the code."
+}

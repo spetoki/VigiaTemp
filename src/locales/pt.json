@@ -18,6 +18,7 @@
   "nav.adminMenu": "Administração",
   "nav.closeMenu": "Fechar Menu",
   "nav.adminPanel": "Painel Admin",
+  "nav.deviceConfigurator": "Configurar Dispositivo",
 
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
@@ -448,11 +449,14 @@
   "hardwareAssembly.step4Description": "Conecte o resistor de 4.7kΩ entre o pino de DADOS do sensor (o mesmo conectado ao GPIO 4) e a linha de alimentação positiva (+). Este resistor é crucial para a comunicação estável com o sensor.",
   "hardwareAssembly.step5Title": "Verificação Final e Conexão",
   "hardwareAssembly.step5Description": "Revise todas as conexões para garantir que estão corretas e firmes. Uma vez confirmado, conecte o cabo USB do seu computador à placa ESP32. Um LED na placa deve acender, indicando que ela está ligada.",
-  "hardwareAssembly.nextStepsTitle": "Próximos Passos",
+  "hardwareAssembly.nextStepsTitle": "Próximos Passos: Programando o ESP32",
   "hardwareAssembly.nextStepsDescription": "Com o hardware montado, o próximo passo é programar o ESP32. Você pode usar o software gratuito **Arduino IDE** para escrever e carregar o código no seu ESP32 (nenhuma placa Arduino é necessária). PlatformIO é outra ótima alternativa.",
   "hardwareAssembly.changeImage": "Alterar Imagem",
   "hardwareAssembly.enterEditMode": "Editar Página",
   "hardwareAssembly.exitEditMode": "Sair da Edição",
+  "hardwareAssembly.configuratorCard.title": "Gere seu Código Personalizado",
+  "hardwareAssembly.configuratorCard.description": "Em vez de editar o código manualmente, use nosso configurador interativo para gerar o código exato para o seu dispositivo com apenas alguns cliques. É mais fácil e menos propenso a erros.",
+  "hardwareAssembly.configuratorCard.button": "Abrir Configurador de Dispositivo",
   
   "login.pageDescription": "Bem-vindo de volta! Acesse sua conta.",
   "login.noAccount": "Não tem uma conta?",
@@ -525,7 +529,29 @@
   "traceability.noLotsFound": "Nenhum lote registrado ainda. Comece registrando um novo lote.",
   "traceability.backToListButton": "Voltar para a Lista",
   "traceability.saveErrorTitle": "Erro ao Salvar",
-  "traceability.saveErrorNoUser": "Usuário não autenticado. Não é possível salvar o lote."
+  "traceability.saveErrorNoUser": "Usuário não autenticado. Não é possível salvar o lote.",
+  
+  "deviceConfigurator.title": "Configurador de Código para ESP32",
+  "deviceConfigurator.description": "Preencha os campos abaixo para gerar um código personalizado para o seu dispositivo ESP32. Isso garante que ele se conecte à sua rede e envie dados para este aplicativo.",
+  "deviceConfigurator.formTitle": "Configurações do Dispositivo",
+  "deviceConfigurator.formDescription": "Insira os dados da sua rede e do hardware. Os campos marcados com * são obrigatórios.",
+  "deviceConfigurator.ssidLabel": "Nome da Rede WiFi (SSID)",
+  "deviceConfigurator.passwordLabel": "Senha da Rede WiFi",
+  "deviceConfigurator.appUrlLabel": "URL do Aplicativo",
+  "deviceConfigurator.appUrlDescription": "Insira a URL completa da sua aplicação, terminando com /api/sensor.",
+  "deviceConfigurator.pinLabel": "Pino do Sensor (GPIO)",
+  "deviceConfigurator.pinDescription": "Pino de dados do sensor DS18B20. O padrão é 4.",
+  "deviceConfigurator.intervalLabel": "Intervalo de Envio (segundos)",
+  "deviceConfigurator.intervalDescription": "Frequência de envio de dados. Padrão é 30s.",
+  "deviceConfigurator.generateButton": "Gerar Código",
+  "deviceConfigurator.generatedCodeTitle": "Código Gerado para Arduino IDE",
+  "deviceConfigurator.generatedCodeDescription": "Copie e cole este código na sua Arduino IDE.",
+  "deviceConfigurator.copyButton": "Copiar Código",
+  "deviceConfigurator.copiedButton": "Copiado!",
+  "deviceConfigurator.errorTitle": "Campos Obrigatórios",
+  "deviceConfigurator.errorDescription": "Por favor, preencha o Nome da Rede, Senha e URL do Aplicativo.",
+  "deviceConfig-urator.copySuccessTitle": "Copiado!",
+  "deviceConfigurator.copySuccessDescription": "O código foi copiado para a sua área de transferência.",
+  "deviceConfigurator.copyErrorTitle": "Falha ao Copiar",
+  "deviceConfigurator.copyErrorDescription": "Não foi possível copiar o código."
 }
-
-    
