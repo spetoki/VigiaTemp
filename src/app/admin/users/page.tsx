@@ -218,7 +218,7 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
   const [name, setName] = useState(user.name);
   const [role, setRole] = useState<'Admin' | 'User'>(user.role);
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>(user.status);
-  const [subscriptionTier, setSubscriptionTier] = useState<User['subscriptionTier'] | 'None'>(user.subscriptionTier || 'None');
+  const [subscriptionTier, setSubscriptionTier] = useState<User['subscriptionTier'] | 'None' | null>(user.subscriptionTier || 'None');
   const [tempCoins, setTempCoins] = useState(user.tempCoins || 0);
   const [password, setPassword] = useState('');
 
