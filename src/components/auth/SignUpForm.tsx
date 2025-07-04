@@ -50,7 +50,19 @@ export default function SignUpForm() {
       
       try {
         const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
-        const users: User[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+        let users: User[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+
+        // Clean the stored data to be safe
+        users = users.map((u: any) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            password: u.password,
+            role: u.role,
+            status: u.status,
+            joinedDate: u.joinedDate,
+            tempCoins: u.tempCoins
+        }));
 
         // Prevent adding a duplicate if the form is submitted multiple times
         if (users.some(user => user.email === state.fields!.email)) {

@@ -28,7 +28,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const findUserByEmail = (email: string): User | null => {
     try {
       const storedUsers = localStorage.getItem(LS_USERS_KEY);
-      const allUsers: User[] = storedUsers ? JSON.parse(storedUsers) : demoUsers;
+      let allUsers: User[] = storedUsers ? JSON.parse(storedUsers) : demoUsers;
+
+      // Clean the stored data to ensure it matches the current User type
+      allUsers = allUsers.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        password: u.password,
+        role: u.role,
+        status: u.status,
+        joinedDate: u.joinedDate,
+        tempCoins: u.tempCoins
+      }));
+
       const foundUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
       return foundUser || null;
     } catch {

@@ -63,7 +63,17 @@ export default function LoginForm() {
       try {
         const storedUsers = localStorage.getItem(LS_USERS_KEY);
         if (storedUsers) {
-          users = JSON.parse(storedUsers);
+          const parsedUsers: any[] = JSON.parse(storedUsers);
+          users = parsedUsers.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            password: u.password,
+            role: u.role,
+            status: u.status,
+            joinedDate: u.joinedDate,
+            tempCoins: u.tempCoins,
+          }));
         } else {
           // If no users are in localStorage, initialize with demo data
           users = demoUsers;
