@@ -374,6 +374,7 @@
   "signup.emailInUse": "This email is already in use.",
   "signup.validationError": "Validation error. Check the fields.",
   "signup.passwordMismatch": "Passwords do not match.",
+  "signup.passwordMinLength": "Password must be at least 6 characters.",
   "signup.nameMinLength": "Name must be at least 2 characters.",
   "signup.nameLabel": "Full Name",
   "signup.namePlaceholder": "Your full name",
@@ -523,5 +524,9 @@
   "traceability.tableHeader.actions": "Actions",
   "traceability.viewDetailsButton": "View Details",
   "traceability.noLotsFound": "No lots registered yet. Start by registering a new lot.",
-  "traceability.backToListButton": "Back to List"
+  "traceability.backToListButton": "Back to List",
+  "traceability.saveErrorTitle": "Error Saving",
+  "traceability.saveErrorNoUser": "User not authenticated. Cannot save lot."
 }
+
+    

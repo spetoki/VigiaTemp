@@ -523,5 +523,9 @@
   "traceability.tableHeader.actions": "Acciones",
   "traceability.viewDetailsButton": "Ver Detalles",
   "traceability.noLotsFound": "Aún no hay lotes registrados. Comience registrando un nuevo lote.",
-  "traceability.backToListButton": "Volver a la Lista"
+  "traceability.backToListButton": "Volver a la Lista",
+  "traceability.saveErrorTitle": "Error al Guardar",
+  "traceability.saveErrorNoUser": "Usuario no autenticado. No se puede guardar el lote."
 }
+
+    

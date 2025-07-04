@@ -14,6 +14,7 @@ import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/context/AuthContext';
 
 // --- Types ---
 interface TraceabilityData {
@@ -52,8 +53,6 @@ const initialFormData: TraceabilityFormData = {
     classificationBoardImageBase64: null,
 };
 
-const LS_LOTS_KEY = 'traceability_lots';
-
 // Helper to convert a file to a Base64 string
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -67,6 +66,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 export default function TraceabilityPage() {
   const { t } = useSettings();
   const { toast } = useToast();
+  const { currentUser } = useAuth();
   
   type View = 'list' | 'form' | 'details';
   const [view, setView] = useState<View>('form');
@@ -76,9 +76,20 @@ export default function TraceabilityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
+  const getLotsKey = () => {
+    return currentUser ? `traceability_lots_${currentUser.email}` : null;
+  };
+
   useEffect(() => {
+    const LOTS_KEY = getLotsKey();
+    if (!LOTS_KEY) {
+      setIsLoading(false);
+      setLots([]); // Clear lots if user logs out
+      return;
+    }
+    
     try {
-      const storedLots = localStorage.getItem(LS_LOTS_KEY);
+      const storedLots = localStorage.getItem(LOTS_KEY);
       if (storedLots) {
         // Basic migration: ensure old data structure doesn't break the new one
         const parsedLots = JSON.parse(storedLots).map((lot: any) => {
@@ -89,6 +100,8 @@ export default function TraceabilityPage() {
             return lot;
         });
         setLots(parsedLots);
+      } else {
+        setLots([]); // No lots for this user yet
       }
     } catch (error) {
       console.error("Failed to load lots from localStorage, defaulting to empty.", error);
@@ -96,7 +109,7 @@ export default function TraceabilityPage() {
     } finally {
         setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {
@@ -148,6 +161,16 @@ export default function TraceabilityPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const LOTS_KEY = getLotsKey();
+    if (!LOTS_KEY) {
+      toast({
+        variant: 'destructive',
+        title: t('traceability.saveErrorTitle', 'Erro ao Salvar'),
+        description: t('traceability.saveErrorNoUser', 'Usuário não autenticado. Não é possível salvar o lote.'),
+      });
+      return;
+    }
+
     const newLot: TraceabilityData = {
       ...formData,
       id: `lot-${Date.now()}`,
@@ -157,7 +180,7 @@ export default function TraceabilityPage() {
     const updatedLots = [newLot, ...lots];
     
     setLots(updatedLots);
-    localStorage.setItem(LS_LOTS_KEY, JSON.stringify(updatedLots));
+    localStorage.setItem(LOTS_KEY, JSON.stringify(updatedLots));
     
     setSelectedLot(newLot);
     setView('details');
@@ -367,3 +390,5 @@ export default function TraceabilityPage() {
     </div>
   );
 }
+
+    
