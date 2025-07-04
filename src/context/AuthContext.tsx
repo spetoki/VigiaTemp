@@ -29,41 +29,79 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useSettings();
 
   useEffect(() => {
-    // This effect now automatically logs in the admin user on application load.
-    // This is done to bypass the login screen for easier development and testing,
-    // as requested.
     try {
-      const adminUser = demoUsers.find(u => u.role === 'Admin');
-      if (adminUser) {
-        setCurrentUser(adminUser);
+      const storedUsers = localStorage.getItem(LS_USERS_KEY);
+      if (!storedUsers) {
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
+      }
+
+      const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
+      if (sessionUserJson) {
+        const sessionUser = JSON.parse(sessionUserJson);
+        setCurrentUser(sessionUser);
         setAuthState('authenticated');
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(adminUser));
       } else {
-        // Fallback in case the admin user isn't found in mock data
-        console.error("Admin user not found in mock data.");
         setAuthState('unauthenticated');
       }
     } catch (error) {
-      console.error("Error during automatic admin login:", error);
+      console.error("Error initializing auth state:", error);
       setAuthState('unauthenticated');
     }
   }, []);
 
-  // The login and signup functions are kept for potential future use,
-  // but are not currently reachable as the app is always logged in as admin.
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
-    toast({ title: t('login.errorTitle', 'Error'), description: 'Login is currently disabled.', variant: 'destructive' });
-    return false;
-  }, [t, toast]);
+    const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+
+    if (user) {
+        if (user.status === 'Active') {
+            setCurrentUser(user);
+            setAuthState('authenticated');
+            sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+            toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
+            router.push('/');
+            return true;
+        } else {
+             toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
+             return false;
+        }
+    } else {
+      toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
+      return false;
+    }
+  }, [router, t, toast]);
 
   const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role'>): Promise<boolean> => {
-    toast({ title: t('signup.errorTitle', 'Error'), description: 'Signup is currently disabled.', variant: 'destructive' });
-    return false;
-  }, [t, toast]);
+    const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+    const existingUser = users.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
+
+    if (existingUser) {
+      toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
+      return false;
+    }
+    
+    // Check for pre-configured demo accounts to activate
+    const demoUser = demoUsers.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
+
+    const finalNewUser: User = {
+      ...newUser,
+      id: `user-${Date.now()}`,
+      joinedDate: new Date().toISOString().split('T')[0],
+      status: demoUser ? demoUser.status : 'Active', // Auto-approve for demo accounts
+      role: demoUser ? demoUser.role : 'User',
+      tempCoins: demoUser ? demoUser.tempCoins : 0,
+    };
+
+    users.unshift(finalNewUser);
+    localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+    
+    toast({ title: t('signup.successTitle', 'Success!'), description: `Account for ${finalNewUser.email} created. You can now log in.` });
+    router.push('/login');
+    return true;
+  }, [router, t, toast]);
+
 
   const logout = useCallback(() => {
-    // This will clear the session, but a page refresh will automatically log the admin back in.
-    // To truly log out, the automatic login in useEffect would need to be removed.
     setCurrentUser(null);
     setAuthState('unauthenticated');
     sessionStorage.removeItem(SESSION_USER_KEY);
