@@ -9,16 +9,18 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { handleOptimizeAlarms, OptimizeFormState } from '@/app/optimize-alarms/actions';
 import { BrainCircuit, AlertCircle } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import OptimizationResultCard from './OptimizationResultCard';
-import { useFormState, useFormStatus } from 'react';
+import { experimental_useFormStatus as useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+
 
 const initialState: OptimizeFormState = {};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto" aria-disabled={pending}>
       {pending ? (
         <>
           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -38,7 +40,7 @@ function SubmitButton() {
 }
 
 export default function OptimizeAlarmsForm() {
-  const [state, formAction] = useFormState(handleOptimizeAlarms, initialState);
+  const [state, formAction] = useActionState(handleOptimizeAlarms, initialState);
 
   return (
     <>
