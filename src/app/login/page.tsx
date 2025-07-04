@@ -62,7 +62,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-full items-center justify-center py-12">
+    <div className="flex flex-grow items-center justify-center">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">{t('nav.login', 'Login')}</CardTitle>
