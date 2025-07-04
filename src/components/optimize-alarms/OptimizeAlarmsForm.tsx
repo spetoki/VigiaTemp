@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +11,7 @@ import { handleOptimizeAlarms, OptimizeFormState } from '@/app/optimize-alarms/a
 import { BrainCircuit, AlertCircle } from 'lucide-react';
 import React from 'react';
 import OptimizationResultCard from './OptimizationResultCard';
+import { useFormState, useFormStatus } from 'react';
 
 const initialState: OptimizeFormState = {};
 
