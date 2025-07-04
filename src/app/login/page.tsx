@@ -63,13 +63,6 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <LoginForm />
-            <div className="mt-6 text-center text-sm">
-              {t('login.noAccount', 'Não tem uma conta?')}
-              {' '}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
-                {t('signup.signUpLink', 'Cadastre-se')}
-              </Link>
-            </div>
           </CardContent>
         </Card>
       </div>

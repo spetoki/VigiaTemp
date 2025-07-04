@@ -11,7 +11,7 @@ import { Edit3, Trash2, UserPlus, Users, Crown, Coins, Save } from 'lucide-react
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton'; // Mantido pois pode ser usado em outros lugares
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -52,17 +52,6 @@ export default function AdminUsersPage() {
     }
   }, [authState, router]);
   
-  const getTierBadgeVariant = (tier: User['subscriptionTier']) => {
-    switch (tier) {
-      case 'VIP1': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'VIP2': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'VIP3': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'VIP4': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'Free': return 'bg-gray-100 text-gray-800 border-gray-300';
-      default: return 'secondary';
-    }
-  };
-
   const handleSaveUser = (updatedUser: User) => {
     setUsers(currentUsers => {
       const newUsers = currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u);
@@ -124,7 +113,6 @@ export default function AdminUsersPage() {
                 <TableHead>{t('admin.usersTable.email', 'Email')}</TableHead>
                 <TableHead>{t('admin.usersTable.role', 'Função')}</TableHead>
                 <TableHead className="text-center">{t('admin.usersTable.status', 'Status')}</TableHead>
-                <TableHead className="flex items-center gap-1"><Crown className="h-4 w-4 text-muted-foreground"/>{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</TableHead>
                 <TableHead className="flex items-center gap-1"><Coins className="h-4 w-4 text-muted-foreground"/>{t('admin.usersTable.tempCoins', 'TempCoins')}</TableHead>
                 <TableHead>{t('admin.usersTable.joined', 'Registrado em')}</TableHead>
                 <TableHead className="text-right">{t('admin.usersTable.actions', 'Ações')}</TableHead>
