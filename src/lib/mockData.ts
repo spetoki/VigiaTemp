@@ -25,6 +25,16 @@ export const demoUsers: User[] = [
     joinedDate: '2024-07-01',
     tempCoins: 1000
   },
+  {
+    id: 'spetoki-user-placeholder-id',
+    name: 'Spetoki User',
+    email: 'spetoki@gmail.com',
+    password: 'spetoki123', // For reference during signup. Not stored securely.
+    role: 'User',
+    status: 'Active',
+    joinedDate: '2024-07-16',
+    tempCoins: 500
+  }
 ];
 
 
