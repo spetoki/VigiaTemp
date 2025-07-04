@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       ...newUser,
       id: `user-${Date.now()}`,
       joinedDate: new Date().toISOString().split('T')[0],
-      status: demoUser ? demoUser.status : 'Active', // Auto-approve for demo accounts
+      status: demoUser ? demoUser.status : 'Pending', // New users require admin approval
       role: demoUser ? demoUser.role : 'User',
       tempCoins: demoUser ? demoUser.tempCoins : 0,
     };
@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     users.unshift(finalNewUser);
     localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
     
-    toast({ title: t('signup.successTitle', 'Success!'), description: `Account for ${finalNewUser.email} created. You can now log in.` });
+    toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
     router.push('/login');
     return true;
   }, [router, t, toast]);
