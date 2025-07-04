@@ -322,6 +322,8 @@
   "admin.usersTable.role": "Rol",
   "admin.usersTable.status": "Estado",
   "admin.usersTable.joined": "Fecha de Registro",
+  "admin.usersTable.accessExpires": "Acceso Expira",
+  "admin.usersTable.neverExpires": "Nunca",
   "admin.usersTable.actions": "Acciones",
   "admin.usersTable.noUsers": "No se encontraron usuarios.",
   "admin.usersTable.editAction": "Editar",
@@ -357,6 +359,11 @@
   "admin.editUserDialog.description": "Ajuste los detalles, el estado y los permisos del usuario a continuación.",
   "admin.editUserDialog.save": "Guardar Cambios",
   "admin.editUserDialog.passwordLabel": "Nueva Contraseña (dejar en blanco para no cambiar)",
+  "admin.editUserDialog.accessExpiresLabel": "Fecha de Expiración del Acceso",
+  "admin.editUserDialog.accessExpiresPlaceholder": "El acceso nunca expira",
+
+  "auth.expired.title": "Acceso Expirado",
+  "auth.expired.description": "Su suscripción ha expirado. Por favor, contacte con el soporte.",
 
   "signup.errorTitle": "Error",
   "signup.successTitle": "¡Éxito!",

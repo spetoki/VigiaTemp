@@ -12,7 +12,7 @@ interface AuthContextType {
   currentUser: User | null;
   authState: AuthState;
   login: (email: string, password?: string) => Promise<boolean>;
-  signup: (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role'>) => Promise<boolean>;
+  signup: (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -33,37 +33,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
       let users: User[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
 
-      // If no users, seed with demo data
       if (users.length === 0) {
         users = demoUsers;
         localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
       } else {
-        // Self-healing: Ensure admin credentials are correct
-        const adminUserIndex = users.findIndex(u => u.role === 'Admin');
-        const demoAdmin = demoUsers.find(u => u.role === 'Admin');
+        const adminUserIndex = users.findIndex(u => u.role === 'Admin' || u.email === 'admin');
+        const demoAdmin = demoUsers.find(u => u.email === 'admin');
 
         if (demoAdmin) {
           if (adminUserIndex !== -1) {
             const adminUser = users[adminUserIndex];
-            // If email or password does not match, update it from demo data.
             if (adminUser.email !== demoAdmin.email || adminUser.password !== demoAdmin.password) {
               users[adminUserIndex] = { ...adminUser, email: demoAdmin.email, password: demoAdmin.password };
               localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
             }
           } else {
-            // If admin somehow got deleted, add it back.
             users.unshift(demoAdmin);
             localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
           }
         }
       }
 
-      // Continue with session logic
       const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
       if (sessionUserJson) {
-        const sessionUser = JSON.parse(sessionUserJson);
-        const userInStorage = users.find(u => u.id === sessionUser.id && u.status === 'Active');
-        if (userInStorage) {
+        const sessionUser: User = JSON.parse(sessionUserJson);
+        const userInStorage = users.find(u => u.id === sessionUser.id);
+        
+        // Check for access expiration on session load
+        if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
+          toast({
+            title: t('auth.expired.title', 'Acesso Expirado'),
+            description: t('auth.expired.description', 'Sua assinatura expirou. Entre em contato com o suporte.'),
+            variant: "destructive"
+          });
+          sessionStorage.removeItem(SESSION_USER_KEY);
+          setAuthState('unauthenticated');
+        } else if (userInStorage && userInStorage.status === 'Active') {
           setCurrentUser(userInStorage);
           setAuthState('authenticated');
         } else {
@@ -79,31 +84,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.removeItem(SESSION_USER_KEY);
       setAuthState('unauthenticated');
     }
-  }, []);
+  }, [t]);
 
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
     const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
 
     if (user) {
-        if (user.status === 'Active') {
-            setCurrentUser(user);
-            setAuthState('authenticated');
-            sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-            toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
-            router.push('/');
-            return true;
-        } else {
-             toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
-             return false;
+        if (user.status !== 'Active') {
+            toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
+            return false;
         }
+
+        if (user.accessExpiresAt && new Date(user.accessExpiresAt) < new Date()) {
+            toast({
+              title: t('auth.expired.title', 'Acesso Expirado'),
+              description: t('auth.expired.description', 'Sua assinatura expirou. Entre em contato com o suporte.'),
+              variant: "destructive"
+            });
+            return false;
+        }
+
+        setCurrentUser(user);
+        setAuthState('authenticated');
+        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+        toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
+        router.push('/');
+        return true;
     } else {
       toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
       return false;
     }
   }, [router, t, toast]);
 
-  const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role'>): Promise<boolean> => {
+  const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>): Promise<boolean> => {
     const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
     const existingUser = users.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
 
@@ -112,16 +126,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
     
-    // Check for pre-configured demo accounts to activate
-    const demoUser = demoUsers.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
-
     const finalNewUser: User = {
       ...newUser,
       id: `user-${Date.now()}`,
       joinedDate: new Date().toISOString().split('T')[0],
-      status: demoUser ? demoUser.status : 'Pending', // New users require admin approval
-      role: demoUser ? demoUser.role : 'User',
-      tempCoins: demoUser ? demoUser.tempCoins : 0,
+      status: 'Pending',
+      role: 'User',
+      tempCoins: 0,
+      accessExpiresAt: undefined,
     };
 
     users.unshift(finalNewUser);

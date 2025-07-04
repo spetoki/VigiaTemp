@@ -14,6 +14,7 @@ export interface User {
   status: 'Active' | 'Inactive' | 'Pending';
   joinedDate: string;
   tempCoins?: number;
+  accessExpiresAt?: string; // ISO 8601 date string
 }
 
 

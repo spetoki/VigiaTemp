@@ -8,7 +8,7 @@ import { demoUsers } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, UserPlus, Users, Coins, Save } from 'lucide-react';
+import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const LS_USERS_KEY = 'vigiatemp_admin_users';
 
@@ -56,6 +57,7 @@ export default function AdminUsersPage() {
         status: u.status || 'Pending',
         joinedDate: u.joinedDate || new Date().toISOString(),
         tempCoins: u.tempCoins || 0,
+        accessExpiresAt: u.accessExpiresAt || undefined,
       }));
       setUsers(cleanedUsers);
 
@@ -130,7 +132,7 @@ export default function AdminUsersPage() {
                 <TableHead>{t('admin.usersTable.email', 'Email')}</TableHead>
                 <TableHead>{t('admin.usersTable.role', 'Função')}</TableHead>
                 <TableHead className="text-center">{t('admin.usersTable.status', 'Status')}</TableHead>
-                <TableHead className="flex items-center gap-1"><Coins className="h-4 w-4 text-muted-foreground"/>{t('admin.usersTable.tempCoins', 'TempCoins')}</TableHead>
+                <TableHead>{t('admin.usersTable.accessExpires', 'Acesso Expira em')}</TableHead>
                 <TableHead>{t('admin.usersTable.joined', 'Registrado em')}</TableHead>
                 <TableHead className="text-right">{t('admin.usersTable.actions', 'Ações')}</TableHead>
               </TableRow>
@@ -164,8 +166,10 @@ export default function AdminUsersPage() {
                       {t(`admin.userStatus.${user.status.toLowerCase()}`, user.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-center">
-                    {(user.tempCoins || 0).toLocaleString(t('localeCode', 'pt-BR'))}
+                   <TableCell>
+                    {user.accessExpiresAt
+                      ? new Date(user.accessExpiresAt).toLocaleDateString(t('localeCode', 'pt-BR'))
+                      : t('admin.usersTable.neverExpires', 'Nunca')}
                   </TableCell>
                   <TableCell>{new Date(user.joinedDate).toLocaleDateString(t('localeCode', 'pt-BR'))}</TableCell>
                   <TableCell className="text-right">
@@ -210,12 +214,14 @@ interface EditUserDialogProps {
 function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
   const { t } = useSettings();
   
-  // State for all editable fields
   const [name, setName] = useState(user.name);
   const [role, setRole] = useState<'Admin' | 'User'>(user.role);
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>(user.status);
   const [tempCoins, setTempCoins] = useState(user.tempCoins || 0);
   const [password, setPassword] = useState('');
+  const [accessExpiresAt, setAccessExpiresAt] = useState<Date | undefined>(
+    user.accessExpiresAt ? new Date(user.accessExpiresAt) : undefined
+  );
 
   const handleSave = () => {
     const updatedUser: User = {
@@ -225,6 +231,7 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
       status,
       tempCoins,
       password: password ? password : user.password,
+      accessExpiresAt: accessExpiresAt?.toISOString(),
     };
     onSave(updatedUser);
   };
@@ -294,6 +301,18 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
               onChange={(e) => setTempCoins(parseInt(e.target.value, 10) || 0)}
             />
           </div>
+          {/* Access Expiration */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-access-expires" className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4" />
+              {t('admin.editUserDialog.accessExpiresLabel', 'Data de Expiração do Acesso')}
+            </Label>
+            <DatePicker
+                date={accessExpiresAt}
+                setDate={setAccessExpiresAt}
+                placeholder={t('admin.editUserDialog.accessExpiresPlaceholder', 'Acesso não expira')}
+            />
+          </div>
         </div>
         <DialogFooter className="border-t pt-4 mt-4">
           <Button variant="outline" onClick={onClose}>{t('sensorForm.cancelButton', 'Cancelar')}</Button>
@@ -323,6 +342,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
   const [role, setRole] = useState<'User' | 'Admin'>('User');
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
   const [tempCoins, setTempCoins] = useState(0);
+  const [accessExpiresAt, setAccessExpiresAt] = useState<Date | undefined>();
   const [error, setError] = useState('');
 
   const handleSave = () => {
@@ -343,6 +363,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
       role,
       status,
       tempCoins,
+      accessExpiresAt: accessExpiresAt?.toISOString(),
     };
     onSave(newUser);
   };
@@ -404,6 +425,18 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
               type="number"
               value={tempCoins}
               onChange={(e) => setTempCoins(parseInt(e.target.value, 10) || 0)}
+            />
+          </div>
+           {/* Access Expiration */}
+           <div className="space-y-2">
+            <Label htmlFor="add-access-expires" className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4" />
+              {t('admin.editUserDialog.accessExpiresLabel', 'Data de Expiração do Acesso')}
+            </Label>
+            <DatePicker
+                date={accessExpiresAt}
+                setDate={setAccessExpiresAt}
+                placeholder={t('admin.editUserDialog.accessExpiresPlaceholder', 'Acesso não expira')}
             />
           </div>
           {error && <p className="text-destructive text-sm col-span-2">{error}</p>}

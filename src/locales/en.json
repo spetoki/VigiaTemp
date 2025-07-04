@@ -322,6 +322,8 @@
   "admin.usersTable.role": "Role",
   "admin.usersTable.status": "Status",
   "admin.usersTable.joined": "Joined Date",
+  "admin.usersTable.accessExpires": "Access Expires",
+  "admin.usersTable.neverExpires": "Never",
   "admin.usersTable.actions": "Actions",
   "admin.usersTable.noUsers": "No users found.",
   "admin.usersTable.editAction": "Edit",
@@ -357,7 +359,12 @@
   "admin.editUserDialog.description": "Adjust the user's details, status, and permissions below.",
   "admin.editUserDialog.save": "Save Changes",
   "admin.editUserDialog.passwordLabel": "New Password (leave blank to keep current)",
+  "admin.editUserDialog.accessExpiresLabel": "Access Expiration Date",
+  "admin.editUserDialog.accessExpiresPlaceholder": "Access never expires",
 
+  "auth.expired.title": "Access Expired",
+  "auth.expired.description": "Your subscription has expired. Please contact support.",
+  
   "signup.errorTitle": "Error",
   "signup.successTitle": "Success!",
   "signup.pageDescription": "Fill out the fields below to sign up.",

@@ -6,24 +6,26 @@ import type { Sensor, User } from '@/types';
 // simply sign up with their respective email and password.
 export const demoUsers: User[] = [
   {
-    id: 'admin-user-placeholder-id', // This will be replaced by the actual Firebase UID after registration
+    id: 'admin-user-placeholder-id',
     name: 'Admin VigiaTemp',
     email: 'admin',
-    password: 'admin', // For reference during signup. Not stored securely.
+    password: 'admin',
     role: 'Admin',
     status: 'Active',
     joinedDate: '2023-01-15',
-    tempCoins: 99999
+    tempCoins: 99999,
+    accessExpiresAt: undefined, // Admin access never expires
   },
   {
-    id: 'user-placeholder-id', // This will be replaced by the actual Firebase UID after registration
+    id: 'user-placeholder-id',
     name: 'Usuário Padrão',
     email: 'user@vigiatemp.com',
-    password: 'user123', // For reference during signup. Not stored securely.
+    password: 'user123',
     role: 'User',
     status: 'Active',
     joinedDate: '2024-07-01',
-    tempCoins: 1000
+    tempCoins: 1000,
+    accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Access valid for 1 year
   }
 ];
 
