@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, CodeXml } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
@@ -33,6 +33,96 @@ const setStoredComponents = (components: Component[]) => {
     localStorage.setItem('hardware_components', JSON.stringify(components));
   }
 };
+
+const arduinoCode = `
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+// --- Configurações do Usuário ---
+const char* ssid = "NOME_DA_SUA_REDE_WIFI";
+const char* password = "SENHA_DA_SUA_REDE_WIFI";
+// URL do seu aplicativo (verifique o endereço após o deploy em produção)
+// Para testes locais, você pode precisar usar seu IP local, ex: "http://192.168.1.5:3000/api/sensor"
+const char* serverName = "http://SEU_APP_URL.vercel.app/api/sensor";
+
+// --- Configurações do Hardware ---
+// Pino GPIO onde o pino de dados do DS18B20 está conectado
+const int oneWireBus = 4; // GPIO 4
+
+// --- Variáveis Globais ---
+OneWire oneWire(oneWireBus);
+DallasTemperature sensors(&oneWire);
+unsigned long lastTime = 0;
+// Envia dados a cada 30 segundos (30000 milissegundos)
+unsigned long timerDelay = 30000;
+
+void setup() {
+  Serial.begin(115200);
+  sensors.begin();
+
+  WiFi.begin(ssid, password);
+  Serial.println("Conectando ao WiFi..");
+  while(WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado!");
+  Serial.print("Endereço IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.print("Endereço MAC: ");
+  Serial.println(WiFi.macAddress());
+}
+
+void loop() {
+  // Envia dados apenas no intervalo definido
+  if ((millis() - lastTime) > timerDelay) {
+    sensors.requestTemperatures(); 
+    float temperatureC = sensors.getTempCByIndex(0);
+
+    if(temperatureC == DEVICE_DISCONNECTED_C) {
+      Serial.println("Erro: Não foi possível ler a temperatura do sensor.");
+      return;
+    }
+
+    Serial.print("Temperatura: ");
+    Serial.print(temperatureC);
+    Serial.println(" °C");
+
+    // Verifica a conexão WiFi antes de enviar
+    if(WiFi.status() == WL_CONNECTED) {
+      HTTPClient http;
+      
+      http.begin(serverName);
+      http.addHeader("Content-Type", "application/json");
+
+      // Cria o payload JSON para enviar
+      String jsonPayload = "{\\"macAddress\\":\\"" + String(WiFi.macAddress()) + "\\",\\"temperature\\":" + String(temperatureC) + "}";
+
+      // Envia a requisição POST
+      int httpResponseCode = http.POST(jsonPayload);
+      
+      Serial.print("Código de resposta HTTP: ");
+      Serial.println(httpResponseCode);
+        
+      // Lê a resposta do servidor
+      if (httpResponseCode > 0) {
+        String response = http.getString();
+        Serial.println("Resposta do servidor:");
+        Serial.println(response);
+      }
+      
+      http.end();
+    } else {
+      Serial.println("WiFi Desconectado");
+    }
+    
+    lastTime = millis();
+  }
+}
+`;
+
 
 // --- Updated ComponentItem ---
 const ComponentItem = ({
@@ -98,12 +188,12 @@ const ComponentItem = ({
 
 export default function HardwareAssemblyPage() {
   const { t } = useSettings();
-  const { authState } = useAuth();
+  const { currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [components, setComponents] = useState<Component[]>(defaultComponents);
   const [mainDiagramUrl, setMainDiagramUrl] = useState("https://placehold.co/800x600.png");
   
-  const isAdmin = authState === 'admin';
+  const isAdmin = currentUser?.role === 'Admin';
 
   useEffect(() => {
     // This effect runs only on the client side, making it safe to access localStorage.
@@ -271,15 +361,24 @@ export default function HardwareAssemblyPage() {
           </div>
         </CardContent>
       </Card>
-
+      
       <Card>
         <CardHeader>
-          <CardTitle>{t('hardwareAssembly.nextStepsTitle', 'Próximos Passos')}</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <CodeXml className="h-5 w-5 text-primary"/>
+            {t('hardwareAssembly.nextStepsTitle', 'Próximos Passos: Programando o ESP32')}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">{t('hardwareAssembly.nextStepsDescription', 'Com o hardware montado, o próximo passo é programar o ESP32. Você pode usar o software gratuito **Arduino IDE** para escrever e carregar o código no seu ESP32 (nenhuma placa Arduino é necessária). PlatformIO é outra ótima alternativa.')}</p>
+        <CardContent className="space-y-4">
+            <p className="text-muted-foreground">{t('hardwareAssembly.nextStepsDescription', 'Com o hardware montado, o próximo passo é programar o ESP32. Você pode usar o software gratuito **Arduino IDE** para escrever e carregar o código no seu ESP32 (nenhuma placa Arduino é necessária). PlatformIO é outra ótima alternativa.')}</p>
+            <p className="text-muted-foreground">Antes de compilar, você precisará instalar duas bibliotecas usando o "Gerenciador de Bibliotecas" da Arduino IDE: <strong>OneWire</strong> e <strong>DallasTemperature</strong>.</p>
+            <div className="bg-gray-900 text-white p-4 rounded-lg font-mono text-xs overflow-x-auto">
+              <pre><code>{arduinoCode}</code></pre>
+            </div>
         </CardContent>
       </Card>
+
     </div>
   );
 }
+
