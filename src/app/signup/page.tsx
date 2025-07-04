@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, Mail, Lock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SignupPage() {
@@ -84,66 +84,82 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t('signup.nameLabel', 'Full Name')}</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                placeholder={t('signup.namePlaceholder', 'Your full name')}
-              />
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder={t('signup.namePlaceholder', 'Your full name')}
+                  className="pl-10"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">{t('signup.emailLabel', 'Email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder={t('signup.emailPlaceholder', 'your@email.com')}
-              />
+               <div className="relative">
+                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder={t('signup.emailPlaceholder', 'your@email.com')}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <div className="space-y-2 relative">
+            <div className="space-y-2">
               <Label htmlFor="password">{t('signup.passwordLabel', 'Password')}</Label>
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder={t('signup.passwordPlaceholder', 'Create a strong password')}
-              />
-               <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-7 h-7 w-7"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder={t('signup.passwordPlaceholder', 'Create a strong password')}
+                  className="pl-10 pr-10"
+                />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+              </div>
             </div>
-            <div className="space-y-2 relative">
+            <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t('signup.confirmPasswordLabel', 'Confirm Password')}</Label>
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                placeholder={t('signup.confirmPasswordPlaceholder', 'Repeat the password')}
-              />
-               <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-7 h-7 w-7"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? t('signup.hideConfirmPassword', "Hide confirmation") : t('signup.showConfirmPassword', "Show confirmation")}
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+              <div className="relative">
+                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder={t('signup.confirmPasswordPlaceholder', 'Repeat the password')}
+                  className="pl-10 pr-10"
+                />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? t('signup.hideConfirmPassword', "Hide confirmation") : t('signup.showConfirmPassword', "Show confirmation")}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -72,35 +72,43 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">{t('login.emailLabel', 'Login')}</Label>
-              <Input
-                id="email"
-                type="text"
-                placeholder={t('login.emailPlaceholder', "Digite 'admin' para o login de administrador")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+               <div className="relative">
+                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="text"
+                  placeholder={t('login.emailPlaceholder', "Digite 'admin' para o login de administrador")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <div className="space-y-2 relative">
+            <div className="space-y-2">
               <Label htmlFor="password">{t('login.passwordLabel', 'Password')}</Label>
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder={t('login.passwordPlaceholder', 'Your password')}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-               <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-7 h-7 w-7"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+              <div className="relative">
+                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t('login.passwordPlaceholder', 'Your password')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pl-10 pr-10"
+                />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
