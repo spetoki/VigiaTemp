@@ -30,21 +30,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     try {
-      const storedUsers = localStorage.getItem(LS_USERS_KEY);
-      if (!storedUsers) {
-        localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
+      const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
+      let users: User[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+
+      // If no users, seed with demo data
+      if (users.length === 0) {
+        users = demoUsers;
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+      } else {
+        // Self-healing: Ensure admin credentials are correct
+        const adminUserIndex = users.findIndex(u => u.role === 'Admin');
+        const demoAdmin = demoUsers.find(u => u.role === 'Admin');
+
+        if (demoAdmin) {
+          if (adminUserIndex !== -1) {
+            const adminUser = users[adminUserIndex];
+            // If email or password does not match, update it from demo data.
+            if (adminUser.email !== demoAdmin.email || adminUser.password !== demoAdmin.password) {
+              users[adminUserIndex] = { ...adminUser, email: demoAdmin.email, password: demoAdmin.password };
+              localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+            }
+          } else {
+            // If admin somehow got deleted, add it back.
+            users.unshift(demoAdmin);
+            localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+          }
+        }
       }
 
+      // Continue with session logic
       const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
       if (sessionUserJson) {
         const sessionUser = JSON.parse(sessionUserJson);
-        setCurrentUser(sessionUser);
-        setAuthState('authenticated');
+        const userInStorage = users.find(u => u.id === sessionUser.id && u.status === 'Active');
+        if (userInStorage) {
+          setCurrentUser(userInStorage);
+          setAuthState('authenticated');
+        } else {
+          sessionStorage.removeItem(SESSION_USER_KEY);
+          setAuthState('unauthenticated');
+        }
       } else {
         setAuthState('unauthenticated');
       }
     } catch (error) {
-      console.error("Error initializing auth state:", error);
+      console.error("Error initializing auth state, resetting for safety:", error);
+      localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
+      sessionStorage.removeItem(SESSION_USER_KEY);
       setAuthState('unauthenticated');
     }
   }, []);
