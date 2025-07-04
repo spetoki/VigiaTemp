@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -22,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from '@/components/ui/separator';
 
 export default function AppHeader() {
   const { temperatureUnit, setTemperatureUnit, t } = useSettings();
