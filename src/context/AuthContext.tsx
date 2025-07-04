@@ -36,48 +36,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
+  const logout = useCallback(() => {
     try {
-      let storedAuth = localStorage.getItem(AUTH_KEY);
+      localStorage.removeItem(AUTH_KEY);
+    } catch (error) {
+      console.error("Could not remove from localStorage.", error);
+    }
+    setAuthState('unauthenticated');
+    setCurrentUser(null);
+    router.push('/login');
+  }, [router]);
 
-      // If no auth data is found, simulate login for 'spetoki@gmail.com'
-      if (!storedAuth) {
-        const emailToLogin = 'spetoki@gmail.com';
-        const userToLogin = findUserByEmail(emailToLogin);
-        if (userToLogin) {
-          const role = userToLogin.role.toLowerCase() as 'user' | 'admin';
-          const authData = { role, email: emailToLogin };
-          localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
-          storedAuth = JSON.stringify(authData); // Use this new data for the rest of the logic
-        }
-      }
-      
-      if (storedAuth) {
-        const { role, email } = JSON.parse(storedAuth);
-        if ((role === 'user' || role === 'admin') && email) {
-          const fullUser = findUserByEmail(email);
-          if (fullUser) {
-            setAuthState(role);
-            setCurrentUser(fullUser);
-          } else {
-            setAuthState('unauthenticated');
-            setCurrentUser(null);
-            localStorage.removeItem(AUTH_KEY);
-          }
-        } else {
-          setAuthState('unauthenticated');
-          setCurrentUser(null);
-        }
+  useEffect(() => {
+    // Para fins de teste, esta seção força o login com 'spetoki@gmail.com' ao carregar o aplicativo.
+    // Em uma aplicação real, você removeria esta lógica e leria o estado de `localStorage`.
+    try {
+      const emailToLogin = 'spetoki@gmail.com';
+      const userToLogin = findUserByEmail(emailToLogin);
+
+      if (userToLogin) {
+        const role = userToLogin.role.toLowerCase() as 'user' | 'admin';
+        const authData = { role, email: emailToLogin };
+        localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+        setAuthState(role);
+        setCurrentUser(userToLogin);
       } else {
-        setAuthState('unauthenticated');
-        setCurrentUser(null);
+        // Se spetoki@gmail.com não for encontrado, volte para o estado não autenticado.
+        logout();
       }
     } catch (error) {
       console.error("Could not access localStorage. Defaulting to unauthenticated.", error);
-      setAuthState('unauthenticated');
-      setCurrentUser(null);
+      logout();
     }
-  }, []);
+  }, [logout]);
 
   const login = useCallback((role: 'user' | 'admin', email: string) => {
     const fullUser = findUserByEmail(email);
@@ -97,18 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthState(role);
       setCurrentUser(fullUser);
     }
-  }, []);
-
-  const logout = useCallback(() => {
-    try {
-      localStorage.removeItem(AUTH_KEY);
-    } catch (error) {
-      console.error("Could not remove from localStorage.", error);
-    }
-    setAuthState('unauthenticated');
-    setCurrentUser(null);
-    router.push('/login');
-  }, [router]);
+  }, [logout]);
 
   const value = { authState, currentUser, login, logout };
 
@@ -126,3 +106,4 @@ export const useAuth = () => {
   }
   return context;
 };
+    
