@@ -89,21 +89,10 @@ export default function LoginForm() {
       const foundUser = cleanedUsers.find(u => u.email.toLowerCase() === email);
 
       // --- Admin login logic ---
-      const adminUsers: Record<string, string> = {
-        'admin': 'admin',
-        'spetoki@gmail.com': '123456',
-      };
-
-      if (adminUsers[email]) {
-        if (password === adminUsers[email]) {
-          authLogin('admin', email);
+      if (email === 'admin' && password === 'admin') {
+          authLogin('admin', 'admin');
           router.push('/admin');
           return;
-        } else {
-          setError(t('login.authError', 'Email ou senha inválidos.'));
-          setIsLoading(false);
-          return;
-        }
       }
 
       // --- Regular user login logic ---
@@ -141,8 +130,12 @@ export default function LoginForm() {
       }
 
       if (foundUser.status === 'Active') {
-        authLogin('user', email);
-        router.push('/');
+        authLogin(foundUser.role, email);
+        if (foundUser.role === 'Admin') {
+            router.push('/admin');
+        } else {
+            router.push('/');
+        }
         return;
       }
 

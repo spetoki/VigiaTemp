@@ -73,6 +73,7 @@ export default function SignUpForm() {
             id: `user-${Date.now()}`,
             name: state.fields.name,
             email: state.fields.email,
+            password: state.fields.password, // Store the password from the form
             role: 'User',
             status: 'Pending', // New users are set to Pending for admin approval
             joinedDate: new Date().toISOString().split('T')[0],

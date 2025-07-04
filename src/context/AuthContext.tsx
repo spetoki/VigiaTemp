@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const findUserByEmail = useCallback((email: string): User | null => {
     try {
       const storedUsers = localStorage.getItem(LS_USERS_KEY);
-      // Use demoUsers as a base, then try to overwrite with stored users
       let allUsers: User[] = demoUsers;
       if (storedUsers) {
         try {
@@ -94,38 +93,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [router]);
 
   useEffect(() => {
-    // This forces a login as 'admin' for debugging purposes.
-    const adminUser = findUserByEmail('admin');
-    if (adminUser) {
-        const authDataToStore = { role: 'admin', email: 'admin' };
-        try {
-            localStorage.setItem(AUTH_KEY, JSON.stringify(authDataToStore));
-        } catch(e) {
-            console.error("Failed to set auth in localStorage", e);
-        }
-        setAuthState('admin');
-        setCurrentUser(adminUser);
-    } else {
-        console.error("Could not find 'admin' user to force login. Falling back to default auth flow.");
-        try {
-          const storedAuth = localStorage.getItem(AUTH_KEY);
-          if (storedAuth) {
-            const { role, email } = JSON.parse(storedAuth);
-            const userDetails = findUserByEmail(email);
-            if (userDetails && userDetails.status === 'Active') {
-              setAuthState(role);
-              setCurrentUser(userDetails);
-            } else {
-              logout();
-            }
-          } else {
-            setAuthState('unauthenticated');
-            setCurrentUser(null);
-          }
-        } catch (error) {
-          console.error("Auth init failed, logging out.", error);
+    try {
+      const storedAuth = localStorage.getItem(AUTH_KEY);
+      if (storedAuth) {
+        const { role, email } = JSON.parse(storedAuth);
+        const userDetails = findUserByEmail(email);
+        if (userDetails && userDetails.status === 'Active') {
+          setAuthState(role);
+          setCurrentUser(userDetails);
+        } else {
           logout();
         }
+      } else {
+        setAuthState('unauthenticated');
+        setCurrentUser(null);
+      }
+    } catch (error) {
+      console.error("Auth init failed, logging out.", error);
+      logout();
     }
   }, [findUserByEmail, logout]);
 

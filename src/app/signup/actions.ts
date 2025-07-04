@@ -27,6 +27,7 @@ export type SignUpFormState = {
   fields?: {
     name?: string;
     email?: string;
+    password?: string;
   };
   success?: boolean;
 };
@@ -78,6 +79,7 @@ export async function signup(
     fields: {
         name: rawFormData.name,
         email: rawFormData.email,
+        password: rawFormData.password,
     } 
   };
 }
