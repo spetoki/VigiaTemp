@@ -25,21 +25,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const router = useRouter();
 
-  const findUserByEmail = (email: string): User | null => {
+  const findUserByEmail = useCallback((email: string): User | null => {
     try {
       const storedUsers = localStorage.getItem(LS_USERS_KEY);
       let allUsers: User[] = storedUsers ? JSON.parse(storedUsers) : demoUsers;
 
-      // Clean the stored data to ensure it matches the current User type
       allUsers = allUsers.map((u: any) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        password: u.password,
-        role: u.role,
-        status: u.status,
-        joinedDate: u.joinedDate,
-        tempCoins: u.tempCoins
+        id: u.id, name: u.name, email: u.email, password: u.password,
+        role: u.role, status: u.status, joinedDate: u.joinedDate, tempCoins: u.tempCoins
       }));
 
       const foundUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
@@ -47,18 +40,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       return null;
     }
-  };
+  }, []);
 
   const login = useCallback((role: 'user' | 'admin', email: string) => {
     const fullUser = findUserByEmail(email);
     if (!fullUser) {
       console.error("Login failed: could not find user details for", email);
-      // Don't call logout here to avoid dependency cycle
-      try {
-        localStorage.removeItem(AUTH_KEY);
-      } catch (error) {
-        console.error("Could not remove from localStorage.", error);
-      }
+      try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
       setAuthState('unauthenticated');
       setCurrentUser(null);
       router.push('/login');
@@ -73,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setAuthState(role);
     setCurrentUser(fullUser);
-  }, [router]);
+  }, [router, findUserByEmail]);
 
   const logout = useCallback(() => {
     try {
@@ -87,29 +75,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [router]);
 
   useEffect(() => {
-    // This logic forcefully logs in 'spetoki@gmail.com' for testing purposes.
-    // It overrides any existing session.
     try {
-      const emailToLogin = 'spetoki@gmail.com';
-      const userToLogin = findUserByEmail(emailToLogin);
-
-      if (userToLogin) {
-        const role = userToLogin.role.toLowerCase() as 'user' | 'admin';
-        const authData = { role, email: emailToLogin };
-        localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
-        setAuthState(role);
-        setCurrentUser(userToLogin);
+      const storedAuth = localStorage.getItem(AUTH_KEY);
+      if (storedAuth) {
+        const { role, email } = JSON.parse(storedAuth);
+        const userDetails = findUserByEmail(email);
+        if (userDetails && userDetails.status === 'Active') {
+          setAuthState(role);
+          setCurrentUser(userDetails);
+        } else {
+          logout();
+        }
       } else {
-        // If spetoki@gmail.com is not found, default to unauthenticated state.
         setAuthState('unauthenticated');
         setCurrentUser(null);
       }
     } catch (error) {
-      console.error("Could not access localStorage. Defaulting to unauthenticated.", error);
+      console.error("Auth init failed:", error);
       setAuthState('unauthenticated');
       setCurrentUser(null);
     }
-  }, []); // Empty dependency array ensures this runs only once on mount.
+  }, [findUserByEmail, logout]);
 
   const value = { authState, currentUser, login, logout };
 
@@ -127,4 +113,3 @@ export const useAuth = () => {
   }
   return context;
 };
-    

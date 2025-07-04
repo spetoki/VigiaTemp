@@ -99,7 +99,21 @@ export default function DashboardPage() {
     const storedSensors = localStorage.getItem(SENSORS_KEY);
     if (storedSensors) {
         try {
-            setSensors(JSON.parse(storedSensors));
+            const parsedSensors: any[] = JSON.parse(storedSensors);
+            const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
+                id: s.id || `sensor-${Date.now()}`,
+                name: s.name || 'Unnamed Sensor',
+                location: s.location || 'Unknown Location',
+                currentTemperature: s.currentTemperature ?? 25,
+                highThreshold: s.highThreshold ?? 30,
+                lowThreshold: s.lowThreshold ?? 20,
+                historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
+                model: s.model,
+                ipAddress: s.ipAddress,
+                macAddress: s.macAddress,
+                criticalAlertSound: s.criticalAlertSound,
+            }));
+            setSensors(cleanedSensors);
         } catch (e) {
             setSensors([]); // Default to empty if parsing fails
         }

@@ -29,7 +29,21 @@ export default function SensorChartsPage() {
       try {
         const storedSensors = localStorage.getItem(SENSORS_KEY);
         if (storedSensors) {
-          setSensors(JSON.parse(storedSensors));
+          const parsedSensors: any[] = JSON.parse(storedSensors);
+          const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
+              id: s.id || `sensor-${Date.now()}`,
+              name: s.name || 'Unnamed Sensor',
+              location: s.location || 'Unknown Location',
+              currentTemperature: s.currentTemperature ?? 25,
+              highThreshold: s.highThreshold ?? 30,
+              lowThreshold: s.lowThreshold ?? 20,
+              historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
+              model: s.model,
+              ipAddress: s.ipAddress,
+              macAddress: s.macAddress,
+              criticalAlertSound: s.criticalAlertSound,
+          }));
+          setSensors(cleanedSensors);
         } else {
           setSensors([]);
         }
