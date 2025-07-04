@@ -147,15 +147,6 @@ export default function AdminUsersPage() {
                       {t(`admin.userStatus.${user.status.toLowerCase()}`, user.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {user.subscriptionTier ? (
-                      <Badge variant='outline' className={getTierBadgeVariant(user.subscriptionTier)}>
-                        {t(`admin.userTier.${user.subscriptionTier.toLowerCase()}`, user.subscriptionTier)}
-                      </Badge>
-                    ) : (
-                      t('admin.usersTable.notApplicable', 'N/A')
-                    )}
-                  </TableCell>
                   <TableCell className="font-mono text-center">
                     {(user.tempCoins || 0).toLocaleString(t('localeCode', 'pt-BR'))}
                   </TableCell>
