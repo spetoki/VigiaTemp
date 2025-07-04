@@ -74,7 +74,7 @@ export default function LoginForm() {
         users = demoUsers;
       }
 
-      // Ensure users are cleaned
+      // Ensure users are cleaned to prevent crashes from old data structures
       const cleanedUsers = users.map((u: any) => ({
             id: u.id || `user-${Math.random()}`,
             name: u.name || 'Unknown User',

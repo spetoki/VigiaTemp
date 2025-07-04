@@ -39,6 +39,7 @@ export default function AdminUsersPage() {
         const storedUsers = localStorage.getItem(LS_USERS_KEY);
         if (storedUsers) {
           const parsedUsers: any[] = JSON.parse(storedUsers);
+          // Data sanitization: ensure all properties exist with fallbacks
           const cleanedUsers: User[] = parsedUsers.map(u => ({
             id: u.id || `user-${Math.random()}`,
             name: u.name || 'Unknown User',

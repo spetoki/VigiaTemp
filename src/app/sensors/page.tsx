@@ -48,18 +48,19 @@ export default function SensorsPage() {
         const storedSensors = localStorage.getItem(SENSORS_KEY);
         if (storedSensors) {
           const parsedSensors: any[] = JSON.parse(storedSensors);
+           // Data sanitization: ensure all properties exist with fallbacks
           const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-              id: s.id || `sensor-${Date.now()}`,
+              id: s.id || `sensor-${Date.now()}${Math.random()}`,
               name: s.name || 'Unnamed Sensor',
               location: s.location || 'Unknown Location',
               currentTemperature: s.currentTemperature ?? 25,
               highThreshold: s.highThreshold ?? 30,
               lowThreshold: s.lowThreshold ?? 20,
               historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-              model: s.model,
-              ipAddress: s.ipAddress,
-              macAddress: s.macAddress,
-              criticalAlertSound: s.criticalAlertSound,
+              model: s.model || 'Unknown Model',
+              ipAddress: s.ipAddress || '',
+              macAddress: s.macAddress || '',
+              criticalAlertSound: s.criticalAlertSound || undefined,
           }));
           setSensors(cleanedSensors);
         } else {

@@ -33,7 +33,19 @@ export default function AlertsPage() {
     try {
       const storedAlerts = localStorage.getItem(ALERTS_KEY);
       if (storedAlerts) {
-        setAlerts(JSON.parse(storedAlerts));
+        // Data sanitization for alerts
+        const parsedAlerts: any[] = JSON.parse(storedAlerts);
+        const cleanedAlerts: Alert[] = parsedAlerts.map(a => ({
+          id: a.id || `alert-${Date.now()}${Math.random()}`,
+          sensorId: a.sensorId || 'unknown-sensor',
+          sensorName: a.sensorName || 'Unknown Sensor',
+          timestamp: a.timestamp || Date.now(),
+          level: a.level === 'critical' || a.level === 'warning' ? a.level : 'warning',
+          message: a.message || 'No message provided.',
+          acknowledged: typeof a.acknowledged === 'boolean' ? a.acknowledged : false,
+          reason: a.reason === 'high' || a.reason === 'low' ? a.reason : undefined,
+        }));
+        setAlerts(cleanedAlerts);
       } else {
         setAlerts([]);
       }
