@@ -64,8 +64,6 @@ export default function SignUpForm() {
             role: 'User',
             status: 'Pending', // New users are set to Pending for admin approval
             joinedDate: new Date().toISOString().split('T')[0],
-            subscriptionTier: 'Free',
-            subscriptionEndDate: null,
             tempCoins: 0,
         };
 

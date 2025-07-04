@@ -1,13 +1,6 @@
 
 import type { Sensor, User } from '@/types';
 
-// Helper function to calculate subscription end date
-const calculateEndDate = (startDate: string, days: number): string => {
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + days);
-  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
-};
-
 // This list represents the initial state of users, typically for an admin to see.
 // New users are added to this list via the signup form.
 export const demoUsers: User[] = [
@@ -18,8 +11,6 @@ export const demoUsers: User[] = [
     role: 'Admin', 
     status: 'Active', 
     joinedDate: '2023-01-15',
-    subscriptionTier: null,
-    subscriptionEndDate: null,
     tempCoins: 99999
   },
   { 
@@ -29,8 +20,6 @@ export const demoUsers: User[] = [
     role: 'Admin', 
     status: 'Active', 
     joinedDate: '2024-06-21',
-    subscriptionTier: null,
-    subscriptionEndDate: null,
     tempCoins: 99999
   },
   { 
@@ -40,8 +29,6 @@ export const demoUsers: User[] = [
     role: 'User', 
     status: 'Active', 
     joinedDate: '2023-02-20',
-    subscriptionTier: 'VIP1',
-    subscriptionEndDate: calculateEndDate('2023-02-20', 30),
     tempCoins: 1000
   },
   { 
@@ -51,8 +38,6 @@ export const demoUsers: User[] = [
     role: 'User', 
     status: 'Inactive', 
     joinedDate: '2023-03-10',
-    subscriptionTier: 'Free',
-    subscriptionEndDate: null,
     tempCoins: 50
   },
 ];

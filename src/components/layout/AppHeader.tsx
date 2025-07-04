@@ -56,19 +56,15 @@ export default function AppHeader() {
 
   const visibleMainNavItems = React.useMemo(() => {
     if (!currentUser || authState === 'unauthenticated' || authState === 'loading') return [];
-    if (authState === 'admin') return mainNavItems;
-    if (currentUser.subscriptionTier === 'Free' || !currentUser.subscriptionTier) return [];
-    return mainNavItems; // For VIP users
+    // All authenticated users have access to the main nav items.
+    return mainNavItems;
   }, [currentUser, authState]);
 
   const visibleUserNavItems = React.useMemo(() => {
     if (!currentUser) return [];
-    if (authState === 'admin' || (currentUser.subscriptionTier && currentUser.subscriptionTier !== 'Free')) {
-      return userNavItems;
-    }
-    // For free users, only show the user profile link
-    return userNavItems.filter(item => item.href === '/user-profile');
-  }, [currentUser, authState]);
+    // All authenticated users have access to the user nav items.
+    return userNavItems;
+  }, [currentUser]);
 
 
   const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {

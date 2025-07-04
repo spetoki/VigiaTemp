@@ -11,8 +11,6 @@ export interface User {
   role: 'Admin' | 'User';
   status: 'Active' | 'Inactive' | 'Pending';
   joinedDate: string;
-  subscriptionTier?: 'Free' | 'VIP1' | 'VIP2' | 'VIP3' | 'VIP4' | null;
-  subscriptionEndDate?: string | null;
   tempCoins?: number;
 }
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -196,7 +197,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
   const [name, setName] = useState(user.name);
   const [role, setRole] = useState<'Admin' | 'User'>(user.role);
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>(user.status);
-  const [subscriptionTier, setSubscriptionTier] = useState<User['subscriptionTier'] | 'None' | null>(user.subscriptionTier || 'None');
   const [tempCoins, setTempCoins] = useState(user.tempCoins || 0);
   const [password, setPassword] = useState('');
 
@@ -206,7 +206,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
       name,
       role,
       status,
-      subscriptionTier: subscriptionTier === 'None' ? null : subscriptionTier as User['subscriptionTier'],
       tempCoins,
       password: password ? password : user.password,
     };
@@ -265,23 +264,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          {/* Subscription Tier */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-subscriptionTier">{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</Label>
-            <Select value={subscriptionTier || 'None'} onValueChange={(value) => setSubscriptionTier(value === 'None' ? null : value as User['subscriptionTier'])}>
-              <SelectTrigger id="edit-subscriptionTier">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                 <SelectItem value="None">{t('admin.usersTable.notApplicable', 'N/A')}</SelectItem>
-                 <SelectItem value="Free">{t('admin.userTier.free', 'Free')}</SelectItem>
-                 <SelectItem value="VIP1">{t('admin.userTier.vip1', 'VIP 1')}</SelectItem>
-                 <SelectItem value="VIP2">{t('admin.userTier.vip2', 'VIP 2')}</SelectItem>
-                 <SelectItem value="VIP3">{t('admin.userTier.vip3', 'VIP 3')}</SelectItem>
-                 <SelectItem value="VIP4">{t('admin.userTier.vip4', 'VIP 4')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           {/* TempCoins */}
           <div className="space-y-2">
             <Label htmlFor="edit-tempCoins" className="flex items-center gap-2">
@@ -323,7 +305,6 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'User' | 'Admin'>('User');
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Pending'>('Active');
-  const [subscriptionTier, setSubscriptionTier] = useState<User['subscriptionTier'] | 'None'>('Free');
   const [tempCoins, setTempCoins] = useState(0);
   const [error, setError] = useState('');
 
@@ -344,7 +325,6 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
       password,
       role,
       status,
-      subscriptionTier: subscriptionTier === 'None' ? null : subscriptionTier,
       tempCoins,
     };
     onSave(newUser);
@@ -393,22 +373,6 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
                 <SelectItem value="Active">{t('admin.userStatus.active', 'Active')}</SelectItem>
                 <SelectItem value="Inactive">{t('admin.userStatus.inactive', 'Inactive')}</SelectItem>
                 <SelectItem value="Pending">{t('admin.userStatus.pending', 'Pending')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="add-subscriptionTier">{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</Label>
-            <Select value={subscriptionTier ?? 'Free'} onValueChange={(value) => setSubscriptionTier(value as string as User['subscriptionTier'] | 'None')}>
-              <SelectTrigger id="add-subscriptionTier">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                 <SelectItem value="None">{t('admin.usersTable.notApplicable', 'N/A')}</SelectItem>
-                 <SelectItem value="Free">{t('admin.userTier.free', 'Free')}</SelectItem>
-                 <SelectItem value="VIP1">{t('admin.userTier.vip1', 'VIP 1')}</SelectItem>
-                 <SelectItem value="VIP2">{t('admin.userTier.vip2', 'VIP 2')}</SelectItem>
-                 <SelectItem value="VIP3">{t('admin.userTier.vip3', 'VIP 3')}</SelectItem>
-                 <SelectItem value="VIP4">{t('admin.userTier.vip4', 'VIP 4')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
