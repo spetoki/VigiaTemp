@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
