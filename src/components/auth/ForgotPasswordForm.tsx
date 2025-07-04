@@ -1,8 +1,7 @@
-
 'use client';
 
 import React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react';
 import { forgotPassword, ForgotPasswordFormState } from '@/app/forgot-password/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,10 +76,8 @@ export default function ForgotPasswordForm() {
           </p>
         )}
       </div>
-      
+
       <SubmitButton />
     </form>
   );
 }
-
-    
