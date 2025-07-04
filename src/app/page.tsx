@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -6,25 +7,33 @@ import SensorCard from '@/components/dashboard/SensorCard';
 import { simulateTemperatureUpdate } from '@/lib/mockData';
 import type { Sensor, Alert } from '@/types';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw, VolumeX, Volume2 } from 'lucide-react';
+import { RefreshCcw, VolumeX, Volume2, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 import { defaultCriticalSound } from '@/lib/sounds';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { t, temperatureUnit } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
-  const { currentUser } = useAuth();
+  const { currentUser, authState } = useAuth();
+  const router = useRouter();
 
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [ambientTemperature, setAmbientTemperature] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (authState === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [authState, router]);
+  
   useEffect(() => {
     const fetchAmbientTemp = async () => {
       try {
@@ -36,10 +45,10 @@ export default function DashboardPage() {
       }
     };
 
-    if (currentUser) {
+    if (authState === 'authenticated') {
        fetchAmbientTemp();
     }
-  }, [currentUser]);
+  }, [authState]);
 
 
   useEffect(() => {
@@ -85,7 +94,7 @@ export default function DashboardPage() {
   }, [soundQueue, isPlayingSound, isMuted]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (authState !== 'authenticated' || !currentUser) return;
     
     const SENSORS_KEY = `sensors_${currentUser.email}`;
     try {
@@ -198,15 +207,13 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [currentUser, t, temperatureUnit, ambientTemperature]);
+  }, [authState, currentUser, t, temperatureUnit, ambientTemperature]);
 
   const handleRefreshData = () => {
     if (!currentUser) return;
     setIsLoading(true);
     const SENSORS_KEY = `sensors_${currentUser.email}`;
     setTimeout(() => {
-      // Forcing a refresh to an empty state for now, as mockSensors is global.
-      // In a real app, you'd re-fetch from a server.
       setSensors([]);
       localStorage.setItem(SENSORS_KEY, JSON.stringify([]));
       setIsLoading(false);
@@ -214,7 +221,7 @@ export default function DashboardPage() {
   };
   
 
-  if (isLoading) {
+  if (isLoading || authState !== 'authenticated') {
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">

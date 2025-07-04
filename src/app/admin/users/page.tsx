@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -14,45 +15,60 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const LS_USERS_KEY = 'vigiatemp_admin_users';
 
 
 export default function AdminUsersPage() {
   const { t } = useSettings();
+  const { authState, currentUser } = useAuth();
+  const router = useRouter();
+  
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
   useEffect(() => {
+    if (authState === 'unauthenticated') {
+      router.push('/login');
+    } else if (authState === 'authenticated' && currentUser?.role !== 'Admin') {
+      router.push('/');
+    }
+  }, [authState, currentUser, router]);
+
+  useEffect(() => {
+    if (authState !== 'authenticated' || currentUser?.role !== 'Admin') return;
+
     try {
       const storedUsers = localStorage.getItem(LS_USERS_KEY);
-      if (storedUsers) {
-        const parsedUsers: any[] = JSON.parse(storedUsers);
-        // Data sanitization: ensure all properties exist with fallbacks
-        const cleanedUsers: User[] = parsedUsers.map(u => ({
-          id: u.id || `user-${Math.random()}`,
-          name: u.name || 'Unknown User',
-          email: u.email || 'unknown@email.com',
-          password: u.password, // Keep password if it exists
-          role: u.role || 'User',
-          status: u.status || 'Pending',
-          joinedDate: u.joinedDate || new Date().toISOString(),
-          tempCoins: u.tempCoins || 0,
-        }));
-        setUsers(cleanedUsers);
-      } else {
-        setUsers(demoUsers);
-        localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
+      const initialUsers = storedUsers ? JSON.parse(storedUsers) : [...demoUsers];
+
+      // Data sanitization
+      const cleanedUsers: User[] = initialUsers.map((u: any) => ({
+        id: u.id || `user-${Math.random()}`,
+        name: u.name || 'Unknown User',
+        email: u.email || 'unknown@email.com',
+        password: u.password, // Keep password if it exists
+        role: u.role || 'User',
+        status: u.status || 'Pending',
+        joinedDate: u.joinedDate || new Date().toISOString(),
+        tempCoins: u.tempCoins || 0,
+      }));
+      setUsers(cleanedUsers);
+
+      if (!storedUsers) {
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(cleanedUsers));
       }
     } catch (error) {
-      console.error("Failed to process users from localStorage, defaulting to demo users.", error);
+      console.error("Failed to process users, defaulting to demo users.", error);
       setUsers(demoUsers);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [authState, currentUser]);
   
   const handleSaveUser = (updatedUser: User) => {
     setUsers(currentUsers => {
@@ -77,8 +93,7 @@ export default function AdminUsersPage() {
     setIsAddUserDialogOpen(false);
   };
 
-
-  if (isLoading) {
+  if (isLoading || authState !== 'authenticated' || currentUser?.role !== 'Admin') {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">

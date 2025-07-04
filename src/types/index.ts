@@ -1,6 +1,8 @@
 
+
 export type TemperatureUnit = 'C' | 'F';
 export type LanguageCode = 'pt-BR' | 'en-US' | 'es-ES';
+export type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
 
 // A User type that is used across the application
 export interface User {

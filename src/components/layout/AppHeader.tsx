@@ -2,8 +2,8 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useSettings } from '@/context/SettingsContext';
@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle,
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import { useAuth } from '@/context/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +20,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function AppHeader() {
   const { temperatureUnit, setTemperatureUnit, t } = useSettings();
   const pathname = usePathname();
+  const { authState, currentUser, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const mainNavItems = [
@@ -48,7 +50,6 @@ export default function AppHeader() {
     { href: '/admin', labelKey: 'nav.adminPanel', icon: LayoutPanelLeft, defaultLabel: 'Painel Admin' },
   ];
 
-
   const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {
     href: string;
     labelKey: string;
@@ -68,7 +69,7 @@ export default function AppHeader() {
         pathname === href
           ? "bg-primary/10 text-primary"
           : "text-foreground/70 hover:text-foreground hover:bg-primary/5",
-        isMobile && "text-lg w-full justify-start"
+        isMobile && "text-base w-full justify-start"
       )}
       aria-current={pathname === href ? "page" : undefined}
     >
@@ -82,15 +83,15 @@ export default function AppHeader() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarFallback>A</AvatarFallback>
+            <AvatarFallback>{currentUser?.name?.charAt(0).toUpperCase() ?? 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Admin</p>
-            <p className="text-xs leading-none text-muted-foreground">admin@vigiatemp.com</p>
+            <p className="text-sm font-medium leading-none">{currentUser?.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -103,7 +104,7 @@ export default function AppHeader() {
               </DropdownMenuItem>
             </Link>
           ))}
-          {adminNavItems.map(item => (
+          {currentUser?.role === 'Admin' && adminNavItems.map(item => (
             <Link href={item.href} passHref key={item.href}>
               <DropdownMenuItem className="cursor-pointer">
                 <item.icon className="mr-2 h-4 w-4" />
@@ -112,10 +113,71 @@ export default function AppHeader() {
             </Link>
           ))}
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+         <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>{t('nav.logout', 'Log Out')}</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 
+  const MobileNavMenu = () => (
+     <div className="md:hidden">
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">{t('openMenu', 'Abrir menu')}</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full max-w-[300px] p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="text-left">{t('nav.mainMenu', 'Menu Principal')}</SheetTitle>
+              </SheetHeader>
+              {authState === 'authenticated' ? (
+                <>
+                  <div className="flex-grow overflow-y-auto p-4">
+                      <div className="flex flex-col space-y-2">
+                        {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                        <Separator className="my-2" />
+                        <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.userMenu', 'Usuário')}</span>
+                        {userNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+
+                        {currentUser?.role === 'Admin' && (
+                          <>
+                            <Separator className="my-2" />
+                            <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.adminMenu', 'Administração')}</span>
+                            {adminNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                          </>
+                        )}
+                      </div>
+                  </div>
+                  <SheetFooter className="p-4 border-t">
+                      <Button variant="outline" className="w-full" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        {t('nav.logout', 'Log Out')}
+                      </Button>
+                  </SheetFooter>
+                </>
+              ) : (
+                <div className="flex-grow flex flex-col justify-center items-center gap-4 p-4">
+                    <SheetClose asChild>
+                        <Link href="/login" className={cn(buttonVariants({variant: 'default', size: 'lg'}), 'w-full')}>
+                            <LogIn className="mr-2 h-5 w-5" /> {t('nav.login', 'Login')}
+                        </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/signup" className={cn(buttonVariants({variant: 'secondary', size: 'lg'}), 'w-full')}>
+                            {t('signup.signUpLink', 'Sign up')}
+                        </Link>
+                    </SheetClose>
+                </div>
+              )}
+          </SheetContent>
+        </Sheet>
+      </div>
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -125,63 +187,45 @@ export default function AppHeader() {
           <span className="text-2xl font-bold text-primary font-headline">VigiaTemp</span>
         </Link>
         
-        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-          {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
-        </nav>
+        {authState === 'authenticated' && (
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+            {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
+          </nav>
+        )}
 
-        <div className="flex items-center gap-4">
-          <RadioGroup
-            value={temperatureUnit}
-            onValueChange={(value) => setTemperatureUnit(value as 'C' | 'F')}
-            className="flex items-center space-x-2"
-            aria-label={t('temperatureUnitSelection', 'Seleção de unidade de temperatura')}
-          >
-            <div className="flex items-center space-x-1">
-              <RadioGroupItem value="C" id="unit-c" />
-              <Label htmlFor="unit-c" className="cursor-pointer">°C</Label>
+        <div className="flex items-center gap-2 sm:gap-4">
+            <RadioGroup
+              value={temperatureUnit}
+              onValueChange={(value) => setTemperatureUnit(value as 'C' | 'F')}
+              className="hidden sm:flex items-center space-x-2"
+              aria-label={t('temperatureUnitSelection', 'Seleção de unidade de temperatura')}
+            >
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="C" id="unit-c-desktop" />
+                <Label htmlFor="unit-c-desktop" className="cursor-pointer">°C</Label>
+              </div>
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="F" id="unit-f-desktop" />
+                <Label htmlFor="unit-f-desktop" className="cursor-pointer">°F</Label>
+              </div>
+            </RadioGroup>
+
+          {authState === 'authenticated' ? (
+             <div className="hidden md:block">
+                <UserMenu />
+              </div>
+          ) : authState === 'unauthenticated' ? (
+            <div className="hidden md:flex items-center gap-2">
+              <Button asChild variant="ghost">
+                <Link href="/login">{t('nav.login', 'Login')}</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">{t('signup.signUpLink', 'Sign up')}</Link>
+              </Button>
             </div>
-            <div className="flex items-center space-x-1">
-              <RadioGroupItem value="F" id="unit-f" />
-              <Label htmlFor="unit-f" className="cursor-pointer">°F</Label>
-            </div>
-          </RadioGroup>
+          ) : null }
           
-          <div className="hidden md:block">
-            <UserMenu />
-          </div>
-
-          <div className="md:hidden">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">{t('openMenu', 'Abrir menu')}</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:w-[300px] p-6 flex flex-col">
-                 <SheetHeader className="text-left">
-                    <SheetTitle>{t('nav.mainMenu', 'Menu Principal')}</SheetTitle>
-                </SheetHeader>
-                <div className="flex-grow overflow-y-auto py-4">
-                    <div className="flex flex-col space-y-2">
-                      {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
-                      <hr className="my-2"/>
-                      <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.userMenu', 'Usuário')}</span>
-                      {userNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
-
-                      <hr className="my-2"/>
-                      <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.adminMenu', 'Administração')}</span>
-                      {adminNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
-                    </div>
-                </div>
-                <SheetFooter>
-                    <SheetClose asChild>
-                        <Button variant="outline" className="w-full">{t('nav.closeMenu', 'Fechar Menu')}</Button>
-                    </SheetClose>
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
-          </div>
+          <MobileNavMenu />
         </div>
       </div>
     </header>

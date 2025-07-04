@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -10,9 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Settings, Save, Bell, Palette } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminAppSettingsPage() {
   const { t } = useSettings();
+  const { authState, currentUser } = useAuth();
+  const router = useRouter();
 
   // States for example settings
   const [maintenanceMode, setMaintenanceMode] = React.useState(false);
@@ -20,6 +26,14 @@ export default function AdminAppSettingsPage() {
   const [maxSensorsPerUser, setMaxSensorsPerUser] = React.useState(10);
   const [defaultLanguage, setDefaultLanguage] = React.useState('pt-BR');
   const [enableEmailNotifications, setEnableEmailNotifications] = React.useState(true);
+
+  useEffect(() => {
+    if (authState === 'unauthenticated') {
+      router.push('/login');
+    } else if (authState === 'authenticated' && currentUser?.role !== 'Admin') {
+      router.push('/');
+    }
+  }, [authState, currentUser, router]);
 
   const handleSaveChanges = () => {
     // Simulate saving changes
@@ -31,6 +45,19 @@ export default function AdminAppSettingsPage() {
       enableEmailNotifications 
     });
   };
+
+  if (authState !== 'authenticated' || currentUser?.role !== 'Admin') {
+    return (
+        <div className="space-y-8">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-6 w-full" />
+            <div className="space-y-6">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
