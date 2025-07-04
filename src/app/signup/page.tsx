@@ -59,7 +59,7 @@ export default function SignupPage() {
   
   if (authState === 'loading' || authState === 'authenticated') {
      return (
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex h-full flex-col items-center justify-center">
             <div className="w-full max-w-md space-y-4">
                 <Skeleton className="h-10 w-3/4 mx-auto" />
                 <Skeleton className="h-6 w-full mx-auto" />
@@ -74,7 +74,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex-grow flex items-center justify-center py-12">
+    <div className="flex h-full items-center justify-center py-12">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">{t('signup.signUpLink', 'Sign up')}</CardTitle>
