@@ -5,9 +5,10 @@ import type { Sensor, User } from '@/types';
 // New users are added to this list via the signup form.
 export const demoUsers: User[] = [
   { 
-    id: 'user-1', 
+    id: 'admin-user-placeholder-id', // This should be replaced by the actual Firebase UID after the admin is created
     name: 'Administrator', 
-    email: 'admin', 
+    email: 'admin@example.com', 
+    password: 'admin-password-placeholder', // For reference, not used by Firebase Auth
     role: 'Admin', 
     status: 'Active', 
     joinedDate: '2023-01-15',

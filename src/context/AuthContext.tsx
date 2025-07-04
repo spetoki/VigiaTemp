@@ -7,6 +7,16 @@ import type { User, AuthState } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from './SettingsContext';
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut,
+  updateProfile,
+  type User as FirebaseUser
+} from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -19,7 +29,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LS_USERS_KEY = 'vigiatemp_admin_users';
-const SESSION_KEY = 'vigiatemp_session';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -29,96 +38,129 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useSettings();
 
   useEffect(() => {
-    try {
-      const sessionUserJson = localStorage.getItem(SESSION_KEY);
-      if (sessionUserJson) {
-        const user = JSON.parse(sessionUserJson);
-        setCurrentUser(user);
-        setAuthState('authenticated');
-      } else {
-        setAuthState('unauthenticated');
-      }
-    } catch (error) {
-      console.error("Failed to parse session user from localStorage", error);
-      setAuthState('unauthenticated');
-    }
-  }, []);
-
-  const findUser = (email: string): User | undefined => {
-    const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
-    const allUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : [...demoUsers];
-    return allUsers.find((u: User) => u.email.toLowerCase() === email.toLowerCase());
-  };
-  
-  const login = async (email: string, password?: string): Promise<boolean> => {
-    // Special case for admin login without a password for demo purposes
-    if (email.toLowerCase() === 'admin' && password?.toLowerCase() === 'admin') {
-        const adminUser = demoUsers.find(u => u.email === 'admin');
-        if (adminUser) {
-            setCurrentUser(adminUser);
-            setAuthState('authenticated');
-            localStorage.setItem(SESSION_KEY, JSON.stringify(adminUser));
-            toast({ title: t('login.adminSuccess', 'Admin login successful! Redirecting...') });
-            router.push('/');
-            return true;
-        }
+    // Ensure demo users are in localStorage if it's empty
+    const storedUsers = localStorage.getItem(LS_USERS_KEY);
+    if (!storedUsers) {
+      localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
     }
     
-    // Standard user login
-    const user = findUser(email);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, find their profile in our user list
+        const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+        const appUser = users.find(u => u.id === firebaseUser.uid);
 
-    if (user && user.password === password) {
-       if (user.status === 'Pending') {
-         toast({ title: t('login.errorTitle', 'Error'), description: t('login.pendingApproval', "Your account is pending administrator approval."), variant: 'destructive' });
-         return false;
-       }
-       if (user.status === 'Inactive') {
-         toast({ title: t('login.errorTitle', 'Error'), description: t('login.inactiveAccount', "This account is inactive."), variant: 'destructive' });
-         return false;
-       }
-      
-      setCurrentUser(user);
-      setAuthState('authenticated');
-      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+        if (appUser) {
+          if (appUser.status === 'Active') {
+            setCurrentUser({
+              ...appUser,
+              name: firebaseUser.displayName || appUser.name,
+              email: firebaseUser.email || appUser.email,
+            });
+            setAuthState('authenticated');
+          } else {
+             toast({ title: t('login.errorTitle', 'Error'), description: t(appUser.status === 'Pending' ? 'login.pendingApproval' : 'login.inactiveAccount', "Account not active."), variant: 'destructive' });
+             signOut(auth); // Sign out user if not active
+             setAuthState('unauthenticated');
+          }
+        } else {
+          // This case handles users that exist in Firebase Auth but not in our local user list.
+          // We can create a default profile for them.
+          const newUser: User = {
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || 'New User',
+              email: firebaseUser.email!,
+              role: 'User',
+              status: 'Pending', // Default status, requires admin approval
+              joinedDate: new Date().toISOString(),
+              tempCoins: 0,
+          };
+          const updatedUsers = [...users, newUser];
+          localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
+          toast({ title: t('login.errorTitle', 'Error'), description: t('login.pendingApproval', "Your account is pending administrator approval."), variant: 'destructive' });
+          signOut(auth);
+          setAuthState('unauthenticated');
+        }
+      } else {
+        // User is signed out
+        setCurrentUser(null);
+        setAuthState('unauthenticated');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [t, toast]);
+
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    if (!password) {
+      toast({ title: t('login.errorTitle', 'Error'), description: "Password is required.", variant: 'destructive' });
+      return false;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged will handle setting the user state
       toast({ title: t('login.userSuccess', 'Login successful!') });
       router.push('/');
       return true;
+    } catch (error: any) {
+      console.error("Firebase Login Error:", error.code, error.message);
+      toast({ title: t('login.errorTitle', 'Error'), description: t('login.authError', "Invalid email or password."), variant: 'destructive' });
+      return false;
     }
-    
-    toast({ title: t('login.errorTitle', 'Error'), description: t('login.authError', "Invalid email or password."), variant: 'destructive' });
-    return false;
   };
 
   const signup = async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role'>): Promise<boolean> => {
-     const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
-     const allUsers: User[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [...demoUsers];
+    const { name, email, password } = newUser;
+    if (!password) return false;
 
-     if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
-        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: 'destructive' });
+    // Check if email already exists in our local list first
+    const allUsers: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+    if (allUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+       toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: 'destructive' });
+       return false;
+    }
+    
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+
+        // Update Firebase profile display name
+        await updateProfile(firebaseUser, { displayName: name });
+
+        // Add user to our local user management list
+        const finalNewUser: User = {
+            id: firebaseUser.uid,
+            name,
+            email,
+            role: 'User',
+            status: 'Pending',
+            joinedDate: new Date().toISOString(),
+            tempCoins: 0,
+        };
+        const updatedUsers = [...allUsers, finalNewUser];
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
+        
+        // Sign the user out immediately after registration, forcing them to wait for approval
+        await signOut(auth);
+
+        toast({ title: t('signup.successTitle', 'Success!'), description: t('signup.successPendingApproval', 'Account created successfully! Your account is pending administrator approval and will be activated soon.') });
+        router.push('/login');
+        return true;
+    } catch (error: any) {
+        console.error("Firebase Signup Error:", error);
+        let message = "An unknown error occurred during signup.";
+        if (error.code === 'auth/email-already-in-use') {
+            message = t('signup.emailInUse', 'This email is already in use.');
+        } else if (error.code === 'auth/weak-password') {
+            message = t('signup.passwordMinLength', 'Password must be at least 6 characters.');
+        }
+        toast({ title: t('signup.errorTitle', 'Error'), description: message, variant: 'destructive' });
         return false;
-     }
-
-     const finalNewUser: User = {
-        ...newUser,
-        id: `user-${Date.now()}`,
-        role: 'User',
-        status: 'Pending',
-        joinedDate: new Date().toISOString(),
-        tempCoins: 0,
-     };
-     
-     const updatedUsers = [...allUsers, finalNewUser];
-     localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
-     
-     toast({ title: t('signup.successTitle', 'Success!'), description: t('signup.successPendingApproval', 'Account created successfully! Your account is pending administrator approval and will be activated soon.') });
-     router.push('/login');
-     return true;
+    }
   };
 
   const logout = () => {
-    setCurrentUser(null);
-    setAuthState('unauthenticated');
-    localStorage.removeItem(SESSION_KEY);
+    signOut(auth);
     router.push('/login');
   };
 
