@@ -8,8 +8,8 @@ export const demoUsers: User[] = [
   {
     id: 'admin-user-placeholder-id', // This will be replaced by the actual Firebase UID after registration
     name: 'Admin VigiaTemp',
-    email: 'admin@vigiatemp.com',
-    password: 'admin123', // For reference during signup. Not stored securely.
+    email: 'admin',
+    password: 'admin', // For reference during signup. Not stored securely.
     role: 'Admin',
     status: 'Active',
     joinedDate: '2023-01-15',

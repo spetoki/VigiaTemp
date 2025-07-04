@@ -71,11 +71,11 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">{t('login.emailLabel', 'Email')}</Label>
+              <Label htmlFor="email">{t('login.emailLabel', 'Login')}</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder={t('login.emailPlaceholder', 'your@email.com')}
+                type="text"
+                placeholder={t('login.emailPlaceholder', "Digite 'admin' para o login de administrador")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
