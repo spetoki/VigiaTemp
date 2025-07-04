@@ -9,14 +9,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { handleOptimizeAlarms, OptimizeFormState } from '@/app/optimize-alarms/actions';
 import { BrainCircuit, AlertCircle } from 'lucide-react';
-import React, { useState } from 'react';
-import OptimizationResultCard from './OptimizationResultCard'; // Assuming this component exists
-
+import React from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import OptimizationResultCard from './OptimizationResultCard';
 
 const initialState: OptimizeFormState = {};
 
 function SubmitButton() {
-  const [pending, setPending] = useState(false); // Using useState for pending status
+  const { pending } = useFormStatus();
+
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto" aria-disabled={pending}>
       {pending ? (
@@ -38,16 +39,7 @@ function SubmitButton() {
 }
 
 export default function OptimizeAlarmsForm() {
-  const [state, setState] = useState<OptimizeFormState>(initialState); // Using useState for form state
-  const [isSubmitting, setIsSubmitting] = useState(false); // Using useState for submission status
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    const formData = new FormData(event.currentTarget);
-    setState(await handleOptimizeAlarms(state, formData)); // Assuming handleOptimizeAlarms takes state and formData
-    setIsSubmitting(false);
-  };
+  const [state, formAction] = useFormState(handleOptimizeAlarms, initialState);
 
   return (
     <>
@@ -61,7 +53,7 @@ export default function OptimizeAlarmsForm() {
             Forneça detalhes sobre seu cultivo de cacau para receber recomendações baseadas em IA para os limites ideais de alarme de temperatura. Todos os dados são processados com segurança.
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form action={formAction}>
           <CardContent className="space-y-6">
             {state?.message && !state.data && (
               <Alert variant={state.issues || state.message?.includes("falhou") || state.message?.includes("Erro:") ? "destructive" : "default"}>
