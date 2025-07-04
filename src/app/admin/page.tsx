@@ -1,41 +1,15 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Users, Settings, LayoutPanelLeft } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboardPage() {
   const { t } = useSettings();
-  const { authState } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (authState === 'unauthenticated' || authState === 'user') {
-      router.push('/login');
-    }
-  }, [authState, router]);
-  
-  if (authState === 'loading' || authState !== 'admin') {
-     return (
-        <div className="space-y-8">
-            <div className="text-left">
-                <Skeleton className="h-9 w-3/4" />
-                <Skeleton className="h-4 w-1/2 mt-2" />
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Skeleton className="h-48 w-full" />
-                <Skeleton className="h-48 w-full" />
-            </div>
-        </div>
-    );
-  }
 
   return (
     <div className="space-y-8">

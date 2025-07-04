@@ -8,19 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 
 export default function SensorChartsPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { authState, currentUser } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     if (currentUser) {
@@ -57,7 +49,7 @@ export default function SensorChartsPage() {
     }
   }, [currentUser]);
 
-  if (isLoading || authState === 'loading' || !currentUser) {
+  if (isLoading) {
     return (
       <div className="space-y-8">
         <div className="flex items-center gap-2">

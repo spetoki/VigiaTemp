@@ -1,32 +1,23 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Sensor } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Bluetooth, BluetoothConnected, XCircle, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
 export default function BluetoothDiscoveryPage() {
-  const { authState, currentUser } = useAuth();
-  const router = useRouter();
+  const { currentUser } = useAuth();
   const { t } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   const handleScan = async () => {
     if (!currentUser) {
@@ -92,19 +83,6 @@ export default function BluetoothDiscoveryPage() {
       setIsScanning(false);
     }
   };
-
-  if (authState === 'loading' || authState === 'unauthenticated') {
-    return (
-      <div className="space-y-6">
-        <div className="text-left">
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-4 w-1/2 mt-2" />
-        </div>
-        <Skeleton className="h-12 w-full max-w-sm" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">

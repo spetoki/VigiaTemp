@@ -1,29 +1,18 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useSettings } from '@/context/SettingsContext';
 import type { LanguageCode, TemperatureUnit } from '@/types';
 import { SlidersHorizontal, Palette, Thermometer } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
 type Theme = 'light' | 'dark';
 
 export default function SystemSettingsPage() {
   const { language, setLanguage, theme, setTheme, temperatureUnit, setTemperatureUnit, t } = useSettings();
-  const { authState } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   const languages: { value: LanguageCode; labelKey: string; defaultLabel: string }[] = [
     { value: 'pt-BR', labelKey: 'language.portuguese', defaultLabel: 'Português (Brasil)' },
@@ -40,22 +29,6 @@ export default function SystemSettingsPage() {
     { value: 'C', label: 'Celsius (°C)' },
     { value: 'F', label: 'Fahrenheit (°F)' },
   ];
-
-  if (authState === 'loading' || authState === 'unauthenticated') {
-     return (
-      <div className="space-y-8">
-        <div className="text-left">
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-4 w-1/2 mt-2" />
-        </div>
-        <div className="grid gap-8 md:grid-cols-2">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full md:col-span-2" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">

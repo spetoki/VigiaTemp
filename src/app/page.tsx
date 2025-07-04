@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import SensorCard from '@/components/dashboard/SensorCard';
-import { demoSensors, simulateTemperatureUpdate } from '@/lib/mockData';
+import { simulateTemperatureUpdate } from '@/lib/mockData';
 import type { Sensor, Alert } from '@/types';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, VolumeX, Volume2 } from 'lucide-react';
@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 import { defaultCriticalSound } from '@/lib/sounds';
 
@@ -20,18 +19,11 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { t, temperatureUnit } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
-  const { authState, currentUser } = useAuth();
-  const router = useRouter();
+  const { currentUser } = useAuth();
 
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [ambientTemperature, setAmbientTemperature] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   useEffect(() => {
     const fetchAmbientTemp = async () => {
@@ -222,7 +214,7 @@ export default function DashboardPage() {
   };
   
 
-  if (isLoading || authState === 'loading' || !currentUser) {
+  if (isLoading) {
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">

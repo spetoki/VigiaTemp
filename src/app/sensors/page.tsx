@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -28,15 +27,12 @@ export default function SensorsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useSettings();
-  const { authState, currentUser } = useAuth();
-  const router = useRouter();
+  const { currentUser } = useAuth();
 
   const getSensorsKey = () => currentUser ? `sensors_${currentUser.email}` : null;
 
   useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    } else if (currentUser) {
+    if (currentUser) {
       const SENSORS_KEY = getSensorsKey();
       if (!SENSORS_KEY) {
         setIsLoading(false);
@@ -74,7 +70,7 @@ export default function SensorsPage() {
           setIsLoading(false);
       }
     }
-  }, [authState, currentUser, router]);
+  }, [currentUser]);
 
   const handleAddSensor = () => {
     setEditingSensor(null);
@@ -178,7 +174,7 @@ export default function SensorsPage() {
     setEditingSensor(null);
   };
   
-  if (isLoading || authState === 'loading' || !currentUser) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -10,14 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Settings, Save, Bell, Palette } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminAppSettingsPage() {
   const { t } = useSettings();
-  const { authState } = useAuth();
-  const router = useRouter();
 
   // States for example settings
   const [maintenanceMode, setMaintenanceMode] = React.useState(false);
@@ -25,12 +20,6 @@ export default function AdminAppSettingsPage() {
   const [maxSensorsPerUser, setMaxSensorsPerUser] = React.useState(10);
   const [defaultLanguage, setDefaultLanguage] = React.useState('pt-BR');
   const [enableEmailNotifications, setEnableEmailNotifications] = React.useState(true);
-
-  useEffect(() => {
-    if (authState === 'unauthenticated' || authState === 'user') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   const handleSaveChanges = () => {
     // Simulate saving changes
@@ -42,20 +31,6 @@ export default function AdminAppSettingsPage() {
       enableEmailNotifications 
     });
   };
-
-  if (authState === 'loading' || authState !== 'admin') {
-    return (
-      <div className="space-y-8">
-        <div className="text-left">
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-4 w-1/2 mt-2" />
-        </div>
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">

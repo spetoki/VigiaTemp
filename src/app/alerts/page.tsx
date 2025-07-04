@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Alert } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AlertsTable from '@/components/alerts/AlertsTable';
 
 export default function AlertsPage() {
-  const { authState, currentUser } = useAuth();
-  const router = useRouter();
+  const { currentUser } = useAuth();
   const { t } = useSettings();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,9 +56,7 @@ export default function AlertsPage() {
   }, [getAlertsKey]);
 
   useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    } else if (currentUser) {
+    if (currentUser) {
       loadAlerts();
       
       const handleStorageChange = (event: StorageEvent) => {
@@ -71,7 +67,7 @@ export default function AlertsPage() {
       window.addEventListener('storage', handleStorageChange);
       return () => window.removeEventListener('storage', handleStorageChange);
     }
-  }, [authState, router, loadAlerts, currentUser, getAlertsKey]);
+  }, [loadAlerts, currentUser, getAlertsKey]);
 
   const handleAcknowledge = (alertId: string) => {
     const ALERTS_KEY = getAlertsKey();
@@ -107,7 +103,7 @@ export default function AlertsPage() {
 
   const unacknowledgedCount = useMemo(() => alerts.filter(a => !a.acknowledged).length, [alerts]);
 
-  if (authState === 'loading' || !currentUser) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">

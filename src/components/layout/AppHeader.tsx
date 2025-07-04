@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LogIn, LayoutPanelLeft, LogOut, Bell, Bluetooth, Wifi, Wrench, ClipboardList } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle,
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +24,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default function AppHeader() {
   const { temperatureUnit, setTemperatureUnit, t } = useSettings();
-  const { authState, logout, currentUser } = useAuth();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -49,22 +47,6 @@ export default function AppHeader() {
   const adminNavItems = [
     { href: '/admin', labelKey: 'nav.adminPanel', icon: LayoutPanelLeft, defaultLabel: 'Painel Admin' },
   ];
-
-  const authNavItems = [
-     { href: '/login', labelKey: 'nav.login', icon: LogIn, defaultLabel: 'Login' },
-  ];
-
-  const visibleMainNavItems = React.useMemo(() => {
-    if (!currentUser || authState === 'unauthenticated' || authState === 'loading') return [];
-    // All authenticated users have access to the main nav items.
-    return mainNavItems;
-  }, [currentUser, authState]);
-
-  const visibleUserNavItems = React.useMemo(() => {
-    if (!currentUser) return [];
-    // All authenticated users have access to the user nav items.
-    return userNavItems;
-  }, [currentUser]);
 
 
   const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {
@@ -95,84 +77,44 @@ export default function AppHeader() {
     </Link>
   );
 
-  const ActionButton = ({ labelKey, icon: Icon, defaultLabel, action, isMobile }: {
-    labelKey: string;
-    icon: React.ElementType;
-    defaultLabel: string;
-    action: () => void;
-    isMobile?: boolean;
-  }) => (
-    <button
-      onClick={() => {
-        action();
-        if (isMobile && isMobileMenuOpen) {
-          setIsMobileMenuOpen(false);
-        }
-      }}
-      className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-        "text-foreground/70 hover:text-foreground hover:bg-primary/5",
-        isMobile && "text-lg w-full justify-start"
-      )}
-    >
-      <Icon className="h-5 w-5" />
-      {t(labelKey, defaultLabel)}
-    </button>
+  const UserMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback>A</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">Admin</p>
+            <p className="text-xs leading-none text-muted-foreground">admin@vigiatemp.com</p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          {userNavItems.map(item => (
+            <Link href={item.href} passHref key={item.href}>
+              <DropdownMenuItem className="cursor-pointer">
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>{t(item.labelKey, item.defaultLabel)}</span>
+              </DropdownMenuItem>
+            </Link>
+          ))}
+          {adminNavItems.map(item => (
+            <Link href={item.href} passHref key={item.href}>
+              <DropdownMenuItem className="cursor-pointer">
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>{t(item.labelKey, item.defaultLabel)}</span>
+              </DropdownMenuItem>
+            </Link>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-
-  const UserDisplay = () => {
-    if (authState === 'unauthenticated' || authState === 'loading' || !currentUser) {
-      return (
-        <>
-          {authNavItems.map(item => <NavLink key={item.href} {...item} />)}
-        </>
-      );
-    }
-  
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback>{currentUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{currentUser.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">{currentUser.email}</p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            {visibleUserNavItems.map(item => (
-              <Link href={item.href} passHref key={item.href}>
-                <DropdownMenuItem className="cursor-pointer">
-                  <item.icon className="mr-2 h-4 w-4" />
-                  <span>{t(item.labelKey, item.defaultLabel)}</span>
-                </DropdownMenuItem>
-              </Link>
-            ))}
-            {authState === 'admin' && adminNavItems.map(item => (
-              <Link href={item.href} passHref key={item.href}>
-                <DropdownMenuItem className="cursor-pointer">
-                  <item.icon className="mr-2 h-4 w-4" />
-                  <span>{t(item.labelKey, item.defaultLabel)}</span>
-                </DropdownMenuItem>
-              </Link>
-            ))}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout} className="cursor-pointer">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>{t('nav.logout', 'Sair')}</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
 
 
   return (
@@ -183,35 +125,31 @@ export default function AppHeader() {
           <span className="text-2xl font-bold text-primary font-headline">VigiaTemp</span>
         </Link>
         
-        {visibleMainNavItems.length > 0 && (
-            <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              {visibleMainNavItems.map(item => <NavLink key={item.href} {...item} />)}
-            </nav>
-        )}
+        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+          {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
+        </nav>
 
         <div className="flex items-center gap-4">
-          {authState !== 'unauthenticated' && authState !== 'loading' && (
-              <RadioGroup
-                value={temperatureUnit}
-                onValueChange={(value) => setTemperatureUnit(value as 'C' | 'F')}
-                className="flex items-center space-x-2"
-                aria-label={t('temperatureUnitSelection', 'Seleção de unidade de temperatura')}
-              >
-                <div className="flex items-center space-x-1">
-                  <RadioGroupItem value="C" id="unit-c" />
-                  <Label htmlFor="unit-c" className="cursor-pointer">°C</Label>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <RadioGroupItem value="F" id="unit-f" />
-                  <Label htmlFor="unit-f" className="cursor-pointer">°F</Label>
-                </div>
-              </RadioGroup>
-          )}
+          <RadioGroup
+            value={temperatureUnit}
+            onValueChange={(value) => setTemperatureUnit(value as 'C' | 'F')}
+            className="flex items-center space-x-2"
+            aria-label={t('temperatureUnitSelection', 'Seleção de unidade de temperatura')}
+          >
+            <div className="flex items-center space-x-1">
+              <RadioGroupItem value="C" id="unit-c" />
+              <Label htmlFor="unit-c" className="cursor-pointer">°C</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <RadioGroupItem value="F" id="unit-f" />
+              <Label htmlFor="unit-f" className="cursor-pointer">°F</Label>
+            </div>
+          </RadioGroup>
           
-          <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              <UserDisplay />
+          <div className="hidden md:block">
+            <UserMenu />
           </div>
-          
+
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -226,32 +164,14 @@ export default function AppHeader() {
                 </SheetHeader>
                 <div className="flex-grow overflow-y-auto py-4">
                     <div className="flex flex-col space-y-2">
-                        {authState === 'unauthenticated' || !currentUser ? (
-                            authNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)
-                        ) : authState !== 'loading' ? (
-                            <>
-                              {visibleMainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
-                              <hr className="my-2"/>
-                              <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.userMenu', 'Usuário')}</span>
-                              {visibleUserNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                      {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                      <hr className="my-2"/>
+                      <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.userMenu', 'Usuário')}</span>
+                      {userNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
 
-                              {authState === 'admin' && (
-                                  <>
-                                      <hr className="my-2"/>
-                                      <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.adminMenu', 'Administração')}</span>
-                                      {adminNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
-                                  </>
-                              )}
-                              <hr className="my-2"/>
-                              <ActionButton
-                                  labelKey="nav.logout"
-                                  icon={LogOut}
-                                  defaultLabel="Sair"
-                                  action={logout}
-                                  isMobile
-                              />
-                            </>
-                        ): null }
+                      <hr className="my-2"/>
+                      <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.adminMenu', 'Administração')}</span>
+                      {adminNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
                     </div>
                 </div>
                 <SheetFooter>

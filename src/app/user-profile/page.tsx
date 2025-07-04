@@ -1,26 +1,15 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User, Edit, Camera, MapPin, Building, Warehouse, Mail, Phone, MessageSquare, Coins } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UserProfilePage() {
   const { t } = useSettings();
-  const { authState } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   // Placeholder user data
   const user = {
@@ -40,29 +29,6 @@ export default function UserProfilePage() {
     phone: t('userProfile.examplePhone', "+55 (11) 1234-5678"),
     tempCoins: 1250,
   };
-
-  if (authState === 'loading' || authState === 'unauthenticated') {
-    return (
-      <div className="space-y-8">
-        <div className="text-left">
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-4 w-1/2 mt-2" />
-        </div>
-        <Card className="w-full max-w-3xl mx-auto shadow-xl">
-          <CardHeader className="items-center text-center pb-4 border-b">
-            <Skeleton className="w-24 h-24 rounded-full mb-2" />
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-5 w-56 mt-1" />
-            <Skeleton className="h-9 w-32 mt-4" />
-          </CardHeader>
-          <CardContent className="space-y-8 pt-6">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
@@ -205,5 +171,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-    

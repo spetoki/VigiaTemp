@@ -7,11 +7,9 @@ import { demoUsers } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, UserPlus, Users, Crown, Coins, Save } from 'lucide-react';
+import { Edit3, Trash2, UserPlus, Users, Coins, Save } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton'; // Mantido pois pode ser usado em outros lugares
+import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,47 +20,39 @@ const LS_USERS_KEY = 'vigiatemp_admin_users';
 
 export default function AdminUsersPage() {
   const { t } = useSettings();
-  const { authState } = useAuth();
-  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (authState === 'unauthenticated' || authState === 'user') {
-      router.push('/login');
-      return;
-    }
-    if (authState === 'admin') {
-      try {
-        const storedUsers = localStorage.getItem(LS_USERS_KEY);
-        if (storedUsers) {
-          const parsedUsers: any[] = JSON.parse(storedUsers);
-          // Data sanitization: ensure all properties exist with fallbacks
-          const cleanedUsers: User[] = parsedUsers.map(u => ({
-            id: u.id || `user-${Math.random()}`,
-            name: u.name || 'Unknown User',
-            email: u.email || 'unknown@email.com',
-            password: u.password, // Keep password if it exists
-            role: u.role || 'User',
-            status: u.status || 'Pending',
-            joinedDate: u.joinedDate || new Date().toISOString(),
-            tempCoins: u.tempCoins || 0,
-          }));
-          setUsers(cleanedUsers);
-        } else {
-          setUsers(demoUsers);
-          localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
-        }
-      } catch (error) {
-        console.error("Failed to process users from localStorage, defaulting to demo users.", error);
+    try {
+      const storedUsers = localStorage.getItem(LS_USERS_KEY);
+      if (storedUsers) {
+        const parsedUsers: any[] = JSON.parse(storedUsers);
+        // Data sanitization: ensure all properties exist with fallbacks
+        const cleanedUsers: User[] = parsedUsers.map(u => ({
+          id: u.id || `user-${Math.random()}`,
+          name: u.name || 'Unknown User',
+          email: u.email || 'unknown@email.com',
+          password: u.password, // Keep password if it exists
+          role: u.role || 'User',
+          status: u.status || 'Pending',
+          joinedDate: u.joinedDate || new Date().toISOString(),
+          tempCoins: u.tempCoins || 0,
+        }));
+        setUsers(cleanedUsers);
+      } else {
         setUsers(demoUsers);
-      } finally {
-        setIsLoading(false);
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
       }
+    } catch (error) {
+      console.error("Failed to process users from localStorage, defaulting to demo users.", error);
+      setUsers(demoUsers);
+    } finally {
+      setIsLoading(false);
     }
-  }, [authState, router]);
+  }, []);
   
   const handleSaveUser = (updatedUser: User) => {
     setUsers(currentUsers => {
@@ -88,7 +78,7 @@ export default function AdminUsersPage() {
   };
 
 
-  if (isLoading || authState === 'loading' || authState !== 'admin') {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">

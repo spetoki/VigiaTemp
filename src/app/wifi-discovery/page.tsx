@@ -1,13 +1,11 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Sensor } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Wifi, Loader2, PlusCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
@@ -26,19 +24,12 @@ const mockDiscoveredDevices = [
 type DiscoveredDevice = typeof mockDiscoveredDevices[0];
 
 export default function WifiDiscoveryPage() {
-  const { authState, currentUser } = useAuth();
-  const router = useRouter();
+  const { currentUser } = useAuth();
   const { t } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<DiscoveredDevice[]>([]);
   const [addedMacs, setAddedMacs] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   const getSignalStrengthBadge = (signal: number) => {
     if (signal > -60) return 'bg-green-100 text-green-800 border-green-300';
@@ -106,17 +97,6 @@ export default function WifiDiscoveryPage() {
     });
   };
 
-
-  if (authState === 'loading' || authState === 'unauthenticated') {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-3/4" />
-        <Skeleton className="h-4 w-1/2 mt-2" />
-        <Skeleton className="h-12 w-full max-w-sm" />
-        <Skeleton className="h-48 w-full" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -208,5 +188,3 @@ export default function WifiDiscoveryPage() {
     </div>
   );
 }
-
-    
