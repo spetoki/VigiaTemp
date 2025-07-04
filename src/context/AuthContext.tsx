@@ -38,7 +38,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     try {
-      const storedAuth = localStorage.getItem(AUTH_KEY);
+      let storedAuth = localStorage.getItem(AUTH_KEY);
+
+      // If no auth data is found, simulate login for 'spetoki@gmail.com'
+      if (!storedAuth) {
+        const emailToLogin = 'spetoki@gmail.com';
+        const userToLogin = findUserByEmail(emailToLogin);
+        if (userToLogin) {
+          const role = userToLogin.role.toLowerCase() as 'user' | 'admin';
+          const authData = { role, email: emailToLogin };
+          localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+          storedAuth = JSON.stringify(authData); // Use this new data for the rest of the logic
+        }
+      }
+      
       if (storedAuth) {
         const { role, email } = JSON.parse(storedAuth);
         if ((role === 'user' || role === 'admin') && email) {
