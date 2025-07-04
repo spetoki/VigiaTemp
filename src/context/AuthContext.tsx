@@ -126,7 +126,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!password) return false;
 
     const allUsers: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
-    if (allUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+    const preDefinedUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+    // If user exists and has a real ID (not a placeholder), it's already taken.
+    if (preDefinedUser && !preDefinedUser.id.includes('-placeholder-')) {
        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: 'destructive' });
        return false;
     }
@@ -135,25 +138,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const firebaseUser = userCredential.user;
         await updateProfile(firebaseUser, { displayName: name });
-        const finalNewUser: User = {
-            id: firebaseUser.uid,
-            name,
-            email,
-            role: 'User',
-            status: 'Pending',
-            joinedDate: new Date().toISOString(),
-            tempCoins: 0,
-        };
-        const updatedUsers = [...allUsers, finalNewUser];
-        localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
+
+        let userToSave: User;
+        let toastDescription: string;
+        let finalUsers: User[];
+
+        if (preDefinedUser) {
+            // "Claim" the predefined user
+            userToSave = {
+                ...preDefinedUser,
+                id: firebaseUser.uid, // Set the real Firebase UID
+                name: name // Update name from signup form
+            };
+            finalUsers = allUsers.map(u => u.email.toLowerCase() === preDefinedUser.email.toLowerCase() ? userToSave : u);
+            toastDescription = `Conta de ${userToSave.role} ativada com sucesso! Você já pode fazer login.`;
+        } else {
+            // Create a new standard user that needs approval
+            userToSave = {
+                id: firebaseUser.uid,
+                name,
+                email,
+                role: 'User',
+                status: 'Pending',
+                joinedDate: new Date().toISOString(),
+                tempCoins: 0,
+            };
+            finalUsers = [...allUsers, userToSave];
+            toastDescription = t('signup.successPendingApproval', 'Account created successfully! Your account is pending administrator approval and will be activated soon.');
+        }
+
+        localStorage.setItem(LS_USERS_KEY, JSON.stringify(finalUsers));
+        
         await signOut(auth);
-        toast({ title: t('signup.successTitle', 'Success!'), description: t('signup.successPendingApproval', 'Account created successfully! Your account is pending administrator approval and will be activated soon.') });
+        toast({ title: t('signup.successTitle', 'Success!'), description: toastDescription });
         router.push('/login');
         return true;
     } catch (error: any) {
         console.error("Firebase Signup Error:", error);
         let message = "An unknown error occurred during signup.";
         if (error.code === 'auth/email-already-in-use') {
+            // This case might be hit if the user was created in Firebase but something failed before finishing.
+            // We tell them it's in use.
             message = t('signup.emailInUse', 'This email is already in use.');
         } else if (error.code === 'auth/weak-password') {
             message = t('signup.passwordMinLength', 'Password must be at least 6 characters.');

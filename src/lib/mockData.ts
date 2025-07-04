@@ -2,44 +2,28 @@
 import type { Sensor, User } from '@/types';
 
 // This list represents the initial state of users, typically for an admin to see.
-// New users are added to this list via the signup form.
+// New users can be created by signing up. To use the predefined accounts below,
+// simply sign up with their respective email and password.
 export const demoUsers: User[] = [
-  { 
-    id: 'admin-user-placeholder-id', // This should be replaced by the actual Firebase UID after the admin is created
-    name: 'Administrator', 
-    email: 'admin@example.com', 
-    password: 'admin-password-placeholder', // For reference, not used by Firebase Auth
-    role: 'Admin', 
-    status: 'Active', 
+  {
+    id: 'admin-user-placeholder-id', // This will be replaced by the actual Firebase UID after registration
+    name: 'Admin VigiaTemp',
+    email: 'admin@vigiatemp.com',
+    password: 'admin123', // For reference during signup. Not stored securely.
+    role: 'Admin',
+    status: 'Active',
     joinedDate: '2023-01-15',
     tempCoins: 99999
   },
-  { 
-    id: 'user-6', 
-    name: 'Spetoki', 
-    email: 'spetoki@gmail.com', 
-    role: 'Admin', 
-    status: 'Active', 
-    joinedDate: '2024-06-21',
-    tempCoins: 99999
-  },
-  { 
-    id: 'user-2', 
-    name: 'Bob The Builder', 
-    email: 'bob@example.com', 
-    role: 'User', 
-    status: 'Active', 
-    joinedDate: '2023-02-20',
+  {
+    id: 'user-placeholder-id', // This will be replaced by the actual Firebase UID after registration
+    name: 'Usuário Padrão',
+    email: 'user@vigiatemp.com',
+    password: 'user123', // For reference during signup. Not stored securely.
+    role: 'User',
+    status: 'Active',
+    joinedDate: '2024-07-01',
     tempCoins: 1000
-  },
-  { 
-    id: 'user-3', 
-    name: 'Charlie Brown', 
-    email: 'charlie@example.com', 
-    role: 'User', 
-    status: 'Inactive', 
-    joinedDate: '2023-03-10',
-    tempCoins: 50
   },
 ];
 
