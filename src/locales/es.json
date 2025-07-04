@@ -357,6 +357,7 @@
   "admin.userTier.free": "Gratis",
   "admin.userTier.vip1": "VIP 1",
   "admin.userTier.vip2": "VIP 2",
+  "admin.userTier.vip3": "VIP 3",
   "admin.userTier.vip4": "VIP 4",
   "admin.usersTable.tempCoins": "TempCoins",
   "admin.editUserDialog.title": "Editar Usuario: {name}",

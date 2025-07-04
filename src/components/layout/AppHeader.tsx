@@ -25,7 +25,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default function AppHeader() {
   const { temperatureUnit, setTemperatureUnit, t } = useSettings();
-  const { authState, logout } = useAuth();
+  const { authState, logout, currentUser } = useAuth();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -53,6 +53,23 @@ export default function AppHeader() {
   const authNavItems = [
      { href: '/login', labelKey: 'nav.login', icon: LogIn, defaultLabel: 'Login' },
   ];
+
+  const visibleMainNavItems = React.useMemo(() => {
+    if (!currentUser || authState === 'unauthenticated' || authState === 'loading') return [];
+    if (authState === 'admin') return mainNavItems;
+    if (currentUser.subscriptionTier === 'Free' || !currentUser.subscriptionTier) return [];
+    return mainNavItems; // For VIP users
+  }, [currentUser, authState]);
+
+  const visibleUserNavItems = React.useMemo(() => {
+    if (!currentUser) return [];
+    if (authState === 'admin' || (currentUser.subscriptionTier && currentUser.subscriptionTier !== 'Free')) {
+      return userNavItems;
+    }
+    // For free users, only show the user profile link
+    return userNavItems.filter(item => item.href === '/user-profile');
+  }, [currentUser, authState]);
+
 
   const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {
     href: string;
@@ -108,7 +125,7 @@ export default function AppHeader() {
   );
 
   const UserDisplay = () => {
-    if (authState === 'unauthenticated' || authState === 'loading') {
+    if (authState === 'unauthenticated' || authState === 'loading' || !currentUser) {
       return (
         <>
           {authNavItems.map(item => <NavLink key={item.href} {...item} />)}
@@ -116,32 +133,25 @@ export default function AppHeader() {
       );
     }
   
-    // Determine user details based on simulated auth state
-    const userData = {
-      name: authState === 'admin' ? 'Spetoki' : 'Usuário',
-      email: authState === 'admin' ? 'spetoki@gmail.com' : 'usuario@exemplo.com',
-      initials: authState === 'admin' ? 'S' : 'U'
-    };
-  
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              <AvatarFallback>{userData.initials}</AvatarFallback>
+              <AvatarFallback>{currentUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{userData.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">{userData.email}</p>
+              <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+              <p className="text-xs leading-none text-muted-foreground">{currentUser.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            {userNavItems.map(item => (
+            {visibleUserNavItems.map(item => (
               <Link href={item.href} passHref key={item.href}>
                 <DropdownMenuItem className="cursor-pointer">
                   <item.icon className="mr-2 h-4 w-4" />
@@ -177,9 +187,9 @@ export default function AppHeader() {
           <span className="text-2xl font-bold text-primary font-headline">VigiaTemp</span>
         </Link>
         
-        {authState !== 'unauthenticated' && authState !== 'loading' && (
+        {visibleMainNavItems.length > 0 && (
             <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
+              {visibleMainNavItems.map(item => <NavLink key={item.href} {...item} />)}
             </nav>
         )}
 
@@ -220,14 +230,14 @@ export default function AppHeader() {
                 </SheetHeader>
                 <div className="flex-grow overflow-y-auto py-4">
                     <div className="flex flex-col space-y-2">
-                        {authState === 'unauthenticated' ? (
+                        {authState === 'unauthenticated' || !currentUser ? (
                             authNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)
                         ) : authState !== 'loading' ? (
                             <>
-                              {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                              {visibleMainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
                               <hr className="my-2"/>
                               <span className="px-3 py-2 text-sm font-semibold text-muted-foreground">{t('nav.userMenu', 'Usuário')}</span>
-                              {userNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                              {visibleUserNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
 
                               {authState === 'admin' && (
                                   <>

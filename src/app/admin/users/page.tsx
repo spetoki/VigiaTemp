@@ -56,6 +56,7 @@ export default function AdminUsersPage() {
     switch (tier) {
       case 'VIP1': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'VIP2': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'VIP3': return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'VIP4': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
       case 'Free': return 'bg-gray-100 text-gray-800 border-gray-300';
       default: return 'secondary';
@@ -298,6 +299,7 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
                  <SelectItem value="Free">{t('admin.userTier.free', 'Free')}</SelectItem>
                  <SelectItem value="VIP1">{t('admin.userTier.vip1', 'VIP 1')}</SelectItem>
                  <SelectItem value="VIP2">{t('admin.userTier.vip2', 'VIP 2')}</SelectItem>
+                 <SelectItem value="VIP3">{t('admin.userTier.vip3', 'VIP 3')}</SelectItem>
                  <SelectItem value="VIP4">{t('admin.userTier.vip4', 'VIP 4')}</SelectItem>
               </SelectContent>
             </Select>
@@ -428,6 +430,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
                  <SelectItem value="Free">{t('admin.userTier.free', 'Free')}</SelectItem>
                  <SelectItem value="VIP1">{t('admin.userTier.vip1', 'VIP 1')}</SelectItem>
                  <SelectItem value="VIP2">{t('admin.userTier.vip2', 'VIP 2')}</SelectItem>
+                 <SelectItem value="VIP3">{t('admin.userTier.vip3', 'VIP 3')}</SelectItem>
                  <SelectItem value="VIP4">{t('admin.userTier.vip4', 'VIP 4')}</SelectItem>
               </SelectContent>
             </Select>
