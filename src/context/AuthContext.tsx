@@ -8,15 +8,14 @@ import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from './SettingsContext';
 import { 
-  getAuth, 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut,
   updateProfile,
-  type User as FirebaseUser
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+// Import auth and the new flag from firebase lib
+import { auth, isFirebaseEnabled } from '@/lib/firebase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -43,6 +42,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!storedUsers) {
       localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
     }
+
+    if (!isFirebaseEnabled) {
+      console.warn("Firebase is not enabled. Authentication will be disabled.");
+      setAuthState('unauthenticated');
+      // No need to set up a listener if Firebase isn't configured.
+      return; 
+    }
     
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
@@ -65,7 +71,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           // This case handles users that exist in Firebase Auth but not in our local user list.
-          // We can create a default profile for them.
           const newUser: User = {
               id: firebaseUser.uid,
               name: firebaseUser.displayName || 'New User',
@@ -92,13 +97,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [t, toast]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
+    if (!isFirebaseEnabled) {
+        toast({ title: t('login.errorTitle', 'Error'), description: "Firebase is not configured.", variant: 'destructive' });
+        return false;
+    }
     if (!password) {
       toast({ title: t('login.errorTitle', 'Error'), description: "Password is required.", variant: 'destructive' });
       return false;
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged will handle setting the user state
       toast({ title: t('login.userSuccess', 'Login successful!') });
       router.push('/');
       return true;
@@ -110,10 +118,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role'>): Promise<boolean> => {
+    if (!isFirebaseEnabled) {
+        toast({ title: t('signup.errorTitle', 'Error'), description: "Firebase is not configured. Signup is disabled.", variant: 'destructive' });
+        return false;
+    }
     const { name, email, password } = newUser;
     if (!password) return false;
 
-    // Check if email already exists in our local list first
     const allUsers: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
     if (allUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: 'destructive' });
@@ -123,11 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const firebaseUser = userCredential.user;
-
-        // Update Firebase profile display name
         await updateProfile(firebaseUser, { displayName: name });
-
-        // Add user to our local user management list
         const finalNewUser: User = {
             id: firebaseUser.uid,
             name,
@@ -139,10 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
         const updatedUsers = [...allUsers, finalNewUser];
         localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
-        
-        // Sign the user out immediately after registration, forcing them to wait for approval
         await signOut(auth);
-
         toast({ title: t('signup.successTitle', 'Success!'), description: t('signup.successPendingApproval', 'Account created successfully! Your account is pending administrator approval and will be activated soon.') });
         router.push('/login');
         return true;
@@ -160,7 +164,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    signOut(auth);
+    if (isFirebaseEnabled) {
+      signOut(auth);
+    }
     router.push('/login');
   };
 
