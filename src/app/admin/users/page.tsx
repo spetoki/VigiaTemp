@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -137,11 +136,11 @@ export default function AdminUsersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge 
-                          variant={user.status === 'Active' ? 'secondary' : user.status === 'Pending' ? 'outline' : 'destructive'} 
+                    <Badge
+                          variant={user.status === 'Active' ? 'secondary' : user.status === 'Pending' ? 'outline' : 'destructive'}
                           className={
-                              user.status === 'Active' ? 'bg-green-100 text-green-800 border-green-300' : 
-                              user.status === 'Pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
+                              user.status === 'Active' ? 'bg-green-100 text-green-800 border-green-300' :
+                              user.status === 'Pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
                               'bg-red-100 text-red-800 border-red-300'
                           }>
                       {t(`admin.userStatus.${user.status.toLowerCase()}`, user.status)}
@@ -357,8 +356,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
         <DialogHeader>
           <DialogTitle>{t('admin.usersPage.addUserButton', 'Adicionar Novo Usuário')}</DialogTitle>
           <DialogDescription>
-            Preencha os dados abaixo para criar uma nova conta de usuário.
-          </DialogDescription>
+            Preencha os dados abaixo para criar uma nova conta de usuário.\n          </DialogDescription>
         </DialogHeader>
         <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto px-2">
           <div className="space-y-2">
@@ -400,7 +398,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="add-subscriptionTier">{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</Label>
-            <Select value={subscriptionTier} onValueChange={(value) => setSubscriptionTier(value as string as User['subscriptionTier'] | 'None')}>
+            <Select value={subscriptionTier ?? 'Free'} onValueChange={(value) => setSubscriptionTier(value as string as User['subscriptionTier'] | 'None')}>
               <SelectTrigger id="add-subscriptionTier">
                 <SelectValue />
               </SelectTrigger>
@@ -417,8 +415,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="add-tempCoins" className="flex items-center gap-2">
               <Coins className="h-4 w-4 text-yellow-500" />
-              {t('admin.usersTable.tempCoins', 'TempCoins')}
-            </Label>
+              {t('admin.usersTable.tempCoins', 'TempCoins')}\n            </Label>
             <Input
               id="add-tempCoins"
               type="number"
