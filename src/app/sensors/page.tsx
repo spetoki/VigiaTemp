@@ -76,7 +76,19 @@ export default function SensorsPage() {
 
     setSensors(prevSensors => {
         const updatedSensors = prevSensors.filter(s => s.id !== sensorId);
-        localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+        try {
+            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+        } catch (e) {
+            // This is less likely to happen on delete, but good to have
+            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                toast({
+                    title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
+                    description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
+                    variant: "destructive"
+                });
+                return prevSensors;
+            }
+        }
         return updatedSensors;
     });
     toast({
@@ -100,7 +112,18 @@ export default function SensorsPage() {
               }
             : s
         );
-        localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+        try {
+            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+        } catch (e) {
+            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                toast({
+                    title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
+                    description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
+                    variant: "destructive"
+                });
+                return prevSensors; // Return original sensors if save fails
+            }
+        }
         return updatedSensors;
       });
       toast({
@@ -116,7 +139,18 @@ export default function SensorsPage() {
       };
       setSensors(prevSensors => {
           const updatedSensors = [newSensor, ...prevSensors];
-          localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+          try {
+            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+          } catch (e) {
+             if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                toast({
+                    title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
+                    description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
+                    variant: "destructive"
+                });
+                return prevSensors; // Return original sensors if save fails
+            }
+          }
           return updatedSensors;
       });
       toast({

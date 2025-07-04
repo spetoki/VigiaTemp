@@ -131,6 +131,8 @@
   "sensorsPage.toast.updated.description": "El sensor \"{sensorName}\" se actualizó con éxito.",
   "sensorsPage.toast.added.title": "Sensor Agregado",
   "sensorsPage.toast.added.description": "El sensor \"{sensorName}\" se agregó con éxito.",
+  "sensorsPage.toast.quotaError.title": "Error de Almacenamiento",
+  "sensorsPage.toast.quotaError.description": "No se pudo guardar. El almacenamiento está lleno. Los datos históricos antiguos podrían ser la causa.",
 
   "sensorForm.addTitle": "Agregar Nuevo Sensor",
   "sensorForm.editTitle": "Editar Sensor",

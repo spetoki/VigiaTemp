@@ -131,6 +131,8 @@
   "sensorsPage.toast.updated.description": "O sensor \"{sensorName}\" foi atualizado com sucesso.",
   "sensorsPage.toast.added.title": "Sensor Adicionado",
   "sensorsPage.toast.added.description": "O sensor \"{sensorName}\" foi adicionado com sucesso.",
+  "sensorsPage.toast.quotaError.title": "Erro de Armazenamento",
+  "sensorsPage.toast.quotaError.description": "Não foi possível salvar. O armazenamento está cheio. Dados históricos antigos podem ser a causa.",
   
   "sensorForm.addTitle": "Adicionar Novo Sensor",
   "sensorForm.editTitle": "Editar Sensor",

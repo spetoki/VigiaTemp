@@ -122,7 +122,7 @@ export default function DashboardPage() {
                     historicalData: [
                         ...(sensor.historicalData || []),
                         { timestamp: Date.now(), temperature: newTemperature }
-                    ].slice(-1000)
+                    ].slice(-200) // Reduced historical data to prevent quota errors
                 };
             });
             
@@ -174,8 +174,14 @@ export default function DashboardPage() {
                 setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
             }
             
-            localStorage.setItem(ALERTS_KEY, JSON.stringify(currentAlerts.slice(0, 100)));
-            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+            try {
+              localStorage.setItem(ALERTS_KEY, JSON.stringify(currentAlerts.slice(0, 100)));
+              localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+            } catch(e) {
+                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                    console.error("LocalStorage quota exceeded on dashboard update. Further updates may fail.");
+                }
+            }
             return updatedSensors;
         });
     }, 5000);
