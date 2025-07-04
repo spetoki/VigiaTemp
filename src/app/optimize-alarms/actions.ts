@@ -10,49 +10,44 @@ const OptimizeAlarmSettingsFormSchema = z.object({
   microclimateInfo: z.string().min(1, 'As informações do microclima são obrigatórias.'),
 });
 
+// Simplified state for client-side handling
 export type OptimizeFormState = {
-  message?: string;
-  fields?: Record<string, string>;
+  message: string;
   issues?: string[];
   data?: OptimizeAlarmSettingsOutput;
+  success: boolean;
 };
 
 export async function handleOptimizeAlarms(
-  prevState: OptimizeFormState,
-  formData: FormData
+  formData: OptimizeAlarmSettingsInput
 ): Promise<OptimizeFormState> {
-  const rawFormData = {
-    historicalData: formData.get('historicalData'),
-    cacaoVariety: formData.get('cacaoVariety'),
-    microclimateInfo: formData.get('microclimateInfo'),
-  };
-
-  const validatedFields = OptimizeAlarmSettingsFormSchema.safeParse(rawFormData);
+  
+  const validatedFields = OptimizeAlarmSettingsFormSchema.safeParse(formData);
 
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
-    const allIssues: string[] = [];
-    if (fieldErrors.historicalData) allIssues.push(...fieldErrors.historicalData);
-    if (fieldErrors.cacaoVariety) allIssues.push(...fieldErrors.cacaoVariety);
-    if (fieldErrors.microclimateInfo) allIssues.push(...fieldErrors.microclimateInfo);
-
+    const allIssues: string[] = [
+        ...(fieldErrors.historicalData || []),
+        ...(fieldErrors.cacaoVariety || []),
+        ...(fieldErrors.microclimateInfo || [])
+    ];
+    
     return {
       message: "A validação do formulário falhou.",
-      fields: rawFormData as Record<string, string>,
-      issues: allIssues.length > 0 ? allIssues : undefined,
+      issues: allIssues,
+      success: false,
     };
   }
   
   try {
-    const input: OptimizeAlarmSettingsInput = validatedFields.data;
-    const result = await optimizeAlarmSettings(input);
-    return { message: "Otimização bem-sucedida!", data: result };
+    const result = await optimizeAlarmSettings(validatedFields.data);
+    return { message: "Otimização bem-sucedida!", data: result, success: true };
   } catch (error) {
     console.error("AI Optimization Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Um erro desconhecido ocorreu durante a otimização.";
     return { 
         message: `Otimização falhou: ${errorMessage}`,
-        fields: validatedFields.data,
+        success: false,
     };
   }
 }
