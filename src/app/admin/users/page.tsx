@@ -400,7 +400,7 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="add-subscriptionTier">{t('admin.usersTable.subscriptionTier', 'Nível Assin.')}</Label>
-            <Select value={subscriptionTier} onValueChange={(value) => setSubscriptionTier(value as any)}>
+            <Select value={subscriptionTier} onValueChange={(value) => setSubscriptionTier(value as User['subscriptionTier'] | 'None')}>
               <SelectTrigger id="add-subscriptionTier">
                 <SelectValue />
               </SelectTrigger>
