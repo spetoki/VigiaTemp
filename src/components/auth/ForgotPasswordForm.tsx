@@ -71,8 +71,8 @@ export default function ForgotPasswordForm() {
           className={state?.errors?.email ? 'border-destructive' : ''}
         />
         {state?.errors?.email && (
-          <p id=\"email-error\" className=\"text-sm text-destructive\">
-            {t(state.errors.email.join(', '), state.errors.email.join(', '))}
+          <p id="email-error" className="text-sm text-destructive">
+            {t(state.errors.email.join(', '), state.errors.email.join(', '))}\
           </p>
         )}
       </div>
