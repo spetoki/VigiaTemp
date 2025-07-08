@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -105,14 +106,6 @@ export default function DeviceConfiguratorPage() {
   const [timerDelay, setTimerDelay] = useState('30'); // in seconds for the input
   const [generatedCode, setGeneratedCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
-  const [appUrlPlaceholder, setAppUrlPlaceholder] = useState('');
-
-  useEffect(() => {
-    // This effect runs on the client side, so window is available.
-    if (typeof window !== 'undefined') {
-      setAppUrlPlaceholder(`${window.location.origin}/api/sensor`);
-    }
-  }, []);
 
   const handleGenerateCode = () => {
     if (!ssid || !password || !appUrl) {
@@ -186,7 +179,7 @@ export default function DeviceConfiguratorPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="appUrl">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')} <span className="text-destructive">*</span></Label>
-            <Input id="appUrl" value={appUrl} onChange={e => setAppUrl(e.target.value)} placeholder={appUrlPlaceholder} />
+            <Input id="appUrl" value={appUrl} onChange={e => setAppUrl(e.target.value)} placeholder="https://seu-app-implantado.vercel.app/api/sensor" />
             <p className="text-xs text-muted-foreground">{t('deviceConfigurator.appUrlDescription', 'Insira a URL completa da sua aplicação, terminando com /api/sensor.')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

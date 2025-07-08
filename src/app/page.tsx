@@ -133,7 +133,7 @@ export default function DashboardPage() {
     if (authState !== 'authenticated' || !currentUser) return;
     
     const intervalId = setInterval(() => {
-        const updateSensorData = async () => {
+        const updateSensorData = () => {
             if (!currentUser) return;
             
             const SENSORS_KEY = `sensors_${currentUser.email}`;
@@ -148,24 +148,8 @@ export default function DashboardPage() {
                 return;
             }
 
-            const updatedSensorsPromises = currentSensors.map(async (sensor) => {
-                let newTemperature = sensor.currentTemperature;
-                if (sensor.macAddress) {
-                    try {
-                        const response = await fetch(`/api/sensor/${sensor.macAddress}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (typeof data.temperature === 'number') {
-                                newTemperature = data.temperature;
-                            }
-                        }
-                    } catch (error) {
-                        // Fail silently to avoid console spam
-                    }
-                } else if (ambientTemperature !== null) {
-                    newTemperature = simulateTemperatureUpdate(ambientTemperature);
-                }
-                
+            const updatedSensors = currentSensors.map((sensor) => {
+                const newTemperature = ambientTemperature !== null ? simulateTemperatureUpdate(ambientTemperature) : sensor.currentTemperature;
                 return {
                     ...sensor,
                     currentTemperature: newTemperature,
@@ -175,8 +159,6 @@ export default function DashboardPage() {
                     ].slice(-200)
                 };
             });
-
-            const updatedSensors = await Promise.all(updatedSensorsPromises);
 
             let currentAlerts: Alert[] = [];
             try {
