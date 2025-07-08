@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from 'react';
@@ -29,9 +28,11 @@ function LayoutContent({ children }: MainLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <AppHeader />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-          {children}
-      </main>
+      <div className="flex-grow">
+        <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+            {children}
+        </main>
+      </div>
       <footer className="bg-primary text-primary-foreground text-center p-4 text-sm">
         {footerText}
       </footer>
