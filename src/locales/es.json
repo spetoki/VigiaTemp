@@ -553,15 +553,5 @@
   "deviceConfigurator.copySuccessTitle": "¡Copiado!",
   "deviceConfigurator.copySuccessDescription": "El código ha sido copiado a su portapapeles.",
   "deviceConfigurator.copyErrorTitle": "Fallo al Copiar",
-  "deviceConfigurator.copyErrorDescription": "No se pudo copiar el código.",
-  "nav.games": "Juegos",
-  "games.pageTitle": "Centro de Juegos",
-  "games.pageDescription": "Un pequeño huevo de pascua para relajarse. ¡Desafía a la IA en el Tres en Raya!",
-  "games.ticTacToe.title": "Tres en Raya",
-  "ticTacToe.description": "Desafía a nuestra IA imbatible.",
-  "ticTacToe.draw": "¡Es un Empate!",
-  "ticTacToe.winner": "Ganador: {winner}",
-  "ticTacToe.yourTurn": "Tu Turno (X)",
-  "ticTacToe.aiTurn": "Turno de la IA (O)...",
-  "ticTacToe.playAgain": "Jugar de Nuevo"
+  "deviceConfigurator.copyErrorDescription": "No se pudo copiar el código."
 }

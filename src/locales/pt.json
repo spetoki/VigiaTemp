@@ -553,15 +553,5 @@
   "deviceConfigurator.copySuccessTitle": "Copiado!",
   "deviceConfigurator.copySuccessDescription": "O código foi copiado para a sua área de transferência.",
   "deviceConfigurator.copyErrorTitle": "Falha ao Copiar",
-  "deviceConfigurator.copyErrorDescription": "Não foi possível copiar o código.",
-  "nav.games": "Jogos",
-  "games.pageTitle": "Central de Jogos",
-  "games.pageDescription": "Um pequeno easter-egg para relaxar. Desafie a IA no Jogo da Velha!",
-  "games.ticTacToe.title": "Jogo da Velha",
-  "ticTacToe.description": "Desafie a nossa IA imbatível.",
-  "ticTacToe.draw": "Empate!",
-  "ticTacToe.winner": "Vencedor: {winner}",
-  "ticTacToe.yourTurn": "Sua vez (X)",
-  "ticTacToe.aiTurn": "Vez da IA (O)...",
-  "ticTacToe.playAgain": "Jogar Novamente"
+  "deviceConfigurator.copyErrorDescription": "Não foi possível copiar o código."
 }
