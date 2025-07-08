@@ -1,6 +1,8 @@
+
 'use server';
 
 import {NextResponse} from 'next/server';
+import { setLatestReading } from '@/services/sensor-cache-service';
 
 /**
  * @fileoverview API endpoint para receber dados de temperatura de sensores IoT (como ESP32).
@@ -26,13 +28,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Em um aplicativo real, você salvaria esses dados em um banco de dados (como Firebase Firestore).
-    // Para este protótipo, vamos apenas registrar os dados no console do servidor para que você possa ver que está funcionando.
-    console.log(`Dados recebidos do sensor (${macAddress}): Temperatura = ${temperature}°C`);
+    // Armazena a leitura mais recente no cache do servidor.
+    setLatestReading(macAddress, temperature);
 
-    // Aqui, você buscaria o sensor no banco de dados pelo macAddress e atualizaria sua temperatura.
-    // Como estamos usando localStorage no lado do cliente, não podemos atualizá-lo diretamente daqui.
-    // A comunicação do ESP32 com o servidor está funcionando, que é o passo mais importante.
+    // O log é útil para depuração no servidor (ex: Vercel logs).
+    console.log(`Dados recebidos e cacheados do sensor (${macAddress}): Temperatura = ${temperature}°C`);
 
     return NextResponse.json({message: 'Dados recebidos com sucesso!'});
   } catch (error) {

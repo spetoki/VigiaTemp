@@ -93,6 +93,7 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
 
+  // Effect to load initial sensor data from localStorage
   useEffect(() => {
     if (authState !== 'authenticated' || !currentUser) return;
     
@@ -101,7 +102,6 @@ export default function DashboardPage() {
         const storedSensors = localStorage.getItem(SENSORS_KEY);
         if (storedSensors) {
             const parsedSensors: any[] = JSON.parse(storedSensors);
-            // Data sanitization: ensure all properties exist with fallbacks
             const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
                 id: s.id || `sensor-${Date.now()}${Math.random()}`,
                 name: s.name || 'Unnamed Sensor',
@@ -117,7 +117,7 @@ export default function DashboardPage() {
             }));
             setSensors(cleanedSensors);
         } else {
-            setSensors([]); // New user starts with no sensors
+            setSensors([]);
         }
     } catch (e) {
         console.error("Failed to parse sensors from localStorage, defaulting to empty.", e);
@@ -125,34 +125,67 @@ export default function DashboardPage() {
     } finally {
         setIsLoading(false);
     }
+  }, [authState, currentUser]);
 
+
+  // Effect for the main update interval
+  useEffect(() => {
+    if (authState !== 'authenticated' || !currentUser) return;
+    
     const intervalId = setInterval(() => {
-        if (ambientTemperature === null) return;
-        
-        const ALERTS_KEY = `alerts_${currentUser.email}`;
+        const updateSensorData = async () => {
+            if (!currentUser) return;
+            
+            const SENSORS_KEY = `sensors_${currentUser.email}`;
+            const ALERTS_KEY = `alerts_${currentUser.email}`;
+            
+            let currentSensors: Sensor[] = [];
+            try {
+                const storedSensors = localStorage.getItem(SENSORS_KEY);
+                currentSensors = storedSensors ? JSON.parse(storedSensors) : [];
+            } catch (e) {
+                console.error("Failed to parse sensors from localStorage during update.", e);
+                return;
+            }
 
-        setSensors(prevSensors => {
-            const updatedSensors = prevSensors.map(sensor => {
-                const newTemperature = simulateTemperatureUpdate(ambientTemperature);
+            const updatedSensorsPromises = currentSensors.map(async (sensor) => {
+                let newTemperature = sensor.currentTemperature;
+                if (sensor.macAddress) {
+                    try {
+                        const response = await fetch(`/api/sensor/${sensor.macAddress}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (typeof data.temperature === 'number') {
+                                newTemperature = data.temperature;
+                            }
+                        }
+                    } catch (error) {
+                        // Fail silently to avoid console spam
+                    }
+                } else if (ambientTemperature !== null) {
+                    newTemperature = simulateTemperatureUpdate(ambientTemperature);
+                }
+                
                 return {
                     ...sensor,
                     currentTemperature: newTemperature,
                     historicalData: [
                         ...(sensor.historicalData || []),
                         { timestamp: Date.now(), temperature: newTemperature }
-                    ].slice(-200) // Reduced historical data to prevent quota errors
+                    ].slice(-200)
                 };
             });
-            
+
+            const updatedSensors = await Promise.all(updatedSensorsPromises);
+
             let currentAlerts: Alert[] = [];
             try {
                 const storedAlerts = localStorage.getItem(ALERTS_KEY);
                 currentAlerts = storedAlerts ? JSON.parse(storedAlerts) : [];
             } catch (e) {
-                console.error("Failed to parse alerts from localStorage, starting fresh.", e);
                 currentAlerts = [];
             }
-            
+
             const soundsToQueueForThisInterval: (string | undefined)[] = [];
             
             updatedSensors.forEach(sensor => {
@@ -197,17 +230,20 @@ export default function DashboardPage() {
             try {
               localStorage.setItem(ALERTS_KEY, JSON.stringify(currentAlerts.slice(0, 100)));
               localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+              setSensors(updatedSensors);
             } catch(e) {
                 if (e instanceof DOMException && e.name === 'QuotaExceededError') {
                     console.error("LocalStorage quota exceeded on dashboard update. Further updates may fail.");
                 }
             }
-            return updatedSensors;
-        });
+        };
+        
+        updateSensorData();
     }, 5000);
 
     return () => clearInterval(intervalId);
   }, [authState, currentUser, t, temperatureUnit, ambientTemperature]);
+
 
   const handleRefreshData = () => {
     if (!currentUser) return;
