@@ -68,6 +68,7 @@
   "sensorCard.label.critical": "Critical",
   "sensorCard.lowThreshold": "Low Threshold",
   "sensorCard.highThreshold": "High Threshold",
+  "sensorCard.tooltip.physicalDevice": "Data from a physical device",
 
   "temperatureChart.title": "Historical Temperature Trend",
   "temperatureChart.desc.template": "{sensorName} - Last {timePeriod}",
@@ -114,6 +115,7 @@
   "sensorsPage.discoverWifiButton": "Discover via WiFi",
   "sensorsPage.table.name": "Name",
   "sensorsPage.table.location": "Location",
+  "sensorsPage.table.connection": "Connection",
   "sensorsPage.table.currentTemp": "Current Temp.",
   "sensorsPage.table.lowThreshold": "Low Thresh.",
   "sensorsPage.table.highThreshold": "High Thresh.",
@@ -134,6 +136,8 @@
   "sensorsPage.toast.added.description": "The sensor \"{sensorName}\" was successfully added.",
   "sensorsPage.toast.quotaError.title": "Storage Error",
   "sensorsPage.toast.quotaError.description": "Could not save. Storage is full. Old historical data might be the cause.",
+  "sensorTable.tooltip.physicalDevice": "Connected via MAC: {mac}",
+  "sensorTable.connection.simulated": "Simulated",
 
   "sensorForm.addTitle": "Add New Sensor",
   "sensorForm.editTitle": "Edit Sensor",

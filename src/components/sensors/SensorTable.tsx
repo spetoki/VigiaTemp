@@ -5,7 +5,7 @@ import type { Sensor } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Edit3, Trash2, AlertTriangle, CheckCircle2, Wifi } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { cn, formatTemperature, getSensorStatus } from '@/lib/utils';
 import {
@@ -19,6 +19,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import React from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 interface SensorTableProps {
   sensors: Sensor[];
@@ -58,6 +65,7 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
             <TableRow>
               <TableHead>{t('sensorsPage.table.name', 'Nome')}</TableHead>
               <TableHead>{t('sensorsPage.table.location', 'Localização')}</TableHead>
+              <TableHead className="text-center">{t('sensorsPage.table.connection', 'Conexão')}</TableHead>
               <TableHead className="text-center">{t('sensorsPage.table.currentTemp', 'Temp. Atual')}</TableHead>
               <TableHead className="text-center">{t('sensorsPage.table.lowThreshold', 'Lim. Inferior')}</TableHead>
               <TableHead className="text-center">{t('sensorsPage.table.highThreshold', 'Lim. Superior')}</TableHead>
@@ -68,7 +76,7 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
           <TableBody>
             {sensors.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground h-24">
+                <TableCell colSpan={8} className="text-center text-muted-foreground h-24">
                   {t('sensorsPage.table.noSensors', 'Nenhum sensor encontrado. Adicione um novo sensor para começar.')}
                 </TableCell>
               </TableRow>
@@ -79,6 +87,22 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
                 <TableRow key={sensor.id} className={cn(status === 'critical' ? 'bg-accent/10' : status === 'warning' ? 'bg-yellow-500/10' : '')}>
                   <TableCell className="font-medium">{sensor.name}</TableCell>
                   <TableCell>{sensor.location}</TableCell>
+                  <TableCell className="text-center">
+                    {sensor.macAddress ? (
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger className="mx-auto">
+                            <Wifi className="h-5 w-5 text-primary" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t('sensorTable.tooltip.physicalDevice', 'Conectado via MAC: {mac}', { mac: sensor.macAddress })}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{t('sensorTable.connection.simulated', 'Simulado')}</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-center">{formatTemperature(sensor.currentTemperature, temperatureUnit)}</TableCell>
                   <TableCell className="text-center">{formatTemperature(sensor.lowThreshold, temperatureUnit)}</TableCell>
                   <TableCell className="text-center">{formatTemperature(sensor.highThreshold, temperatureUnit)}</TableCell>

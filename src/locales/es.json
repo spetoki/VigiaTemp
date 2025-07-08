@@ -68,6 +68,7 @@
   "sensorCard.label.critical": "Crítico",
   "sensorCard.lowThreshold": "Umbral Inferior",
   "sensorCard.highThreshold": "Umbral Superior",
+  "sensorCard.tooltip.physicalDevice": "Datos de un dispositivo físico",
 
   "temperatureChart.title": "Tendencia Histórica de Temperatura",
   "temperatureChart.desc.template": "{sensorName} - Última(o) {timePeriod}",
@@ -114,6 +115,7 @@
   "sensorsPage.discoverWifiButton": "Descubrir por WiFi",
   "sensorsPage.table.name": "Nombre",
   "sensorsPage.table.location": "Ubicación",
+  "sensorsPage.table.connection": "Conexión",
   "sensorsPage.table.currentTemp": "Temp. Actual",
   "sensorsPage.table.lowThreshold": "Umbral Inf.",
   "sensorsPage.table.highThreshold": "Umbral Sup.",
@@ -134,6 +136,8 @@
   "sensorsPage.toast.added.description": "El sensor \"{sensorName}\" se agregó con éxito.",
   "sensorsPage.toast.quotaError.title": "Error de Almacenamiento",
   "sensorsPage.toast.quotaError.description": "No se pudo guardar. El almacenamiento está lleno. Los datos históricos antiguos podrían ser la causa.",
+  "sensorTable.tooltip.physicalDevice": "Conectado vía MAC: {mac}",
+  "sensorTable.connection.simulated": "Simulado",
 
   "sensorForm.addTitle": "Agregar Nuevo Sensor",
   "sensorForm.editTitle": "Editar Sensor",
@@ -548,7 +552,7 @@
   "deviceConfigurator.generatedCodeDescription": "Copie y pegue este código en su Arduino IDE.",
   "deviceConfigurator.copyButton": "Copiar Código",
   "deviceConfigurator.copiedButton": "¡Copiado!",
-  "deviceConfigurator.errorTitle": "Campos Obligatorios",
+  "deviceConfigator.errorTitle": "Campos Obligatorios",
   "deviceConfigurator.errorDescription": "Por favor, rellene el Nombre de la Red, la Contraseña y la URL de la Aplicación.",
   "deviceConfigurator.copySuccessTitle": "¡Copiado!",
   "deviceConfigurator.copySuccessDescription": "El código ha sido copiado a su portapapeles.",

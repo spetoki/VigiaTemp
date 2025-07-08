@@ -3,10 +3,16 @@
 
 import type { Sensor, SensorStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Thermometer, AlertTriangle, CheckCircle2, MapPin } from 'lucide-react';
+import { Thermometer, AlertTriangle, CheckCircle2, MapPin, Wifi } from 'lucide-react';
 import { cn, formatTemperature, getSensorStatus } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SensorCardProps {
   sensor: Sensor;
@@ -35,8 +41,22 @@ export default function SensorCard({ sensor }: SensorCardProps) {
             {statusConfig[status].label}
           </Badge>
         </div>
-        <CardDescription className="flex items-center text-sm">
-          <MapPin className="h-4 w-4 mr-1 text-muted-foreground" /> {sensor.location}
+        <CardDescription className="flex items-center justify-between text-sm">
+            <span className="flex items-center">
+                <MapPin className="h-4 w-4 mr-1 text-muted-foreground" /> {sensor.location}
+            </span>
+             {sensor.macAddress && (
+                <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                    <TooltipTrigger>
+                    <Wifi className="h-4 w-4 text-primary" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                    <p>{t('sensorCard.tooltip.physicalDevice', 'Dados de um dispositivo físico')}</p>
+                    </TooltipContent>
+                </Tooltip>
+                </TooltipProvider>
+            )}
         </CardDescription>
       </CardHeader>
       <CardContent>

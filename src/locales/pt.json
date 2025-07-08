@@ -68,6 +68,7 @@
   "sensorCard.label.critical": "Crítico",
   "sensorCard.lowThreshold": "Limite Inferior",
   "sensorCard.highThreshold": "Limite Superior",
+  "sensorCard.tooltip.physicalDevice": "Dados de um dispositivo físico",
 
   "temperatureChart.title": "Tendência Histórica de Temperatura",
   "temperatureChart.desc.template": "{sensorName} - Última(o) {timePeriod}",
@@ -114,6 +115,7 @@
   "sensorsPage.discoverWifiButton": "Descobrir via WiFi",
   "sensorsPage.table.name": "Nome",
   "sensorsPage.table.location": "Localização",
+  "sensorsPage.table.connection": "Conexão",
   "sensorsPage.table.currentTemp": "Temp. Atual",
   "sensorsPage.table.lowThreshold": "Lim. Inferior",
   "sensorsPage.table.highThreshold": "Lim. Superior",
@@ -134,7 +136,9 @@
   "sensorsPage.toast.added.description": "O sensor \"{sensorName}\" foi adicionado com sucesso.",
   "sensorsPage.toast.quotaError.title": "Erro de Armazenamento",
   "sensorsPage.toast.quotaError.description": "Não foi possível salvar. O armazenamento está cheio. Dados históricos antigos podem ser a causa.",
-  
+  "sensorTable.tooltip.physicalDevice": "Conectado via MAC: {mac}",
+  "sensorTable.connection.simulated": "Simulado",
+
   "sensorForm.addTitle": "Adicionar Novo Sensor",
   "sensorForm.editTitle": "Editar Sensor",
   "sensorForm.addDescription": "Insira os detalhes para o novo sensor. Os limites estão em °{unit}.",
