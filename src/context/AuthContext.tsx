@@ -54,35 +54,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      // --- MODIFICATION FOR AUTO-LOGIN ---
-      // Find the admin user and log them in automatically for testing.
-      const adminUser = users.find(u => u.email === 'admin');
-      if (adminUser && adminUser.status === 'Active') {
-        setCurrentUser(adminUser);
-        setAuthState('authenticated');
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(adminUser));
-      } else {
-         // Fallback to original logic if admin is not found or inactive
-        const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
-        if (sessionUserJson) {
-          const sessionUser: User = JSON.parse(sessionUserJson);
-          const userInStorage = users.find(u => u.id === sessionUser.id);
-          
-          if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
-            sessionStorage.removeItem(SESSION_USER_KEY);
-            setAuthState('unauthenticated');
-          } else if (userInStorage && userInStorage.status === 'Active') {
-            setCurrentUser(userInStorage);
-            setAuthState('authenticated');
-          } else {
-            sessionStorage.removeItem(SESSION_USER_KEY);
-            setAuthState('unauthenticated');
-          }
+      const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
+      if (sessionUserJson) {
+        const sessionUser: User = JSON.parse(sessionUserJson);
+        const userInStorage = users.find(u => u.id === sessionUser.id);
+        
+        if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
+          sessionStorage.removeItem(SESSION_USER_KEY);
+          setAuthState('unauthenticated');
+        } else if (userInStorage && userInStorage.status === 'Active') {
+          setCurrentUser(userInStorage);
+          setAuthState('authenticated');
         } else {
+          sessionStorage.removeItem(SESSION_USER_KEY);
           setAuthState('unauthenticated');
         }
+      } else {
+        setAuthState('unauthenticated');
       }
-      // --- END MODIFICATION ---
 
     } catch (error) {
       console.error("Error initializing auth state, resetting for safety:", error);

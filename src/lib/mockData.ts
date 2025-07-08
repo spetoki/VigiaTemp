@@ -70,11 +70,37 @@ export const demoSensors: Sensor[] = [
     macAddress: '1A:2B:3C:4D:5E:6F',
     criticalAlertSound: undefined,
   },
+  {
+    id: 'sensor-3',
+    name: 'Beta Greenhouse - Center',
+    location: 'Center',
+    currentTemperature: 31.0, // Celsius - Should trigger critical alert
+    highThreshold: 29, // Celsius
+    lowThreshold: 21, // Celsius
+    historicalData: generateHistoricalData(26, 30),
+    model: 'AgriSense X1',
+    ipAddress: '192.168.1.103',
+    macAddress: '2A:3B:4C:5D:6E:7F',
+    criticalAlertSound: undefined,
+  },
+  {
+    id: 'sensor-4',
+    name: 'Fermentation Box',
+    location: 'Main Warehouse',
+    currentTemperature: 21.5, // Celsius - Should trigger warning
+    highThreshold: 32, // Celsius
+    lowThreshold: 22, // Celsius
+    historicalData: generateHistoricalData(28, 30),
+    model: 'HydroTemp Advanced',
+    ipAddress: '192.168.1.104',
+    macAddress: '3A:4B:5C:6D:7E:8F',
+    criticalAlertSound: undefined,
+  },
 ];
 
-// Function to simulate real-time temperature updates around a base temperature
-export const simulateTemperatureUpdate = (baseTemp: number): number => {
-  // Fluctuation of +/- 1.5 degrees around the base temperature
-  const change = (Math.random() - 0.5) * 3; 
-  return parseFloat((baseTemp + change).toFixed(1));
+// Function to simulate real-time temperature updates
+export const simulateTemperatureUpdate = (currentTemp: number): number => {
+  // A small, random change to simulate real-world fluctuation
+  const change = (Math.random() - 0.5) * 0.5; // +/- 0.25 degrees
+  return parseFloat((currentTemp + change).toFixed(1));
 };

@@ -1,18 +1,16 @@
 
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import SensorCard from '@/components/dashboard/SensorCard';
-import { simulateTemperatureUpdate } from '@/lib/mockData';
+import { demoSensors, simulateTemperatureUpdate } from '@/lib/mockData';
 import type { Sensor, Alert } from '@/types';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw, VolumeX, Volume2, Loader2 } from 'lucide-react';
+import { RefreshCcw, VolumeX, Volume2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { useRouter } from 'next/navigation';
 
@@ -26,7 +24,6 @@ export default function DashboardPage() {
 
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
-  const [ambientTemperature, setAmbientTemperature] = useState<number | null>(null);
 
   useEffect(() => {
     if (authState === 'unauthenticated') {
@@ -34,23 +31,6 @@ export default function DashboardPage() {
     }
   }, [authState, router]);
   
-  useEffect(() => {
-    const fetchAmbientTemp = async () => {
-      try {
-        const result = await getAmbientTemperature();
-        setAmbientTemperature(result.temperature);
-      } catch (error) {
-        console.error("Failed to fetch ambient temperature:", error);
-        setAmbientTemperature(18);
-      }
-    };
-
-    if (authState === 'authenticated') {
-       fetchAmbientTemp();
-    }
-  }, [authState]);
-
-
   useEffect(() => {
     if (isMuted || isPlayingSound || soundQueue.length === 0) {
       return;
@@ -117,11 +97,13 @@ export default function DashboardPage() {
             }));
             setSensors(cleanedSensors);
         } else {
-            setSensors([]);
+            // If no sensors for this user, seed with demo data
+            localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
+            setSensors(demoSensors);
         }
     } catch (e) {
-        console.error("Failed to parse sensors from localStorage, defaulting to empty.", e);
-        setSensors([]);
+        console.error("Failed to parse sensors from localStorage, defaulting to demo data.", e);
+        setSensors(demoSensors);
     } finally {
         setIsLoading(false);
     }
@@ -149,7 +131,7 @@ export default function DashboardPage() {
             }
 
             const updatedSensors = currentSensors.map((sensor) => {
-                const newTemperature = ambientTemperature !== null ? simulateTemperatureUpdate(ambientTemperature) : sensor.currentTemperature;
+                const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
                 return {
                     ...sensor,
                     currentTemperature: newTemperature,
@@ -224,18 +206,18 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [authState, currentUser, t, temperatureUnit, ambientTemperature]);
+  }, [authState, currentUser, t, temperatureUnit]);
 
 
   const handleRefreshData = () => {
     if (!currentUser) return;
     setIsLoading(true);
     const SENSORS_KEY = `sensors_${currentUser.email}`;
+    localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
+    setSensors(demoSensors);
     setTimeout(() => {
-      setSensors([]);
-      localStorage.setItem(SENSORS_KEY, JSON.stringify([]));
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   };
   
 
