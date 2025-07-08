@@ -554,5 +554,15 @@
   "deviceConfigurator.copySuccessTitle": "Copied!",
   "deviceConfigurator.copySuccessDescription": "The code has been copied to your clipboard.",
   "deviceConfigurator.copyErrorTitle": "Copy Failed",
-  "deviceConfigurator.copyErrorDescription": "Could not copy the code."
+  "deviceConfigurator.copyErrorDescription": "Could not copy the code.",
+  "nav.games": "Games",
+  "games.pageTitle": "Games Center",
+  "games.pageDescription": "A little easter-egg to relax. Challenge the AI in Tic-Tac-Toe!",
+  "games.ticTacToe.title": "Tic-Tac-Toe",
+  "ticTacToe.description": "Challenge our unbeatable AI.",
+  "ticTacToe.draw": "It's a Draw!",
+  "ticTacToe.winner": "Winner: {winner}",
+  "ticTacToe.yourTurn": "Your Turn (X)",
+  "ticTacToe.aiTurn": "AI's Turn (O)...",
+  "ticTacToe.playAgain": "Play Again"
 }

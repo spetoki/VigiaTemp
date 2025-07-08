@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut, Cog } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut, Cog, Gamepad2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -38,6 +39,7 @@ export default function AppHeader() {
     { href: '/sensor-charts', labelKey: 'nav.sensorCharts', icon: LineChart, defaultLabel: 'Gráficos dos Sensores' },
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
     { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: Cog, defaultLabel: 'Configurar Dispositivo' },
+    { href: '/games', labelKey: 'nav.games', icon: Gamepad2, defaultLabel: 'Jogos' },
   ];
 
   const userNavItems = [
