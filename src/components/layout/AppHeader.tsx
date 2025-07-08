@@ -113,11 +113,6 @@ export default function AppHeader() {
             </Link>
           ))}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-         <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>{t('nav.logout', 'Log Out')}</span>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -156,7 +151,7 @@ export default function AppHeader() {
                   <SheetFooter className="p-4 border-t">
                       <Button variant="outline" className="w-full" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
                         <LogOut className="mr-2 h-4 w-4" />
-                        {t('nav.logout', 'Log Out')}
+                        {t('nav.logout', 'Sair')}
                       </Button>
                   </SheetFooter>
                 </>
@@ -211,8 +206,11 @@ export default function AppHeader() {
             </RadioGroup>
 
           {authState === 'authenticated' ? (
-             <div className="hidden md:block">
+             <div className="hidden md:flex items-center gap-x-2">
                 <UserMenu />
+                 <Button variant="ghost" size="icon" onClick={logout} aria-label={t('nav.logout', 'Sair do app')}>
+                    <LogOut className="h-5 w-5" />
+                </Button>
               </div>
           ) : authState === 'unauthenticated' ? (
             <div className="hidden md:flex items-center gap-2">
