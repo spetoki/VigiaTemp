@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { t, temperatureUnit } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
-  const { currentUser } = useAuth();
+  const { currentUser, authState } = useAuth();
   const router = useRouter();
 
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
@@ -67,6 +67,13 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
 
+  // Effect to redirect if not authenticated
+  useEffect(() => {
+    if (authState === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [authState, router]);
+
   // Effect to load initial sensor data
   useEffect(() => {
     if (currentUser) {
@@ -100,19 +107,19 @@ export default function DashboardPage() {
       } finally {
           setIsLoading(false);
       }
+    } else if (authState === 'unauthenticated') {
+      router.push('/login');
     } else {
-      // If no user, just show demo data without touching localStorage
-      setSensors(demoSensors);
-      setIsLoading(false);
+      setIsLoading(true);
     }
-  }, [currentUser]);
+  }, [currentUser, authState, router]);
 
 
   // Effect for the main update interval
   useEffect(() => {
+    if (!currentUser) return; // Only run updates if logged in
+
     const intervalId = setInterval(() => {
-      if (currentUser) {
-        // Logged-in user: update logic with localStorage
         const SENSORS_KEY = `sensors_${currentUser.email}`;
         const ALERTS_KEY = `alerts_${currentUser.email}`;
         
@@ -195,22 +202,6 @@ export default function DashboardPage() {
                 console.error("LocalStorage quota exceeded on dashboard update. Further updates may fail.");
             }
         }
-      } else {
-        // Not logged in: update state directly
-        setSensors(currentSensors => {
-            return currentSensors.map(sensor => {
-                 const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
-                 return {
-                    ...sensor,
-                    currentTemperature: newTemperature,
-                    historicalData: [
-                        ...(sensor.historicalData || []),
-                        { timestamp: Date.now(), temperature: newTemperature }
-                    ].slice(-200)
-                };
-            });
-        });
-      }
     }, 5000);
 
     return () => clearInterval(intervalId);
@@ -230,7 +221,7 @@ export default function DashboardPage() {
   };
   
 
-  if (isLoading) {
+  if (isLoading || authState !== 'authenticated') {
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">
