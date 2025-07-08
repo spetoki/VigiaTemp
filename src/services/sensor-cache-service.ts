@@ -1,6 +1,4 @@
 
-'use server';
-
 /**
  * @fileOverview A simple in-memory cache for sensor readings.
  * This service provides a temporary, server-side storage mechanism to hold the
