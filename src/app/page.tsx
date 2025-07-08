@@ -19,18 +19,12 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { t, temperatureUnit } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
-  const { currentUser, authState } = useAuth();
+  const { currentUser } = useAuth();
   const router = useRouter();
 
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
 
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
-  
   useEffect(() => {
     if (isMuted || isPlayingSound || soundQueue.length === 0) {
       return;
@@ -73,66 +67,140 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
 
-  // Effect to load initial sensor data from localStorage
+  // Effect to load initial sensor data
   useEffect(() => {
-    if (authState !== 'authenticated' || !currentUser) return;
-    
-    const SENSORS_KEY = `sensors_${currentUser.email}`;
-    try {
-        const storedSensors = localStorage.getItem(SENSORS_KEY);
-        if (storedSensors) {
-            const parsedSensors: any[] = JSON.parse(storedSensors);
-            const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-                id: s.id || `sensor-${Date.now()}${Math.random()}`,
-                name: s.name || 'Unnamed Sensor',
-                location: s.location || 'Unknown Location',
-                currentTemperature: s.currentTemperature ?? 25,
-                highThreshold: s.highThreshold ?? 30,
-                lowThreshold: s.lowThreshold ?? 20,
-                historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-                model: s.model || 'Unknown Model',
-                ipAddress: s.ipAddress || '',
-                macAddress: s.macAddress || '',
-                criticalAlertSound: s.criticalAlertSound || undefined,
-            }));
-            setSensors(cleanedSensors);
-        } else {
-            // If no sensors for this user, seed with demo data
-            localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
-            setSensors(demoSensors);
-        }
-    } catch (e) {
-        console.error("Failed to parse sensors from localStorage, defaulting to demo data.", e);
-        setSensors(demoSensors);
-    } finally {
-        setIsLoading(false);
+    if (currentUser) {
+      const SENSORS_KEY = `sensors_${currentUser.email}`;
+      try {
+          const storedSensors = localStorage.getItem(SENSORS_KEY);
+          if (storedSensors) {
+              const parsedSensors: any[] = JSON.parse(storedSensors);
+              const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
+                  id: s.id || `sensor-${Date.now()}${Math.random()}`,
+                  name: s.name || 'Unnamed Sensor',
+                  location: s.location || 'Unknown Location',
+                  currentTemperature: s.currentTemperature ?? 25,
+                  highThreshold: s.highThreshold ?? 30,
+                  lowThreshold: s.lowThreshold ?? 20,
+                  historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
+                  model: s.model || 'Unknown Model',
+                  ipAddress: s.ipAddress || '',
+                  macAddress: s.macAddress || '',
+                  criticalAlertSound: s.criticalAlertSound || undefined,
+              }));
+              setSensors(cleanedSensors);
+          } else {
+              // If no sensors for this user, seed with demo data
+              localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
+              setSensors(demoSensors);
+          }
+      } catch (e) {
+          console.error("Failed to parse sensors from localStorage, defaulting to demo data.", e);
+          setSensors(demoSensors);
+      } finally {
+          setIsLoading(false);
+      }
+    } else {
+      // If no user, just show demo data without touching localStorage
+      setSensors(demoSensors);
+      setIsLoading(false);
     }
-  }, [authState, currentUser]);
+  }, [currentUser]);
 
 
   // Effect for the main update interval
   useEffect(() => {
-    if (authState !== 'authenticated' || !currentUser) return;
-    
     const intervalId = setInterval(() => {
-        const updateSensorData = () => {
-            if (!currentUser) return;
-            
-            const SENSORS_KEY = `sensors_${currentUser.email}`;
-            const ALERTS_KEY = `alerts_${currentUser.email}`;
-            
-            let currentSensors: Sensor[] = [];
-            try {
-                const storedSensors = localStorage.getItem(SENSORS_KEY);
-                currentSensors = storedSensors ? JSON.parse(storedSensors) : [];
-            } catch (e) {
-                console.error("Failed to parse sensors from localStorage during update.", e);
-                return;
+      if (currentUser) {
+        // Logged-in user: update logic with localStorage
+        const SENSORS_KEY = `sensors_${currentUser.email}`;
+        const ALERTS_KEY = `alerts_${currentUser.email}`;
+        
+        let currentSensors: Sensor[] = [];
+        try {
+            const storedSensors = localStorage.getItem(SENSORS_KEY);
+            currentSensors = storedSensors ? JSON.parse(storedSensors) : [];
+        } catch (e) {
+            console.error("Failed to parse sensors from localStorage during update.", e);
+            return;
+        }
+
+        const updatedSensors = currentSensors.map((sensor) => {
+            const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
+            return {
+                ...sensor,
+                currentTemperature: newTemperature,
+                historicalData: [
+                    ...(sensor.historicalData || []),
+                    { timestamp: Date.now(), temperature: newTemperature }
+                ].slice(-200)
+            };
+        });
+
+        let currentAlerts: Alert[] = [];
+        try {
+            const storedAlerts = localStorage.getItem(ALERTS_KEY);
+            currentAlerts = storedAlerts ? JSON.parse(storedAlerts) : [];
+        } catch (e) {
+            currentAlerts = [];
+        }
+
+        const soundsToQueueForThisInterval: (string | undefined)[] = [];
+        
+        updatedSensors.forEach(sensor => {
+            const status = getSensorStatus(sensor);
+            if (status === 'critical' || status === 'warning') {
+                const hasRecentUnacknowledgedAlert = currentAlerts.some(
+                    alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
+                );
+                if (!hasRecentUnacknowledgedAlert) {
+                    const isHigh = sensor.currentTemperature > sensor.highThreshold;
+                    const message = t('alert.message.template', 
+                        'Temperatura de {temp} está {direction} do limite de {limit}', 
+                        {
+                            temp: formatTemperature(sensor.currentTemperature, temperatureUnit),
+                            direction: isHigh ? t('alert.message.above', 'acima') : t('alert.message.below', 'abaixo'),
+                            limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
+                        }
+                    );
+                    const newAlert: Alert = {
+                        id: `alert-${Date.now()}-${sensor.id}`,
+                        sensorId: sensor.id,
+                        sensorName: sensor.name,
+                        timestamp: Date.now(),
+                        level: status,
+                        message: message,
+                        acknowledged: false,
+                        reason: isHigh ? 'high' : 'low',
+                    };
+                    currentAlerts.unshift(newAlert);
+                }
             }
 
-            const updatedSensors = currentSensors.map((sensor) => {
-                const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
-                return {
+            if (status === 'critical') {
+                soundsToQueueForThisInterval.push(sensor.criticalAlertSound || defaultCriticalSound);
+            }
+        });
+
+        if (soundsToQueueForThisInterval.length > 0) {
+            setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
+        }
+        
+        try {
+          localStorage.setItem(ALERTS_KEY, JSON.stringify(currentAlerts.slice(0, 100)));
+          localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+          setSensors(updatedSensors);
+        } catch(e) {
+            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                console.error("LocalStorage quota exceeded on dashboard update. Further updates may fail.");
+            }
+        }
+      } else {
+        // Not logged in: update state directly
+        setSensors(currentSensors => {
+            return currentSensors.map(sensor => {
+                 const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
+                 return {
                     ...sensor,
                     currentTemperature: newTemperature,
                     historicalData: [
@@ -141,79 +209,20 @@ export default function DashboardPage() {
                     ].slice(-200)
                 };
             });
-
-            let currentAlerts: Alert[] = [];
-            try {
-                const storedAlerts = localStorage.getItem(ALERTS_KEY);
-                currentAlerts = storedAlerts ? JSON.parse(storedAlerts) : [];
-            } catch (e) {
-                currentAlerts = [];
-            }
-
-            const soundsToQueueForThisInterval: (string | undefined)[] = [];
-            
-            updatedSensors.forEach(sensor => {
-                const status = getSensorStatus(sensor);
-                if (status === 'critical' || status === 'warning') {
-                    const hasRecentUnacknowledgedAlert = currentAlerts.some(
-                        alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
-                    );
-                    if (!hasRecentUnacknowledgedAlert) {
-                        const isHigh = sensor.currentTemperature > sensor.highThreshold;
-                        const message = t('alert.message.template', 
-                            'Temperatura de {temp} está {direction} do limite de {limit}', 
-                            {
-                                temp: formatTemperature(sensor.currentTemperature, temperatureUnit),
-                                direction: isHigh ? t('alert.message.above', 'acima') : t('alert.message.below', 'abaixo'),
-                                limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
-                            }
-                        );
-                        const newAlert: Alert = {
-                            id: `alert-${Date.now()}-${sensor.id}`,
-                            sensorId: sensor.id,
-                            sensorName: sensor.name,
-                            timestamp: Date.now(),
-                            level: status,
-                            message: message,
-                            acknowledged: false,
-                            reason: isHigh ? 'high' : 'low',
-                        };
-                        currentAlerts.unshift(newAlert);
-                    }
-                }
-
-                if (status === 'critical') {
-                    soundsToQueueForThisInterval.push(sensor.criticalAlertSound || defaultCriticalSound);
-                }
-            });
-
-            if (soundsToQueueForThisInterval.length > 0) {
-                setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
-            }
-            
-            try {
-              localStorage.setItem(ALERTS_KEY, JSON.stringify(currentAlerts.slice(0, 100)));
-              localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
-              setSensors(updatedSensors);
-            } catch(e) {
-                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                    console.error("LocalStorage quota exceeded on dashboard update. Further updates may fail.");
-                }
-            }
-        };
-        
-        updateSensorData();
+        });
+      }
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [authState, currentUser, t, temperatureUnit]);
+  }, [currentUser, t, temperatureUnit]);
 
 
   const handleRefreshData = () => {
-    if (!currentUser) return;
     setIsLoading(true);
-    const SENSORS_KEY = `sensors_${currentUser.email}`;
-    localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
+    if (currentUser) {
+        const SENSORS_KEY = `sensors_${currentUser.email}`;
+        localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
+    }
     setSensors(demoSensors);
     setTimeout(() => {
       setIsLoading(false);
@@ -221,7 +230,7 @@ export default function DashboardPage() {
   };
   
 
-  if (isLoading || authState !== 'authenticated') {
+  if (isLoading) {
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">
