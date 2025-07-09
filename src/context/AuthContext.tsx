@@ -28,13 +28,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const { t } = useSettings();
 
+  const getUsersFromStorage = useCallback((): User[] => {
+    try {
+        const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
+        return storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+    } catch (e) {
+        console.error("Failed to parse users from localStorage", e);
+        return [];
+    }
+  }, []);
+
   useEffect(() => {
     try {
-      const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
-      let users: User[] = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+      let users = getUsersFromStorage();
 
       if (users.length === 0) {
-        users = demoUsers;
+        users = [...demoUsers];
         localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
       } else {
         const adminUserIndex = users.findIndex(u => u.role === 'Admin' || u.email === 'admin');
@@ -81,10 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   // The dependency array is correct.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t]);
+  }, [getUsersFromStorage]);
 
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
-    const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+    const users = getUsersFromStorage();
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
 
     if (user) {
@@ -112,10 +121,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
       return false;
     }
-  }, [router, t, toast]);
+  }, [router, t, toast, getUsersFromStorage]);
 
   const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>): Promise<boolean> => {
-    const users: User[] = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+    const users = getUsersFromStorage();
     const existingUser = users.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
 
     if (existingUser) {
@@ -133,13 +142,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       accessExpiresAt: undefined,
     };
 
-    users.unshift(finalNewUser);
-    localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+    const updatedUsers = [finalNewUser, ...users];
+    localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
     
     toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
     router.push('/login');
     return true;
-  }, [router, t, toast]);
+  }, [router, t, toast, getUsersFromStorage]);
 
 
   const logout = useCallback(() => {

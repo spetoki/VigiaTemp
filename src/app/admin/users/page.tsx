@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { User } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -32,17 +32,8 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    } else if (authState === 'authenticated' && currentUser?.role !== 'Admin') {
-      router.push('/');
-    }
-  }, [authState, currentUser, router]);
-
-  useEffect(() => {
-    if (authState !== 'authenticated' || currentUser?.role !== 'Admin') return;
-
+  const loadUsers = useCallback(() => {
+    setIsLoading(true);
     try {
       const storedUsers = localStorage.getItem(LS_USERS_KEY);
       const initialUsers = storedUsers ? JSON.parse(storedUsers) : [...demoUsers];
@@ -70,8 +61,18 @@ export default function AdminUsersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [authState, currentUser]);
-  
+  }, []);
+
+  useEffect(() => {
+    if (authState === 'unauthenticated') {
+      router.push('/login');
+    } else if (authState === 'authenticated' && currentUser?.role !== 'Admin') {
+      router.push('/');
+    } else if (authState === 'authenticated' && currentUser?.role === 'Admin') {
+        loadUsers();
+    }
+  }, [authState, currentUser, router, loadUsers]);
+
   const handleSaveUser = (updatedUser: User) => {
     setUsers(currentUsers => {
       const newUsers = currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u);
