@@ -17,7 +17,7 @@ import { getLatestReading } from '@/services/sensor-cache-service';
  */
 export async function GET(
   request: Request,
-  { params }: { params: { mac: string } }
+  context: { params: { mac: string } }
 ) {
   const mac = params.mac;
 
