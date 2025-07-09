@@ -1,3 +1,4 @@
+print(default_api.run_terminal_command(command='npm run build'))
 
 'use server';
 
