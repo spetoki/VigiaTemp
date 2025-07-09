@@ -1,27 +1,23 @@
-print(default_api.run_terminal_command(command='npm run build'))
-
-'use server';
-
 import { NextResponse } from 'next/server';
 import { getLatestReading } from '@/services/sensor-cache-service';
 
 /**
- * @fileoverview API endpoint para buscar a última leitura de um sensor específico.
+ * @fileoverview API endpoint to fetch the latest reading for a specific sensor.
  */
 
 /**
- * Lida com requisições GET para buscar a leitura de um sensor pelo seu MAC address.
+ * Handles GET requests to fetch a sensor reading by its MAC address.
  *
- * @param {Request} request A requisição recebida.
- * @param {object} context O contexto da rota, contendo os parâmetros dinâmicos.
- * @param {string} context.params.mac O MAC address do sensor, extraído da URL.
- * @returns {Promise<NextResponse>} Uma resposta JSON com os dados do sensor ou um erro 404.
+ * @param {Request} request The incoming request.
+ * @param {object} context The route context, containing dynamic parameters.
+ * @param {string} context.params.mac The MAC address of the sensor, extracted from the URL.
+ * @returns {Promise<NextResponse>} A JSON response with sensor data or a 404 error.
  */
 export async function GET(
   request: Request,
-  { params }: { params: { mac: string } }
+  context: { params: { mac: string } }
 ) {
-  const { mac } = params;
+  const { mac } = context.params;
 
   if (!mac) {
     return NextResponse.json({ message: 'MAC address não fornecido.' }, { status: 400 });
@@ -32,8 +28,8 @@ export async function GET(
   if (reading) {
     return NextResponse.json(reading);
   } else {
-    // Retorna 404 mas com um JSON para ser mais informativo.
-    // É normal não ter dados no início, então não é um erro de servidor.
+    // Returns 404 but with JSON to be more informative.
+    // It's normal to have no data initially, so it's not a server error.
     return NextResponse.json(
         { temperature: null, timestamp: null, message: 'Nenhuma leitura encontrada para este MAC address.' },
         { status: 404 }
