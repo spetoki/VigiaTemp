@@ -14,17 +14,12 @@ interface MainLayoutProps {
 
 function LayoutContent({ children }: MainLayoutProps) {
   const { t } = useSettings();
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [footerText, setFooterText] = useState('');
 
   useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
-  
-  const baseFooterText = t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a I.M.B');
-  
-  const footerText = currentYear 
-    ? t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a I.M.B', { year: currentYear })
-    : baseFooterText.replace(' {year}', '');
+    const year = new Date().getFullYear();
+    setFooterText(t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a I.M.B', { year }));
+  }, [t]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -35,7 +30,8 @@ function LayoutContent({ children }: MainLayoutProps) {
         </div>
       </main>
       <footer className="bg-primary text-primary-foreground text-center p-4 text-sm">
-        {footerText}
+        {/* Render footer text only on the client to prevent hydration mismatch */}
+        {footerText || <>&nbsp;</>}
       </footer>
       <Toaster />
     </div>
