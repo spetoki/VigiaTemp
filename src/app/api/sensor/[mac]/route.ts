@@ -17,12 +17,12 @@ import { getLatestReading } from '@/services/sensor-cache-service';
  */
 export async function GET(
   request: Request,
-  context: { params: { mac: string } }
+  { params }: { params: { mac: string } }
 ) {
   const mac = params.mac;
 
   if (!mac) {
-      return NextResponse.json({ message: 'MAC address não fornecido.' }, { status: 400 });
+    return NextResponse.json({ message: 'MAC address não fornecido.' }, { status: 400 });
   }
 
   const reading = getLatestReading(mac);
