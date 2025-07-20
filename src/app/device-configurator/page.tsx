@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const arduinoCodeTemplate = `
 #include <WiFi.h>
-#include <HTTPClient.h>
+#include <HTTPClient.h> // Biblioteca para fazer requisições HTTP (a tecnologia de comunicação)
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -73,6 +73,7 @@ void loop() {
 
       String jsonPayload = "{\\"macAddress\\":\\"" + String(WiFi.macAddress()) + "\\",\\"temperature\\":" + String(temperatureC) + "}";
 
+      // Envia a requisição POST para o servidor (nosso app)
       int httpResponseCode = http.POST(jsonPayload);
       
       Serial.print("HTTP Response Code: ");
