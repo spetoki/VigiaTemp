@@ -1,6 +1,3 @@
-import { config } from 'dotenv';
-config();
-
-import '@/ai/flows/optimize-alarm-settings';
-// import '@/ai/flows/get-ambient-temperature'; // This flow was converted to a standard server action.
-import '@/ai/tools/weather-tool';
+// Este arquivo é usado para o desenvolvimento local do Genkit e seu conteúdo foi removido
+// intencionalmente para evitar problemas de dependência no build de produção do Vercel.
+// Os fluxos do Genkit são importados diretamente pelas Server Actions que os utilizam.
