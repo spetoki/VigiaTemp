@@ -25,7 +25,7 @@ const requiredConfigs = [
     'apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'
 ] as const;
 
-const missingConfigs = requiredConfigs.filter(key => !firebaseConfig[key] || firebaseConfig[key] === undefined);
+const missingConfigs = requiredConfigs.filter(key => !firebaseConfig[key]);
 
 if (missingConfigs.length === 0 && !firebaseConfig.apiKey?.includes('...')) {
   try {
@@ -42,9 +42,9 @@ if (missingConfigs.length === 0 && !firebaseConfig.apiKey?.includes('...')) {
   }
 } else {
   if (missingConfigs.length > 0) {
-      console.warn(`Firebase is disabled because the following environment variables are missing in your .env file: ${missingConfigs.join(', ')}.`);
+      console.warn(`Firebase is disabled because the following environment variables are missing in your .env file or Vercel config: ${missingConfigs.join(', ')}.`);
   } else {
-      console.warn("Firebase configuration appears to be using placeholder values in your .env file. Please replace them with your actual Firebase project keys. Firebase features will be disabled.");
+      console.warn("Firebase configuration appears to be using placeholder values (e.g., contains '...'). Please replace them with your actual Firebase project keys in your .env file or Vercel config. Firebase features will be disabled.");
   }
   // Provide dummy objects to prevent the app from crashing on import
   app = {} as FirebaseApp;
