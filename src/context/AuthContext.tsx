@@ -7,6 +7,20 @@ import type { User, AuthState } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from './SettingsContext';
+import { isFirebaseEnabled, auth as firebaseAuth } from '@/lib/firebase';
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  addDoc, 
+  doc, 
+  updateDoc,
+  query,
+  where,
+  setDoc,
+  getDoc
+} from 'firebase/firestore';
+
 
 interface AuthContextType {
   currentUser: User | null;
@@ -18,7 +32,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LS_USERS_KEY = 'vigiatemp_admin_users';
+const LS_USERS_KEY = 'vigiatemp_admin_users'; // Kept for seeding on first load
 const SESSION_USER_KEY = 'vigiatemp_session_user';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -28,75 +42,124 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const { t } = useSettings();
 
-  const getUsersFromStorage = useCallback((): User[] => {
+  const getUsersFromFirestore = useCallback(async (): Promise<User[]> => {
+    if (!isFirebaseEnabled) return [];
     try {
-        const storedUsersRaw = localStorage.getItem(LS_USERS_KEY);
-        return storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+        const db = getFirestore();
+        const usersCol = collection(db, 'users');
+        const userSnapshot = await getDocs(usersCol);
+        const userList = userSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
+        return userList;
     } catch (e) {
-        console.error("Failed to parse users from localStorage", e);
+        console.error("Failed to fetch users from Firestore", e);
+        toast({ title: "Database Error", description: "Could not fetch user data.", variant: "destructive" });
         return [];
+    }
+  }, [toast]);
+  
+  // Seed database on first load if it's empty
+  const seedDatabase = useCallback(async () => {
+    if (!isFirebaseEnabled) return;
+    try {
+      const db = getFirestore();
+      const usersCol = collection(db, 'users');
+      const userSnapshot = await getDocs(usersCol);
+      if (userSnapshot.empty) {
+        console.log("Firestore 'users' collection is empty. Seeding with demo data...");
+        for (const user of demoUsers) {
+          // Use email as document ID for admin for predictability, random for others.
+          const docRef = user.role === 'Admin' ? doc(db, 'users', user.email) : doc(collection(db, 'users'));
+          await setDoc(docRef, { ...user, id: docRef.id });
+        }
+        console.log("Seeding complete.");
+      }
+    } catch (error) {
+      console.error("Error seeding Firestore database:", error);
     }
   }, []);
 
+
   useEffect(() => {
-    try {
-      let users = getUsersFromStorage();
-
-      if (users.length === 0) {
-        users = [...demoUsers];
-        localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
-      } else {
-        const adminUserIndex = users.findIndex(u => u.role === 'Admin' || u.email === 'admin');
-        const demoAdmin = demoUsers.find(u => u.email === 'admin');
-
-        if (demoAdmin) {
-          if (adminUserIndex !== -1) {
-            const adminUser = users[adminUserIndex];
-            if (adminUser.email !== demoAdmin.email || adminUser.password !== demoAdmin.password) {
-              users[adminUserIndex] = { ...adminUser, email: demoAdmin.email, password: demoAdmin.password };
-              localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+    const initializeAuth = async () => {
+        if (!isFirebaseEnabled) {
+            console.warn("Firebase is disabled. Using localStorage for auth.");
+            // Fallback to localStorage if Firebase is not configured
+            const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
+            if (sessionUserJson) {
+              setCurrentUser(JSON.parse(sessionUserJson));
+              setAuthState('authenticated');
+            } else {
+              setAuthState('unauthenticated');
             }
-          } else {
-            users.unshift(demoAdmin);
-            localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+            return;
+        }
+
+        await seedDatabase();
+
+        const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
+        if (sessionUserJson) {
+          const sessionUser: User = JSON.parse(sessionUserJson);
+          
+          if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
+            sessionStorage.removeItem(SESSION_USER_KEY);
+            setAuthState('unauthenticated');
+            return;
           }
-        }
-      }
 
-      const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
-      if (sessionUserJson) {
-        const sessionUser: User = JSON.parse(sessionUserJson);
-        const userInStorage = users.find(u => u.id === sessionUser.id);
-        
-        if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
-          sessionStorage.removeItem(SESSION_USER_KEY);
-          setAuthState('unauthenticated');
-        } else if (userInStorage && userInStorage.status === 'Active') {
-          setCurrentUser(userInStorage);
-          setAuthState('authenticated');
+          const db = getFirestore();
+          const userDocRef = doc(db, "users", sessionUser.id);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+              const freshUserData = { id: userDoc.id, ...userDoc.data() } as User;
+              if (freshUserData.status === 'Active') {
+                 setCurrentUser(freshUserData);
+                 setAuthState('authenticated');
+              } else {
+                 sessionStorage.removeItem(SESSION_USER_KEY);
+                 setAuthState('unauthenticated');
+              }
+          } else {
+            sessionStorage.removeItem(SESSION_USER_KEY);
+            setAuthState('unauthenticated');
+          }
         } else {
-          sessionStorage.removeItem(SESSION_USER_KEY);
-          setAuthState('unauthenticated');
+            setAuthState('unauthenticated');
         }
-      } else {
-        setAuthState('unauthenticated');
-      }
-
-    } catch (error) {
-      console.error("Error initializing auth state, resetting for safety:", error);
-      localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
-      sessionStorage.removeItem(SESSION_USER_KEY);
-      setAuthState('unauthenticated');
-    }
-  // The dependency array is correct.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getUsersFromStorage]);
+    };
+    
+    initializeAuth();
+  }, [seedDatabase]);
 
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
-    const users = getUsersFromStorage();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    if (!isFirebaseEnabled) {
+      // Fallback localStorage login
+      const users = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
+      const user = users.find((u: User) => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+      if(user) {
+        setCurrentUser(user);
+        setAuthState('authenticated');
+        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+        router.push('/');
+        return true;
+      }
+      return false;
+    }
 
-    if (user) {
+    const db = getFirestore();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", email.toLowerCase()));
+    
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+        toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
+        return false;
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const user = { id: userDoc.id, ...userDoc.data() } as User;
+
+    if (user.password === password) {
         if (user.status !== 'Active') {
             toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
             return false;
@@ -121,20 +184,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
       return false;
     }
-  }, [router, t, toast, getUsersFromStorage]);
+  }, [router, t, toast]);
 
   const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>): Promise<boolean> => {
-    const users = getUsersFromStorage();
-    const existingUser = users.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
-
-    if (existingUser) {
+    if (!isFirebaseEnabled) {
+      alert("Firebase is not configured. Signup is disabled.");
+      return false;
+    }
+    const db = getFirestore();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", newUser.email.toLowerCase()));
+    
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
       toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
       return false;
     }
     
-    const finalNewUser: User = {
+    const finalNewUser: Omit<User, 'id'> = {
       ...newUser,
-      id: `user-${Date.now()}`,
       joinedDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
       role: 'User',
@@ -142,13 +210,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       accessExpiresAt: undefined,
     };
 
-    const updatedUsers = [finalNewUser, ...users];
-    localStorage.setItem(LS_USERS_KEY, JSON.stringify(updatedUsers));
-    
-    toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
-    router.push('/login');
-    return true;
-  }, [router, t, toast, getUsersFromStorage]);
+    try {
+      await addDoc(collection(db, "users"), finalNewUser);
+      toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
+      router.push('/login');
+      return true;
+    } catch (error) {
+       console.error("Error adding user to Firestore:", error);
+       toast({ title: "Signup Error", description: "Could not create account. Please try again.", variant: "destructive" });
+       return false;
+    }
+  }, [router, t, toast]);
 
 
   const logout = useCallback(() => {
