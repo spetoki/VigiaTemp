@@ -139,13 +139,13 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
     const { onChange, ...restField } = form.register('criticalAlertSound');
     
     if (file) {
-        const MAX_FILE_SIZE_MB = 1;
+        const MAX_FILE_SIZE_MB = 1024; // 1GB
         const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
         if (file.size > MAX_FILE_SIZE_BYTES) {
             toast({
                 title: t('sensorForm.fileTooLarge.title', "Arquivo Muito Grande"),
-                description: t('sensorForm.fileTooLarge.description', "O arquivo de áudio não pode exceder {size}MB.", { size: MAX_FILE_SIZE_MB }),
+                description: t('sensorForm.fileTooLarge.description', "O arquivo de áudio não pode exceder {size}GB.", { size: 1 }),
                 variant: "destructive",
             });
             if (inputElement) inputElement.value = ''; // Clear the input
@@ -327,7 +327,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                         </div>
                     )}
                     <FormDescription>
-                      {t('sensorForm.criticalAlertSoundDescription', 'Carregue um arquivo de áudio (MP3, WAV, OGG, M4A) de até 1MB.')}
+                      {t('sensorForm.criticalAlertSoundDescription', 'Carregue um arquivo de áudio (MP3, WAV, OGG, M4A) de até 1GB.')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
