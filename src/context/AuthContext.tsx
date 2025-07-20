@@ -7,7 +7,7 @@ import type { User, AuthState } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/context/SettingsContext';
-import { isFirebaseEnabled } from '@/lib/firebase';
+import { isFirebaseEnabled, db } from '@/lib/firebase';
 import { 
   getFirestore, 
   collection, 
@@ -45,7 +45,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const seedDatabase = useCallback(async () => {
     if (!isFirebaseEnabled) return;
     try {
-      const db = getFirestore();
       const usersCol = collection(db, 'users');
       const userSnapshot = await getDocs(usersCol);
       if (userSnapshot.empty) {
@@ -84,7 +83,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return;
           }
 
-          const db = getFirestore();
           const userDocRef = doc(db, "users", sessionUser.id);
           const userDoc = await getDoc(userDocRef);
 
@@ -114,11 +112,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
     if (!isFirebaseEnabled) {
-      toast({ title: "Firebase Desabilitado", description: "A autenticação requer configuração do Firebase.", variant: "destructive"});
+      toast({ title: "Firebase Desabilitado", description: "A autenticação requer configuração das chaves de API no Vercel.", variant: "destructive"});
       return false;
     }
 
-    const db = getFirestore();
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", email.toLowerCase()));
     
@@ -160,10 +157,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>): Promise<boolean> => {
     if (!isFirebaseEnabled) {
-      toast({ title: "Firebase Desabilitado", description: "O cadastro de usuários requer configuração do Firebase.", variant: "destructive"});
+      toast({ title: "Firebase Desabilitado", description: "O cadastro de usuários requer configuração das chaves de API no Vercel.", variant: "destructive"});
       return false;
     }
-    const db = getFirestore();
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", newUser.email.toLowerCase()));
     
