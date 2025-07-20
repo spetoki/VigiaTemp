@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
         const db = getFirestore();
         await deleteDoc(doc(db, "users", userId));
         setUsers(currentUsers => currentUsers.filter(u => u.id !== userId));
-        toast({ title: "Sucesso", description: "Usuário excluído.", variant: "destructive" });
+        toast({ title: t('sensorsPage.toast.deleted.title', "Sensor Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
     } catch (error) {
         console.error("Error deleting user:", error);
         toast({ title: "Erro", description: "Não foi possível excluir o usuário.", variant: "destructive"});
