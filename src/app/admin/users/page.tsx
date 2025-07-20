@@ -93,9 +93,8 @@ export default function AdminUsersPage() {
     try {
         const db = getFirestore();
         const finalNewUser: Omit<User, 'id'> = {
-            id: '', // Firestore will generate this
+            ...newUser,
             joinedDate: new Date().toISOString().split('T')[0],
-            ...newUser
         };
         const docRef = await addDoc(collection(db, "users"), finalNewUser);
         setUsers(currentUsers => [{ ...finalNewUser, id: docRef.id }, ...currentUsers]);
