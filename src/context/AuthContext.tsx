@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { User, AuthState } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
-import { useSettings } from './SettingsContext';
+import { useSettings } from '@/context/SettingsContext';
 import { isFirebaseEnabled } from '@/lib/firebase';
 import { 
   getFirestore, 
