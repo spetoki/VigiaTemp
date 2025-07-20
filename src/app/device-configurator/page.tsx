@@ -7,48 +7,74 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { CodeXml, Copy, Check, Cog } from 'lucide-react';
+import { CodeXml, Copy, Check, Cog, Wifi } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 
 const arduinoCodeTemplate = `
+/*
+  VigiaTemp - Código Universal com WiFi Manager
+  Descrição: Este código permite que o dispositivo ESP32 seja configurado
+  para qualquer rede WiFi sem a necessidade de reprogramação. Ele utiliza
+  a biblioteca WiFiManager para criar um portal de configuração.
+  
+  Como funciona:
+  1. Ao ligar, o ESP32 tenta se conectar a uma rede já salva.
+  2. Se não conseguir, ele cria um Ponto de Acesso WiFi chamado "VigiaTemp-Config".
+  3. Conecte seu celular ou computador a esta rede.
+  4. Um portal de configuração abrirá automaticamente no seu navegador.
+  5. Selecione sua rede WiFi, insira a senha e o endereço do servidor.
+  6. O ESP32 salvará as informações e se conectará à sua rede.
+*/
 #include <WiFi.h>
-#include <HTTPClient.h> // Biblioteca para fazer requisições HTTP (a tecnologia de comunicação)
+#include <WiFiManager.h> // Biblioteca para o portal de configuração
+#include <HTTPClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// --- User Settings ---
-const char* ssid = "{ssid}";
-const char* password = "{password}";
-// Application URL (check the address after deploying in production)
-const char* serverName = "{serverName}";
+// --- Configurações de Hardware ---
+// Pino GPIO onde o pino de dados do DS18B20 está conectado
+const int oneWireBus = 4; // GPIO 4
 
-// --- Hardware Settings ---
-// GPIO pin where the DS18B20 data pin is connected
-const int oneWireBus = {oneWireBus}; // GPIO {oneWireBus}
-
-// --- Global Variables ---
+// --- Variáveis Globais ---
 OneWire oneWire(oneWireBus);
 DallasTemperature sensors(&oneWire);
 unsigned long lastTime = 0;
-// Send data every {timerDelaySeconds} seconds ({timerDelay} milliseconds)
-unsigned long timerDelay = {timerDelay};
+unsigned long timerDelay = 30000; // Enviar dados a cada 30 segundos
+
+// Variáveis para armazenar as configurações do WiFiManager
+char server_url[100]; // Armazena a URL do servidor
 
 void setup() {
   Serial.begin(115200);
   sensors.begin();
 
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting to WiFi..");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  // Inicia o WiFiManager
+  WiFiManager wm;
+  
+  // Cria um campo customizado no portal para a URL do servidor
+  WiFiManagerParameter custom_server_url("server", "URL do Servidor", "{serverName}", 100);
+  wm.addParameter(&custom_server_url);
+
+  // Tenta conectar ao WiFi. Se falhar, inicia o portal de configuração.
+  // O nome do Ponto de Acesso será "VigiaTemp-Config"
+  if (!wm.autoConnect("VigiaTemp-Config")) {
+    Serial.println("Falha ao conectar e tempo limite esgotado. Reiniciando...");
+    delay(3000);
+    ESP.restart(); // Reinicia o ESP se a configuração não for concluída
   }
-  Serial.println("\\nConnected!");
-  Serial.print("IP Address: ");
+
+  // Se a conexão for bem-sucedida
+  Serial.println("\\nConectado à sua rede WiFi!");
+  Serial.print("Endereço IP: ");
   Serial.println(WiFi.localIP());
-  Serial.print("MAC Address: ");
+  Serial.print("Endereço MAC: ");
   Serial.println(WiFi.macAddress());
+
+  // Salva o valor do campo customizado na nossa variável
+  strcpy(server_url, custom_server_url.getValue());
+  Serial.print("URL do Servidor configurada para: ");
+  Serial.println(server_url);
 }
 
 void loop() {
@@ -56,38 +82,37 @@ void loop() {
     sensors.requestTemperatures(); 
     float temperatureC = sensors.getTempCByIndex(0);
 
-    if(temperatureC == DEVICE_DISCONNECTED_C) {
-      Serial.println("Error: Could not read temperature from sensor.");
+    if (temperatureC == DEVICE_DISCONNECTED_C) {
+      Serial.println("Erro: Não foi possível ler a temperatura do sensor.");
       return;
     }
 
-    Serial.print("Temperature: ");
+    Serial.print("Temperatura: ");
     Serial.print(temperatureC);
     Serial.println(" °C");
 
-    if(WiFi.status() == WL_CONNECTED) {
+    if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       
-      http.begin(serverName);
+      http.begin(server_url);
       http.addHeader("Content-Type", "application/json");
 
       String jsonPayload = "{\\"macAddress\\":\\"" + String(WiFi.macAddress()) + "\\",\\"temperature\\":" + String(temperatureC) + "}";
 
-      // Envia a requisição POST para o servidor (nosso app)
       int httpResponseCode = http.POST(jsonPayload);
       
-      Serial.print("HTTP Response Code: ");
+      Serial.print("Código de Resposta HTTP: ");
       Serial.println(httpResponseCode);
         
       if (httpResponseCode > 0) {
         String response = http.getString();
-        Serial.println("Server Response:");
+        Serial.println("Resposta do Servidor:");
         Serial.println(response);
       }
       
       http.end();
     } else {
-      Serial.println("WiFi Disconnected");
+      Serial.println("WiFi Desconectado");
     }
     
     lastTime = millis();
@@ -100,31 +125,22 @@ export default function DeviceConfiguratorPage() {
   const { t } = useSettings();
   const { toast } = useToast();
   
-  const [ssid, setSsid] = useState('');
-  const [password, setPassword] = useState('');
   const [appUrl, setAppUrl] = useState('');
-  const [oneWireBus, setOneWireBus] = useState('4');
-  const [timerDelay, setTimerDelay] = useState('30'); // in seconds for the input
   const [generatedCode, setGeneratedCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
 
   const handleGenerateCode = () => {
-    if (!ssid || !password || !appUrl) {
+    if (!appUrl) {
       toast({
         variant: "destructive",
         title: t('deviceConfigurator.errorTitle', 'Campos Obrigatórios'),
-        description: t('deviceConfigurator.errorDescription', 'Por favor, preencha o Nome da Rede, Senha e URL do Aplicativo.'),
+        description: t('deviceConfigurator.errorDescription', 'Por favor, preencha a URL do Aplicativo.'),
       });
       return;
     }
 
     const code = arduinoCodeTemplate
-      .replace(/{ssid}/g, ssid)
-      .replace(/{password}/g, password)
       .replace(/{serverName}/g, appUrl)
-      .replace(/{oneWireBus}/g, oneWireBus || '4')
-      .replace(/{timerDelay}/g, String((parseInt(timerDelay, 10) || 30) * 1000))
-      .replace(/{timerDelaySeconds}/g, timerDelay || '30')
       .trim();
     
     setGeneratedCode(code);
@@ -158,48 +174,31 @@ export default function DeviceConfiguratorPage() {
           {t('deviceConfigurator.title', 'Configurador de Código para ESP32')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          {t('deviceConfigurator.description', 'Preencha os campos abaixo para gerar um código personalizado para o seu dispositivo ESP32. Isso garante que ele se conecte à sua rede e envie dados para este aplicativo.')}
+          Gere um código universal para o seu dispositivo. Este código usa um portal web para permitir que qualquer pessoa configure a rede WiFi sem precisar editar o código-fonte.
         </p>
       </div>
       
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>{t('deviceConfigurator.formTitle', 'Configurações do Dispositivo')}</CardTitle>
-          <CardDescription>{t('deviceConfigurator.formDescription', 'Insira os dados da sua rede e do hardware. Os campos marcados com * são obrigatórios.')}</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Wifi className="h-5 w-5 text-primary"/>
+            {t('deviceConfigurator.formTitle', 'Configuração Universal (WiFiManager)')}
+          </CardTitle>
+          <CardDescription>
+           A única informação necessária é a URL do seu aplicativo. As credenciais de WiFi serão solicitadas ao usuário final através de um portal de configuração.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="ssid">{t('deviceConfigurator.ssidLabel', 'Nome da Rede WiFi (SSID)')} <span className="text-destructive">*</span></Label>
-              <Input id="ssid" value={ssid} onChange={e => setSsid(e.target.value)} placeholder="Ex: MinhaRedeCasa" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('deviceConfigurator.passwordLabel', 'Senha da Rede WiFi')} <span className="text-destructive">*</span></Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••••" />
-            </div>
-          </div>
           <div className="space-y-2">
             <Label htmlFor="appUrl">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')} <span className="text-destructive">*</span></Label>
             <Input id="appUrl" value={appUrl} onChange={e => setAppUrl(e.target.value)} placeholder="https://seu-app-implantado.vercel.app/api/sensor" />
             <p className="text-xs text-muted-foreground">{t('deviceConfigurator.appUrlDescription', 'Insira a URL completa da sua aplicação, terminando com /api/sensor.')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="space-y-2">
-              <Label htmlFor="oneWireBus">{t('deviceConfigurator.pinLabel', 'Pino do Sensor (GPIO)')}</Label>
-              <Input id="oneWireBus" type="number" value={oneWireBus} onChange={e => setOneWireBus(e.target.value)} placeholder="4" />
-              <p className="text-xs text-muted-foreground">{t('deviceConfigurator.pinDescription', 'Pino de dados do sensor DS18B20. O padrão é 4.')}</p>
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="timerDelay">{t('deviceConfigurator.intervalLabel', 'Intervalo de Envio (segundos)')}</Label>
-              <Input id="timerDelay" type="number" value={timerDelay} onChange={e => setTimerDelay(e.target.value)} placeholder="30" />
-              <p className="text-xs text-muted-foreground">{t('deviceConfigurator.intervalDescription', 'Frequência de envio de dados. Padrão é 30s.')}</p>
-            </div>
-          </div>
         </CardContent>
         <CardFooter className="flex justify-end">
             <Button onClick={handleGenerateCode}>
                 <CodeXml className="mr-2 h-4 w-4" />
-                {t('deviceConfigurator.generateButton', 'Gerar Código')}
+                {t('deviceConfigurator.generateButton', 'Gerar Código Universal')}
             </Button>
         </CardFooter>
       </Card>
@@ -209,7 +208,7 @@ export default function DeviceConfiguratorPage() {
           <CardHeader className="flex flex-row justify-between items-center">
             <div>
                 <CardTitle>{t('deviceConfigurator.generatedCodeTitle', 'Código Gerado para Arduino IDE')}</CardTitle>
-                <CardDescription>{t('deviceConfigurator.generatedCodeDescription', 'Copie e cole este código na sua Arduino IDE.')}</CardDescription>
+                <CardDescription>Copie, cole na sua Arduino IDE e instale a biblioteca 'WiFiManager' através do Gerenciador de Bibliotecas.</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={handleCopyCode}>
                 {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
