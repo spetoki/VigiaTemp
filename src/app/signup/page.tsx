@@ -11,8 +11,10 @@ import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Loader2, User, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, Mail, Lock, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { isFirebaseEnabled } from '@/lib/firebase';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function SignupPage() {
   const { signup, authState } = useAuth();
@@ -27,6 +29,12 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [firebaseDisabled, setFirebaseDisabled] = useState(false);
+
+  useEffect(() => {
+    // Check on client-side if Firebase is disabled
+    setFirebaseDisabled(!isFirebaseEnabled);
+  }, []);
 
   useEffect(() => {
     if (authState === 'authenticated') {
@@ -81,6 +89,15 @@ export default function SignupPage() {
           <CardDescription>{t('signup.pageDescription', 'Fill out the fields below to sign up.')}</CardDescription>
         </CardHeader>
         <CardContent>
+          {firebaseDisabled && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Configuração Incompleta</AlertTitle>
+                <AlertDescription>
+                  O cadastro está desativado. Para habilitá-lo, configure as variáveis de ambiente do Firebase no painel do seu projeto Vercel.
+                </AlertDescription>
+              </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t('signup.nameLabel', 'Full Name')}</Label>
@@ -93,6 +110,7 @@ export default function SignupPage() {
                   required
                   placeholder={t('signup.namePlaceholder', 'Your full name')}
                   className="pl-10"
+                  disabled={firebaseDisabled}
                 />
               </div>
             </div>
@@ -108,6 +126,7 @@ export default function SignupPage() {
                   required
                   placeholder={t('signup.emailPlaceholder', 'your@email.com')}
                   className="pl-10"
+                  disabled={firebaseDisabled}
                 />
               </div>
             </div>
@@ -123,6 +142,7 @@ export default function SignupPage() {
                   required
                   placeholder={t('signup.passwordPlaceholder', 'Create a strong password')}
                   className="pl-10 pr-10"
+                  disabled={firebaseDisabled}
                 />
                  <Button
                     type="button"
@@ -131,6 +151,7 @@ export default function SignupPage() {
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
+                    disabled={firebaseDisabled}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
@@ -148,6 +169,7 @@ export default function SignupPage() {
                   required
                   placeholder={t('signup.confirmPasswordPlaceholder', 'Repeat the password')}
                   className="pl-10 pr-10"
+                  disabled={firebaseDisabled}
                 />
                  <Button
                     type="button"
@@ -156,19 +178,20 @@ export default function SignupPage() {
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     aria-label={showConfirmPassword ? t('signup.hideConfirmPassword', "Hide confirmation") : t('signup.showConfirmPassword', "Show confirmation")}
+                    disabled={firebaseDisabled}
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || firebaseDisabled}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoading ? t('signup.creatingAccountButton', 'Creating account...') : t('signup.createAccountButton', 'Create Account')}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             {t('signup.hasAccount', 'Already have an account?')}
-            <Link href="/login" className="underline font-medium text-primary hover:text-primary/80">
+            <Link href="/login" className={`underline font-medium text-primary hover:text-primary/80 ${firebaseDisabled ? 'pointer-events-none opacity-50' : ''}`}>
               {' '}{t('login.loginLink', 'Log in')}
             </Link>
           </div>

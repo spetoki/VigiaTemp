@@ -10,9 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
-import { Eye, EyeOff, Loader2, User, Lock } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, Lock, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { isFirebaseEnabled } from '@/lib/firebase';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const { login, authState } = useAuth();
@@ -23,6 +25,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [firebaseDisabled, setFirebaseDisabled] = useState(false);
+
+  useEffect(() => {
+    // Check on client-side if Firebase is disabled
+    setFirebaseDisabled(!isFirebaseEnabled);
+  }, []);
 
   useEffect(() => {
     if (authState === 'authenticated') {
@@ -69,6 +77,15 @@ export default function LoginPage() {
           <CardDescription>{t('login.pageDescription', 'Welcome back! Access your account.')}</CardDescription>
         </CardHeader>
         <CardContent>
+          {firebaseDisabled && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Configuração Incompleta</AlertTitle>
+              <AlertDescription>
+                A autenticação está desativada. Para habilitá-la, configure as variáveis de ambiente do Firebase no painel do seu projeto Vercel.
+              </AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">{t('login.emailLabel', 'Login')}</Label>
@@ -82,6 +99,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="pl-10"
+                  disabled={firebaseDisabled}
                 />
               </div>
             </div>
@@ -97,6 +115,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="pl-10 pr-10"
+                  disabled={firebaseDisabled}
                 />
                  <Button
                     type="button"
@@ -105,19 +124,20 @@ export default function LoginPage() {
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
+                    disabled={firebaseDisabled}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || firebaseDisabled}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoading ? t('login.submitting', 'Signing in...') : t('login.submit', 'Sign In')}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             {t('login.noAccount', "Don't have an account?")}{' '}
-            <Link href="/signup" className="underline font-medium text-primary hover:text-primary/80">
+            <Link href="/signup" className={`underline font-medium text-primary hover:text-primary/80 ${firebaseDisabled ? 'pointer-events-none opacity-50' : ''}`}>
               {t('signup.signUpLink', 'Sign up')}
             </Link>
           </div>
