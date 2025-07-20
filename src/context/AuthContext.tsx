@@ -7,7 +7,7 @@ import type { User, AuthState } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from './SettingsContext';
-import { isFirebaseEnabled, auth as firebaseAuth } from '@/lib/firebase';
+import { isFirebaseEnabled } from '@/lib/firebase';
 import { 
   getFirestore, 
   collection, 
@@ -32,7 +32,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LS_USERS_KEY = 'vigiatemp_admin_users'; // Kept for seeding on first load
 const SESSION_USER_KEY = 'vigiatemp_session_user';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -41,21 +40,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useSettings();
-
-  const getUsersFromFirestore = useCallback(async (): Promise<User[]> => {
-    if (!isFirebaseEnabled) return [];
-    try {
-        const db = getFirestore();
-        const usersCol = collection(db, 'users');
-        const userSnapshot = await getDocs(usersCol);
-        const userList = userSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
-        return userList;
-    } catch (e) {
-        console.error("Failed to fetch users from Firestore", e);
-        toast({ title: "Database Error", description: "Could not fetch user data.", variant: "destructive" });
-        return [];
-    }
-  }, [toast]);
   
   // Seed database on first load if it's empty
   const seedDatabase = useCallback(async () => {
@@ -82,15 +66,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initializeAuth = async () => {
         if (!isFirebaseEnabled) {
-            console.warn("Firebase is disabled. Using localStorage for auth.");
-            // Fallback to localStorage if Firebase is not configured
-            const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
-            if (sessionUserJson) {
-              setCurrentUser(JSON.parse(sessionUserJson));
-              setAuthState('authenticated');
-            } else {
-              setAuthState('unauthenticated');
-            }
+            console.warn("Firebase is disabled. Auth will not work.");
+            setAuthState('unauthenticated');
             return;
         }
 
@@ -103,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
             sessionStorage.removeItem(SESSION_USER_KEY);
             setAuthState('unauthenticated');
+            toast({ title: t('auth.expired.title', 'Acesso Expirado'), description: t('auth.expired.description', 'Sua assinatura expirou. Entre em contato com o suporte.'), variant: "destructive" });
             return;
           }
 
@@ -118,6 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               } else {
                  sessionStorage.removeItem(SESSION_USER_KEY);
                  setAuthState('unauthenticated');
+                 if(freshUserData.status !== 'Active') {
+                    toast({ title: t('login.errorTitle', 'Login Error'), description: freshUserData.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
+                 }
               }
           } else {
             sessionStorage.removeItem(SESSION_USER_KEY);
@@ -129,20 +110,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     
     initializeAuth();
-  }, [seedDatabase]);
+  }, [seedDatabase, t, toast]);
 
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
     if (!isFirebaseEnabled) {
-      // Fallback localStorage login
-      const users = JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]');
-      const user = users.find((u: User) => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-      if(user) {
-        setCurrentUser(user);
-        setAuthState('authenticated');
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-        router.push('/');
-        return true;
-      }
+      toast({ title: "Firebase Desabilitado", description: "A autenticação requer configuração do Firebase.", variant: "destructive"});
       return false;
     }
 
@@ -188,7 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>): Promise<boolean> => {
     if (!isFirebaseEnabled) {
-      alert("Firebase is not configured. Signup is disabled.");
+      toast({ title: "Firebase Desabilitado", description: "O cadastro de usuários requer configuração do Firebase.", variant: "destructive"});
       return false;
     }
     const db = getFirestore();
