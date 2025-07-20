@@ -7,7 +7,7 @@ import type { User } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock, AlertTriangle } from 'lucide-react';
+import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -17,10 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { DatePicker } from '@/components/ui/date-picker';
-import { isFirebaseEnabled, db } from '@/lib/firebase';
-import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+
+const ALL_USERS_KEY = 'vigiatemp_all_users';
 
 export default function AdminUsersPage() {
   const { t } = useSettings();
@@ -33,16 +32,11 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
-  const loadUsers = useCallback(async () => {
-    if (!isFirebaseEnabled) {
-      setIsLoading(false);
-      return;
-    }
+  const loadUsers = useCallback(() => {
     setIsLoading(true);
     try {
-      const usersCol = collection(db, 'users');
-      const userSnapshot = await getDocs(usersCol);
-      const userList = userSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
+      const storedUsers = localStorage.getItem(ALL_USERS_KEY);
+      const userList: User[] = storedUsers ? JSON.parse(storedUsers) : [];
       
        // Sort users to show pending users first, then by joined date
       userList.sort((a, b) => {
@@ -53,7 +47,7 @@ export default function AdminUsersPage() {
 
       setUsers(userList);
     } catch (error) {
-      console.error("Failed to load users from Firestore:", error);
+      console.error("Failed to load users from localStorage:", error);
       toast({ title: "Erro ao Carregar", description: "Não foi possível carregar os dados dos usuários.", variant: "destructive"});
     } finally {
       setIsLoading(false);
@@ -71,48 +65,31 @@ export default function AdminUsersPage() {
   }, [authState, currentUser, router, loadUsers]);
 
   const handleSaveUser = async (updatedUser: User) => {
-    if (!isFirebaseEnabled) return;
-    try {
-        const userDocRef = doc(db, "users", updatedUser.id);
-        const { id, ...userData } = updatedUser;
-        await updateDoc(userDocRef, userData);
-
-        setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
-        toast({ title: "Sucesso", description: `Usuário ${updatedUser.name} atualizado.`});
-    } catch (error) {
-        console.error("Error updating user:", error);
-        toast({ title: "Erro", description: "Não foi possível atualizar o usuário.", variant: "destructive"});
-    }
+    const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
+    setUsers(updatedUsers);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    toast({ title: "Sucesso", description: `Usuário ${updatedUser.name} atualizado.`});
     setEditingUser(null);
   };
   
   const handleAddNewUser = async (newUser: Omit<User, 'id' | 'joinedDate'>) => {
-     if (!isFirebaseEnabled) return;
-    try {
-        const finalNewUser: Omit<User, 'id'> = {
-            ...newUser,
-            joinedDate: new Date().toISOString().split('T')[0],
-        };
-        const docRef = await addDoc(collection(db, "users"), finalNewUser);
-        setUsers(currentUsers => [{ ...finalNewUser, id: docRef.id }, ...currentUsers]);
-        toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
-    } catch (error) {
-        console.error("Error adding user:", error);
-        toast({ title: "Erro", description: "Não foi possível adicionar o usuário.", variant: "destructive"});
-    }
+    const finalNewUser: User = {
+        ...newUser,
+        id: `user-${Date.now()}`,
+        joinedDate: new Date().toISOString().split('T')[0],
+    };
+    const updatedUsers = [finalNewUser, ...users];
+    setUsers(updatedUsers);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
     setIsAddUserDialogOpen(false);
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!isFirebaseEnabled) return;
-    try {
-        await deleteDoc(doc(db, "users", userId));
-        setUsers(currentUsers => currentUsers.filter(u => u.id !== userId));
-        toast({ title: t('sensorsPage.toast.deleted.title', "Sensor Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
-    } catch (error) {
-        console.error("Error deleting user:", error);
-        toast({ title: "Erro", description: "Não foi possível excluir o usuário.", variant: "destructive"});
-    }
+    const updatedUsers = users.filter(u => u.id !== userId);
+    setUsers(updatedUsers);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    toast({ title: t('sensorsPage.toast.deleted.title', "Usuário Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
   };
 
   if (isLoading || authState !== 'authenticated' || currentUser?.role !== 'Admin') {
@@ -136,22 +113,11 @@ export default function AdminUsersPage() {
             <Users className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold font-headline text-primary">{t('admin.usersPage.title', 'Gerenciamento de Usuários')}</h1>
           </div>
-          <Button onClick={() => setIsAddUserDialogOpen(true)} disabled={!isFirebaseEnabled}>
+          <Button onClick={() => setIsAddUserDialogOpen(true)}>
             <UserPlus className="mr-2 h-4 w-4" /> {t('admin.usersPage.addUserButton', 'Adicionar Novo Usuário')}
           </Button>
         </div>
         
-        {!isFirebaseEnabled && (
-            <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Firebase Desabilitado</AlertTitle>
-                <AlertDescription>
-                    O gerenciamento de usuários está desativado porque a aplicação não está conectada ao Firebase. 
-                    Por favor, configure as variáveis de ambiente do Firebase no Vercel para habilitar esta funcionalidade.
-                </AlertDescription>
-            </Alert>
-        )}
-
         <p className="text-muted-foreground">
           {t('admin.usersPage.description', 'Visualize, edite e gerencie as contas de todos os usuários do sistema.')}
         </p>
@@ -170,21 +136,14 @@ export default function AdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isFirebaseEnabled && users.length === 0 && (
+              {users.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground h-24">
                     {t('admin.usersTable.noUsers', 'Nenhum usuário encontrado.')}
                   </TableCell>
                 </TableRow>
               )}
-               {!isFirebaseEnabled && (
-                 <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground h-24">
-                        O gerenciamento de usuários requer conexão com o Firebase.
-                    </TableCell>
-                </TableRow>
-              )}
-              {isFirebaseEnabled && users.map((user) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>

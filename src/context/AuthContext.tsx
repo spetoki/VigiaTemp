@@ -7,32 +7,19 @@ import type { User, AuthState } from '@/types';
 import { demoUsers } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/context/SettingsContext';
-import { isFirebaseEnabled, db } from '@/lib/firebase';
-import { 
-  getFirestore, 
-  collection, 
-  getDocs, 
-  addDoc, 
-  doc, 
-  updateDoc,
-  query,
-  where,
-  setDoc,
-  getDoc
-} from 'firebase/firestore';
-
 
 interface AuthContextType {
   currentUser: User | null;
   authState: AuthState;
   login: (email: string, password?: string) => Promise<boolean>;
-  signup: (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>) => Promise<boolean>;
+  signup: (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt' | 'tempCoins'>) => Promise<boolean>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const SESSION_USER_KEY = 'vigiatemp_session_user';
+const ALL_USERS_KEY = 'vigiatemp_all_users';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -40,156 +27,95 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useSettings();
-  
-  // Seed database on first load if it's empty
-  const seedDatabase = useCallback(async () => {
-    if (!isFirebaseEnabled) return;
-    try {
-      const usersCol = collection(db, 'users');
-      const userSnapshot = await getDocs(usersCol);
-      if (userSnapshot.empty) {
-        console.log("Firestore 'users' collection is empty. Seeding with demo data...");
-        for (const user of demoUsers) {
-          // Use email as document ID for admin for predictability, random for others.
-          const docRef = user.role === 'Admin' ? doc(db, 'users', user.email) : doc(collection(db, 'users'));
-          await setDoc(docRef, { ...user, id: docRef.id });
-        }
-        console.log("Seeding complete.");
-      }
-    } catch (error) {
-      console.error("Error seeding Firestore database:", error);
+
+  const seedUsers = useCallback(() => {
+    // Seed a lista de usuários no localStorage se ela não existir
+    const storedUsers = localStorage.getItem(ALL_USERS_KEY);
+    if (!storedUsers) {
+      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
     }
   }, []);
 
-
   useEffect(() => {
-    const initializeAuth = async () => {
-        if (!isFirebaseEnabled) {
-            console.warn("Firebase is disabled. Auth will not work.");
-            setAuthState('unauthenticated');
-            return;
-        }
-
-        await seedDatabase();
-
-        const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
-        if (sessionUserJson) {
-          const sessionUser: User = JSON.parse(sessionUserJson);
-          
-          if (sessionUser.accessExpiresAt && new Date(sessionUser.accessExpiresAt) < new Date()) {
+    seedUsers();
+    
+    const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
+    if (sessionUserJson) {
+      const sessionUser: User = JSON.parse(sessionUserJson);
+      
+      const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+      const freshUserData = allUsers.find(u => u.id === sessionUser.id);
+      
+      if (freshUserData && freshUserData.status === 'Active') {
+        if (freshUserData.accessExpiresAt && new Date(freshUserData.accessExpiresAt) < new Date()) {
             sessionStorage.removeItem(SESSION_USER_KEY);
             setAuthState('unauthenticated');
             toast({ title: t('auth.expired.title', 'Acesso Expirado'), description: t('auth.expired.description', 'Sua assinatura expirou. Entre em contato com o suporte.'), variant: "destructive" });
-            return;
-          }
-
-          const userDocRef = doc(db, "users", sessionUser.id);
-          const userDoc = await getDoc(userDocRef);
-
-          if (userDoc.exists()) {
-              const freshUserData = { id: userDoc.id, ...userDoc.data() } as User;
-              if (freshUserData.status === 'Active') {
-                 setCurrentUser(freshUserData);
-                 setAuthState('authenticated');
-              } else {
-                 sessionStorage.removeItem(SESSION_USER_KEY);
-                 setAuthState('unauthenticated');
-                 if(freshUserData.status !== 'Active') {
-                    toast({ title: t('login.errorTitle', 'Login Error'), description: freshUserData.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
-                 }
-              }
-          } else {
-            sessionStorage.removeItem(SESSION_USER_KEY);
-            setAuthState('unauthenticated');
-          }
         } else {
-            setAuthState('unauthenticated');
+            setCurrentUser(freshUserData);
+            setAuthState('authenticated');
         }
-    };
-    
-    initializeAuth();
-  }, [seedDatabase, t, toast]);
+      } else {
+        sessionStorage.removeItem(SESSION_USER_KEY);
+        setAuthState('unauthenticated');
+      }
+    } else {
+      setAuthState('unauthenticated');
+    }
+  }, [seedUsers, t, toast]);
 
   const login = useCallback(async (email: string, password?: string): Promise<boolean> => {
-    if (!isFirebaseEnabled) {
-      toast({ title: "Firebase Desabilitado", description: "A autenticação requer configuração das chaves de API no Vercel.", variant: "destructive"});
-      return false;
-    }
+    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+    const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
 
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("email", "==", email.toLowerCase()));
-    
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-        toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
+    if (user) {
+      if (user.status !== 'Active') {
+        toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
         return false;
-    }
-
-    const userDoc = querySnapshot.docs[0];
-    const user = { id: userDoc.id, ...userDoc.data() } as User;
-
-    if (user.password === password) {
-        if (user.status !== 'Active') {
-            toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
-            return false;
-        }
-
-        if (user.accessExpiresAt && new Date(user.accessExpiresAt) < new Date()) {
-            toast({
-              title: t('auth.expired.title', 'Acesso Expirado'),
-              description: t('auth.expired.description', 'Sua assinatura expirou. Entre em contato com o suporte.'),
-              variant: "destructive"
-            });
-            return false;
-        }
-
-        setCurrentUser(user);
-        setAuthState('authenticated');
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-        toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
-        router.push('/');
-        return true;
+      }
+      
+      if (user.accessExpiresAt && new Date(user.accessExpiresAt) < new Date()) {
+        toast({ title: t('auth.expired.title', 'Acesso Expirado'), description: t('auth.expired.description', 'Sua assinatura expirou. Entre em contato com o suporte.'), variant: "destructive" });
+        return false;
+      }
+      
+      setCurrentUser(user);
+      setAuthState('authenticated');
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+      toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
+      router.push('/');
+      return true;
     } else {
       toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
       return false;
     }
   }, [router, t, toast]);
 
-  const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt'>): Promise<boolean> => {
-    if (!isFirebaseEnabled) {
-      toast({ title: "Firebase Desabilitado", description: "O cadastro de usuários requer configuração das chaves de API no Vercel.", variant: "destructive"});
-      return false;
-    }
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("email", "==", newUser.email.toLowerCase()));
+  const signup = useCallback(async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'accessExpiresAt' | 'tempCoins'>): Promise<boolean> => {
+    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
     
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
+    if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
       toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
       return false;
     }
-    
-    const finalNewUser: Omit<User, 'id'> = {
+
+    const finalNewUser: User = {
       ...newUser,
+      id: `user-${Date.now()}`,
       joinedDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
       role: 'User',
       tempCoins: 0,
       accessExpiresAt: undefined,
     };
-
-    try {
-      await addDoc(collection(db, "users"), finalNewUser);
-      toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
-      router.push('/login');
-      return true;
-    } catch (error) {
-       console.error("Error adding user to Firestore:", error);
-       toast({ title: "Signup Error", description: "Could not create account. Please try again.", variant: "destructive" });
-       return false;
-    }
+    
+    const updatedUsers = [...allUsers, finalNewUser];
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    
+    toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
+    router.push('/login');
+    return true;
   }, [router, t, toast]);
-
 
   const logout = useCallback(() => {
     setCurrentUser(null);
