@@ -18,12 +18,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from '@/hooks/use-toast';
-
-const ALL_USERS_KEY = 'vigiatemp_all_users';
+import { isFirebaseEnabled } from '@/lib/firebase';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminUsersPage() {
   const { t } = useSettings();
-  const { authState, currentUser } = useAuth();
+  const { authState, currentUser, fetchUsers, signup, updateUser, deleteUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -32,27 +32,27 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
-  const loadUsers = useCallback(() => {
+  const loadUsers = useCallback(async () => {
     setIsLoading(true);
+    if (!isFirebaseEnabled) {
+      setIsLoading(false);
+      return;
+    }
     try {
-      const storedUsers = localStorage.getItem(ALL_USERS_KEY);
-      const userList: User[] = storedUsers ? JSON.parse(storedUsers) : [];
-      
-       // Sort users to show pending users first, then by joined date
+      const userList = await fetchUsers();
       userList.sort((a, b) => {
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
         return new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime();
       });
-
       setUsers(userList);
     } catch (error) {
-      console.error("Failed to load users from localStorage:", error);
+      console.error("Failed to load users from Firestore:", error);
       toast({ title: "Erro ao Carregar", description: "Não foi possível carregar os dados dos usuários.", variant: "destructive"});
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [fetchUsers, toast]);
 
   useEffect(() => {
     if (authState === 'unauthenticated') {
@@ -65,32 +65,47 @@ export default function AdminUsersPage() {
   }, [authState, currentUser, router, loadUsers]);
 
   const handleSaveUser = async (updatedUser: User) => {
-    const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
-    setUsers(updatedUsers);
-    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-    toast({ title: "Sucesso", description: `Usuário ${updatedUser.name} atualizado.`});
-    setEditingUser(null);
+    const success = await updateUser(updatedUser);
+    if (success) {
+      toast({ title: "Sucesso", description: `Usuário ${updatedUser.name} atualizado.`});
+      setEditingUser(null);
+      await loadUsers(); // Refresh list
+    } else {
+      toast({ title: "Erro", description: "Não foi possível atualizar o usuário.", variant: "destructive"});
+    }
   };
   
   const handleAddNewUser = async (newUser: Omit<User, 'id' | 'joinedDate'>) => {
-    const finalNewUser: User = {
-        ...newUser,
-        id: `user-${Date.now()}`,
-        joinedDate: new Date().toISOString().split('T')[0],
-    };
-    const updatedUsers = [finalNewUser, ...users];
-    setUsers(updatedUsers);
-    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-    toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
-    setIsAddUserDialogOpen(false);
+    const newUserId = await signup(newUser);
+    if (newUserId) {
+        toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
+        setIsAddUserDialogOpen(false);
+        await loadUsers(); // Refresh list
+    } else {
+        // Toast is handled within the signup function
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    const updatedUsers = users.filter(u => u.id !== userId);
-    setUsers(updatedUsers);
-    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-    toast({ title: t('sensorsPage.toast.deleted.title', "Usuário Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
+    const success = await deleteUser(userId);
+    if (success) {
+      toast({ title: t('sensorsPage.toast.deleted.title', "Usuário Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
+      await loadUsers(); // Refresh list
+    } else {
+      toast({ title: "Erro", description: "Não foi possível excluir o usuário.", variant: "destructive"});
+    }
   };
+
+  if (!isFirebaseEnabled) {
+    return (
+       <Alert variant="destructive" className="max-w-2xl mx-auto">
+        <AlertTitle>Configuração Incompleta do Firebase</AlertTitle>
+        <AlertDescription>
+          O gerenciamento de usuários está desabilitado. Por favor, configure as variáveis de ambiente do Firebase para usar esta funcionalidade.
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
   if (isLoading || authState !== 'authenticated' || currentUser?.role !== 'Admin') {
     return (

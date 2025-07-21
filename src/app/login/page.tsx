@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -8,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
-import { Eye, EyeOff, Loader2, User, Lock } from 'lucide-react';
+import { Eye, EyeOff, Loader2, User, Lock, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { isFirebaseEnabled } from '@/lib/firebase';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const { login, authState } = useAuth();
@@ -32,6 +34,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFirebaseEnabled) {
+       toast({
+        title: "Configuração Incompleta",
+        description: "A autenticação está desativada. Configure as variáveis de ambiente do Firebase.",
+        variant: "destructive"
+      });
+      return;
+    }
     if (!email || !password) {
       toast({
         title: t('login.errorTitle', 'Login Error'),
@@ -62,61 +72,75 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-grow flex items-center justify-center">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">{t('nav.login', 'Login')}</CardTitle>
-          <CardDescription>{t('login.pageDescriptionV2', 'Acesse sua conta fornecida pelo administrador.')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('login.emailLabel', 'Login')}</Label>
-               <div className="relative">
-                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="text"
-                  placeholder={t('login.emailPlaceholder', "Digite 'admin' para o login de administrador")}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10"
-                />
+    <div className="flex-grow flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-4">
+        {!isFirebaseEnabled && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Configuração Incompleta</AlertTitle>
+            <AlertDescription>
+              A autenticação está desativada. Para habilitá-la, configure as variáveis de ambiente do Firebase no painel do seu projeto Vercel.
+            </AlertDescription>
+          </Alert>
+        )}
+        <Card className="shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">{t('nav.login', 'Login')}</CardTitle>
+            <CardDescription>{t('login.pageDescriptionV2', 'Acesse sua conta fornecida pelo administrador.')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">{t('login.emailLabel', 'Login')}</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="text"
+                    placeholder={t('login.emailPlaceholder', "Digite 'admin' para o login de administrador")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-10"
+                    disabled={!isFirebaseEnabled}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('login.passwordLabel', 'Password')}</Label>
-              <div className="relative">
-                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder={t('login.passwordPlaceholder', 'Your password')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pl-10 pr-10"
-                />
-                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('login.passwordLabel', 'Password')}</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder={t('login.passwordPlaceholder', 'Your password')}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pl-10 pr-10"
+                    disabled={!isFirebaseEnabled}
+                  />
+                  <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? t('signup.hidePassword', "Hide password") : t('signup.showPassword', "Show password")}
+                      disabled={!isFirebaseEnabled}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                </div>
               </div>
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? t('login.submitting', 'Signing in...') : t('login.submit', 'Sign In')}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" className="w-full" disabled={isLoading || !isFirebaseEnabled}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading ? t('login.submitting', 'Signing in...') : t('login.submit', 'Sign In')}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
