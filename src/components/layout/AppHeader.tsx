@@ -162,11 +162,6 @@ export default function AppHeader() {
                             <LogIn className="mr-2 h-5 w-5" /> {t('nav.login', 'Login')}
                         </Link>
                     </SheetClose>
-                    <SheetClose asChild>
-                        <Link href="/signup" className={cn(buttonVariants({variant: 'secondary', size: 'lg'}), 'w-full')}>
-                            {t('signup.signUpLink', 'Sign up')}
-                        </Link>
-                    </SheetClose>
                 </div>
               )}
           </SheetContent>
@@ -214,11 +209,8 @@ export default function AppHeader() {
               </div>
           ) : authState === 'unauthenticated' ? (
             <div className="hidden md:flex items-center gap-2">
-              <Button asChild variant="ghost">
-                <Link href="/login">{t('nav.login', 'Login')}</Link>
-              </Button>
               <Button asChild>
-                <Link href="/signup">{t('signup.signUpLink', 'Sign up')}</Link>
+                <Link href="/login">{t('nav.login', 'Login')}</Link>
               </Button>
             </div>
           ) : null }

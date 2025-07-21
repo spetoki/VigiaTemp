@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -67,7 +66,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">{t('nav.login', 'Login')}</CardTitle>
-          <CardDescription>{t('login.pageDescription', 'Welcome back! Access your account.')}</CardDescription>
+          <CardDescription>{t('login.pageDescriptionV2', 'Acesse sua conta fornecida pelo administrador.')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -116,12 +115,6 @@ export default function LoginPage() {
               {isLoading ? t('login.submitting', 'Signing in...') : t('login.submit', 'Sign In')}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            {t('login.noAccount', "Don't have an account?")}{' '}
-            <Link href="/signup" className={`underline font-medium text-primary hover:text-primary/80`}>
-              {t('signup.signUpLink', 'Sign up')}
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>
