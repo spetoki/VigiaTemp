@@ -24,7 +24,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const SESSION_USER_KEY = 'vigiatemp_session_user';
-const ALL_USERS_KEY = 'vigiatemp_all_users'; // Now only for seeding
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -41,7 +40,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (snapshot.empty) {
             console.log("No users found in Firestore, seeding from mockData...");
             for (const user of demoUsers) {
-                await addDoc(usersRef, { ...user });
+                // Don't include the placeholder ID when creating documents
+                const { id, ...userData } = user;
+                await addDoc(usersRef, userData);
             }
         }
     } catch (error) {
@@ -135,6 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
         const usersRef = collection(db, "users");
+        // Check if email already exists
         const q = query(usersRef, where("email", "==", newUser.email));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
@@ -178,7 +180,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!isFirebaseEnabled) return false;
     try {
       const userRef = doc(db, "users", user.id);
-      await updateDoc(userRef, { ...user });
+      // Firebase update doesn't need the 'id' field in the data object
+      const { id, ...userData } = user;
+      await updateDoc(userRef, { ...userData });
       return true;
     } catch (error) {
       console.error("Error updating user:", error);

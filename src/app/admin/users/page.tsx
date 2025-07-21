@@ -7,7 +7,7 @@ import type { User } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock } from 'lucide-react';
+import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -43,7 +43,8 @@ export default function AdminUsersPage() {
       userList.sort((a, b) => {
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-        return new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime();
+        // This is safe because joinedDate is a mandatory string in the type
+        return new Date(b.joinedDate || 0).getTime() - new Date(a.joinedDate || 0).getTime();
       });
       setUsers(userList);
     } catch (error) {
@@ -82,11 +83,16 @@ export default function AdminUsersPage() {
         setIsAddUserDialogOpen(false);
         await loadUsers(); // Refresh list
     } else {
-        // Toast is handled within the signup function
+        // Toast for failure is handled within the signup function
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
+    // Prevent admin from deleting themselves
+    if (userId === currentUser?.id) {
+        toast({ title: "Ação Inválida", description: "Você não pode excluir sua própria conta de administrador.", variant: "destructive"});
+        return;
+    }
     const success = await deleteUser(userId);
     if (success) {
       toast({ title: t('sensorsPage.toast.deleted.title', "Usuário Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
@@ -99,9 +105,10 @@ export default function AdminUsersPage() {
   if (!isFirebaseEnabled) {
     return (
        <Alert variant="destructive" className="max-w-2xl mx-auto">
+        <AlertCircle className="h-4 w-4" />
         <AlertTitle>Configuração Incompleta do Firebase</AlertTitle>
         <AlertDescription>
-          O gerenciamento de usuários está desabilitado. Por favor, configure as variáveis de ambiente do Firebase para usar esta funcionalidade.
+          O gerenciamento de usuários está desabilitado. Por favor, configure as variáveis de ambiente do Firebase no seu arquivo .env ou no painel do Vercel para usar esta funcionalidade.
         </AlertDescription>
       </Alert>
     )
@@ -184,12 +191,12 @@ export default function AdminUsersPage() {
                       ? new Date(user.accessExpiresAt).toLocaleDateString(t('localeCode', 'pt-BR'))
                       : t('admin.usersTable.neverExpires', 'Nunca')}
                   </TableCell>
-                  <TableCell>{new Date(user.joinedDate).toLocaleDateString(t('localeCode', 'pt-BR'))}</TableCell>
+                  <TableCell>{user.joinedDate ? new Date(user.joinedDate).toLocaleDateString(t('localeCode', 'pt-BR')) : '-'}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" aria-label={`${t('admin.usersTable.editAction', 'Editar')} ${user.name}`} onClick={() => setEditingUser(user)}>
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" aria-label={`${t('admin.usersTable.deleteAction', 'Excluir')} ${user.name}`} onClick={() => handleDeleteUser(user.id)}>
+                    <Button variant="ghost" size="icon" disabled={user.id === currentUser.id} aria-label={`${t('admin.usersTable.deleteAction', 'Excluir')} ${user.name}`} onClick={() => handleDeleteUser(user.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -243,7 +250,8 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
       role,
       status,
       tempCoins,
-      password: password ? password : user.password,
+      // Only include password in the object if it's being changed.
+      ...(password && { password }),
       accessExpiresAt: accessExpiresAt?.toISOString(),
     };
     onSave(updatedUser);

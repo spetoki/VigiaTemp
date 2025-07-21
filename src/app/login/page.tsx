@@ -45,7 +45,7 @@ export default function LoginPage() {
     if (!email || !password) {
       toast({
         title: t('login.errorTitle', 'Login Error'),
-        description: "Please enter both email and password.",
+        description: t('login.validationError', 'Por favor, insira o email e a senha.'),
         variant: "destructive"
       });
       return;
