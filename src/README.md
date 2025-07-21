@@ -17,7 +17,7 @@ Este é um aplicativo de monitoramento de temperatura em tempo real construído 
 
 ## 1. Configurando as Chaves do Firebase (Passo Obrigatório)
 
-Para que o login, cadastro e gerenciamento de usuários funcionem, o aplicativo precisa se conectar ao Firebase. Para isso, você deve fornecer suas chaves de API.
+Para que o login, o cadastro e o gerenciamento de usuários funcionem, o aplicativo precisa se conectar ao Firebase. Para isso, você deve fornecer suas chaves de API.
 
 ### Passo 1: Encontre suas Chaves no Firebase
 
@@ -31,38 +31,32 @@ Para que o login, cadastro e gerenciamento de usuários funcionem, o aplicativo 
     ```javascript
     // Exemplo do que você verá no Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSy...SUA_CHAVE...",
-      authDomain: "seu-projeto.firebaseapp.com",
-      projectId: "seu-projeto",
-      storageBucket: "seu-projeto.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:abcdef123456"
+      apiKey: "AIzaSy...SUA_CHAVE...", // <- Este valor
+      authDomain: "seu-projeto.firebaseapp.com", // <- Este valor
+      projectId: "seu-projeto", // <- Este valor
+      storageBucket: "seu-projeto.appspot.com", // <- Este valor
+      messagingSenderId: "1234567890", // <- Este valor
+      appId: "1:1234567890:web:abcdef123456" // <- Este valor
     };
     ```
 
-### Passo 2: Adicione as Chaves ao seu Projeto
+### Passo 2: Adicione as Chaves ao seu Projeto na Vercel
 
-Você precisa configurar essas chaves como **Variáveis de Ambiente**.
-
-#### Para Deploy na Vercel (Recomendado):
+Agora, você precisa inserir esses valores no painel do seu projeto na Vercel.
 
 1.  No painel do seu projeto na **Vercel**, vá para a aba **"Settings"** -> **"Environment Variables"**.
-2.  Adicione as seguintes variáveis, copiando os valores correspondentes do seu `firebaseConfig`:
+2.  Use a tabela abaixo para saber exatamente qual nome de variável usar no "slot" **Name** e qual valor colar no "slot" **Value**.
 
-    *   `NEXT_PUBLIC_FIREBASE_API_KEY`
-    *   `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-    *   `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-    *   `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-    *   `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-    *   `NEXT_PUBLIC_FIREBASE_APP_ID`
+| Nome da Variável no Vercel (Copie daqui e cole no campo "Name") | Valor (Copie o valor correspondente do seu `firebaseConfig` e cole no campo "Value") |
+| --- | --- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | O valor da sua `apiKey` |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | O valor do seu `authDomain` |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | O valor do seu `projectId` |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | O valor do seu `storageBucket` |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | O valor do seu `messagingSenderId` |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | O valor do seu `appId` |
 
 3.  Salve cada variável. Após configurar, faça um **Redeploy** para que as alterações tenham efeito.
-
-#### Para Desenvolvimento Local:
-
-1.  Na raiz do projeto, você encontrará um arquivo chamado `.env`.
-2.  Abra este arquivo e cole suas chaves nos locais indicados.
-3.  Salve o arquivo. O Next.js irá carregar essas variáveis automaticamente quando você iniciar o servidor de desenvolvimento.
 
 ---
 
