@@ -31,12 +31,12 @@ Para que o login, o cadastro e o gerenciamento de usuários funcionem, o aplicat
     ```javascript
     // Exemplo do que você verá no Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSy...SUA_CHAVE...", // <- Este é o VALOR
-      authDomain: "seu-projeto.firebaseapp.com", // <- Este é o VALOR
-      projectId: "seu-projeto", // <- Este é o VALOR
-      storageBucket: "seu-projeto.appspot.com", // <- Este é o VALOR
-      messagingSenderId: "1234567890", // <- Este é o VALOR
-      appId: "1:1234567890:web:abcdef123456" // <- Este é o VALOR
+      apiKey: "AIzaSy...SUA_CHAVE_SECRETA...", // <- Este é o VALOR que você copia
+      authDomain: "seu-projeto.firebaseapp.com", // <- Este é o VALOR que você copia
+      projectId: "seu-projeto", // <- Este é o VALOR que você copia
+      storageBucket: "seu-projeto.appspot.com", // <- Este é o VALOR que você copia
+      messagingSenderId: "1234567890", // <- Este é o VALOR que você copia
+      appId: "1:1234567890:web:abcdef123456" // <- Este é o VALOR que você copia
     };
     ```
 
