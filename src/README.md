@@ -31,12 +31,12 @@ Para que o login, o cadastro e o gerenciamento de usuários funcionem, o aplicat
     ```javascript
     // Exemplo do que você verá no Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSy...SUA_CHAVE...", // <- Este valor
-      authDomain: "seu-projeto.firebaseapp.com", // <- Este valor
-      projectId: "seu-projeto", // <- Este valor
-      storageBucket: "seu-projeto.appspot.com", // <- Este valor
-      messagingSenderId: "1234567890", // <- Este valor
-      appId: "1:1234567890:web:abcdef123456" // <- Este valor
+      apiKey: "AIzaSy...SUA_CHAVE...", // <- Este é o VALOR
+      authDomain: "seu-projeto.firebaseapp.com", // <- Este é o VALOR
+      projectId: "seu-projeto", // <- Este é o VALOR
+      storageBucket: "seu-projeto.appspot.com", // <- Este é o VALOR
+      messagingSenderId: "1234567890", // <- Este é o VALOR
+      appId: "1:1234567890:web:abcdef123456" // <- Este é o VALOR
     };
     ```
 
@@ -45,9 +45,9 @@ Para que o login, o cadastro e o gerenciamento de usuários funcionem, o aplicat
 Agora, você precisa inserir esses valores no painel do seu projeto na Vercel.
 
 1.  No painel do seu projeto na **Vercel**, vá para a aba **"Settings"** -> **"Environment Variables"**.
-2.  Use a tabela abaixo para saber exatamente qual nome de variável usar no "slot" **Name** e qual valor colar no "slot" **Value**.
+2.  Use a tabela abaixo para saber exatamente o que copiar e colar em cada campo da Vercel.
 
-| Nome da Variável no Vercel (Copie daqui e cole no campo "Name") | Valor (Copie o valor correspondente do seu `firebaseConfig` e cole no campo "Value") |
+| O que colocar no campo "Name" da Vercel (Copie daqui) | O que colocar no campo "Value" da Vercel (Copie do seu `firebaseConfig`) |
 | --- | --- |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | O valor da sua `apiKey` |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | O valor do seu `authDomain` |
