@@ -44,18 +44,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const seedInitialUsersForFirebase = useCallback(async () => {
     if (!isFirebaseEnabled) return;
     try {
-        const usersRef = collection(db, "users");
-        const snapshot = await getDocs(usersRef);
+      console.log("Firebase is enabled, checking if initial user seeding is necessary...");
+      const usersRef = collection(db, "users");
+
+      for (const user of demoUsers) {
+        // Check if a user with this email already exists
+        const q = query(usersRef, where("email", "==", user.email));
+        const snapshot = await getDocs(q);
+        
         if (snapshot.empty) {
-            console.log("No users found in Firestore, seeding from mockData...");
-            for (const user of demoUsers) {
-                // Don't include the placeholder ID when creating documents
-                const { id, ...userData } = user;
-                await addDoc(usersRef, userData);
-            }
+          // User does not exist, so add them
+          console.log(`Seeding user ${user.email} into Firebase...`);
+          // Don't include the placeholder ID when creating documents
+          const { id, ...userData } = user;
+          await addDoc(usersRef, userData);
+        } else {
+          // console.log(`User ${user.email} already exists in Firebase. Skipping.`);
         }
+      }
     } catch (error) {
-        console.error("Error seeding initial users:", error);
+        console.error("Error seeding initial users into Firebase:", error);
     }
   }, []);
 
@@ -199,8 +207,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchUsers = async (): Promise<User[]> => {
-    // Force return of demo users to ensure they are always visible for the demo.
-    return Promise.resolve(demoUsers);
+    if (isFirebaseEnabled) {
+        try {
+            const usersRef = collection(db, "users");
+            const snapshot = await getDocs(usersRef);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+        } catch (error) {
+            console.error("Error fetching users from Firebase:", error);
+            return []; // Return empty on error
+        }
+    } else {
+        // --- DEMO MODE ---
+        try {
+            const usersJson = localStorage.getItem(ALL_USERS_KEY);
+            return usersJson ? JSON.parse(usersJson) : [];
+        } catch (error) {
+            console.error("Error fetching users from localStorage:", error);
+            return [];
+        }
+    }
   };
 
   const updateUser = async (user: User): Promise<boolean> => {
@@ -259,3 +284,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    
