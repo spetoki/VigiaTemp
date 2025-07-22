@@ -1,0 +1,25 @@
+Aqui está a lista de contas de usuário geradas para teste.
+
+Senha padrão para todas as contas: user123
+
+--- Contas ---
+Login: usuarioa1
+Login: usuariob2
+Login: usuarioc3
+Login: usuariod4
+Login: usuarioe5
+Login: usuariof6
+Login: usuariog7
+Login: usuarioh8
+Login: usuarioi9
+Login: usuarioj10
+Login: usuariok11
+Login: usuariol12
+Login: usuariom13
+Login: usuarion14
+Login: usuarioo15
+Login: usuariop16
+Login: usuarioq17
+Login: usuarior18
+Login: usuarios19
+Login: usuariot20
