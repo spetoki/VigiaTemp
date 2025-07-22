@@ -7,17 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { CodeXml, Copy, Check, Cog, Wifi } from 'lucide-react';
+import { CodeXml, Copy, Check, Cog, Wifi, AlertTriangle } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const arduinoCodeTemplate = `
 /*
   VigiaTemp - Código Universal com WiFi Manager
-  Descrição: Este código permite que o dispositivo ESP32 seja configurado
-  para qualquer rede WiFi sem a necessidade de reprogramação. Ele utiliza
-  a biblioteca WiFiManager para criar um portal de configuração.
+  ===========================================
   
+  BIBLIOTECA OBRIGATÓRIA: Para este código funcionar, você PRECISA instalar a 
+  biblioteca "WiFiManager" na sua Arduino IDE. 
+  Para fazer isso:
+  1. Vá em Ferramentas > Gerenciar Bibliotecas...
+  2. Na caixa de busca, digite "WiFiManager" (de tzapu).
+  3. Clique em Instalar.
+
   Como funciona:
   1. Ao ligar, o ESP32 tenta se conectar a uma rede já salva.
   2. Se não conseguir, ele cria um Ponto de Acesso WiFi chamado "VigiaTemp-Config".
@@ -204,11 +210,20 @@ export default function DeviceConfiguratorPage() {
       </Card>
       
       {generatedCode && (
+        <>
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Dependência Obrigatória</AlertTitle>
+          <AlertDescription>
+            Antes de compilar, você <strong>precisa</strong> instalar a biblioteca <strong>`WiFiManager`</strong> (de tzapu) na sua Arduino IDE. Vá em `Ferramentas` → `Gerenciar Bibliotecas...` e pesquise por `WiFiManager`.
+          </AlertDescription>
+        </Alert>
+
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row justify-between items-center">
             <div>
                 <CardTitle>{t('deviceConfigurator.generatedCodeTitle', 'Código Gerado para Arduino IDE')}</CardTitle>
-                <CardDescription>Copie, cole na sua Arduino IDE e instale a biblioteca 'WiFiManager' através do Gerenciador de Bibliotecas.</CardDescription>
+                <CardDescription>Copie e cole na sua Arduino IDE. Lembre-se de instalar as bibliotecas necessárias, conforme o aviso acima.</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={handleCopyCode}>
                 {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
@@ -221,6 +236,7 @@ export default function DeviceConfiguratorPage() {
             </div>
           </CardContent>
         </Card>
+        </>
       )}
     </div>
   );
