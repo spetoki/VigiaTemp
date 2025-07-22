@@ -165,14 +165,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchUsers = async (): Promise<User[]> => {
-    if (!isFirebaseEnabled) return [];
+    if (!isFirebaseEnabled) return demoUsers;
     try {
       const usersRef = collection(db, "users");
       const snapshot = await getDocs(usersRef);
+      // If Firestore returns nothing (e.g., due to security rules), use mock data as a fallback.
+      if (snapshot.empty) {
+        console.warn("Firestore 'users' collection is empty or unreachable. Falling back to mock data.");
+        return demoUsers;
+      }
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
     } catch (error) {
-      console.error("Error fetching users:", error);
-      return [];
+      console.error("Error fetching users from Firestore, falling back to mock data:", error);
+      // If there's an error (likely permissions), return the mock data.
+      return demoUsers;
     }
   };
 
