@@ -1,3 +1,4 @@
+
 # VigiaTemp - Monitoramento de Temperatura
 
 Este é um aplicativo de monitoramento de temperatura em tempo real construído com Next.js, TypeScript e ShadCN UI.
@@ -58,7 +59,19 @@ Agora, você precisa inserir esses valores no painel do seu projeto na Vercel.
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | O valor do seu `messagingSenderId` |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | O valor do seu `appId` |
 
-3.  Salve cada variável. Após configurar, faça um **Redeploy** para que as alterações tenham efeito.
+3.  Salve cada variável. Após configurar, faça um **Redeploy** para que as alterações tenham efeito. Siga as instruções abaixo.
+
+### Passo 3: Faça o "Redeploy" para Aplicar as Alterações
+
+Depois de adicionar as variáveis, você precisa "reiniciar" a aplicação para que ela use as novas configurações.
+
+1.  No seu painel da Vercel, vá para a aba **"Deployments"**.
+2.  Encontre o último deploy no topo da lista (ele terá a marca "Current").
+3.  Clique no menu de três pontinhos (`...`) à direita desse deploy.
+4.  Selecione **"Redeploy"** no menu.
+5.  Uma janela de confirmação aparecerá. Clique no botão vermelho **"Redeploy"** novamente.
+
+Após alguns minutos, seu site estará atualizado e a autenticação estará funcionando!
 
 ---
 
