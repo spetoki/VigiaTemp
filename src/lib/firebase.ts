@@ -20,8 +20,8 @@ const isFirebaseConfigured =
   !firebaseConfig.apiKey.includes('...'); 
 
 // This variable controls whether Firebase is used in the app.
-// Forcing it to false to ensure the app uses local mock data as requested by the user
-// to fix the user loading issue on Vercel.
+// Forcing it to false to ensure the app uses local mock data,
+// which is more stable for the user's Vercel deployment.
 const isFirebaseEnabled = false;
 
 // Initialize Firebase
@@ -35,7 +35,7 @@ if (isFirebaseConfigured && isFirebaseEnabled && typeof window !== 'undefined') 
   auth = getAuth(app);
   db = getFirestore(app);
 } else {
-  // Provide dummy objects to prevent app from crashing if Firebase is not configured.
+  // Provide dummy objects to prevent app from crashing if Firebase is not configured or is disabled.
   app = {} as FirebaseApp;
   auth = {} as Auth;
   db = {} as Firestore;

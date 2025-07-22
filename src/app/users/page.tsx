@@ -70,11 +70,25 @@ export default function UsersPage() {
   };
   
   const handleAddNewUser = async (newUser: Omit<User, 'id' | 'joinedDate'>) => {
-    const newUserId = await signup(newUser);
-    if (newUserId) {
-        toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
-        setIsAddUserDialogOpen(false);
-        await loadUsers();
+    // Since signup is now designed for the public page, we will manually add the user here for the admin panel.
+     const allUsers = await fetchUsers();
+     if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+        toast({ title: "Erro", description: "Este email já está em uso.", variant: "destructive"});
+        return;
+    }
+    const finalNewUser: User = {
+      ...newUser,
+      id: `user-${Date.now()}`,
+      joinedDate: new Date().toISOString().split('T')[0],
+    };
+
+    const success = await updateUser(finalNewUser);
+    if (success) {
+      toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
+      setIsAddUserDialogOpen(false);
+      await loadUsers();
+    } else {
+       toast({ title: "Erro", description: "Não foi possível adicionar o novo usuário.", variant: "destructive"});
     }
   };
 

@@ -1,14 +1,8 @@
-
-'use server';
-
 import { ai } from '@/ai/genkit';
 import { streamToResponse, Message } from 'ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
-
-// IMPORTANT! Set the runtime to edge
-export const runtime = 'edge';
 
 export async function POST(req: Request) {
   const { messages }: { messages: Message[] } = await req.json();

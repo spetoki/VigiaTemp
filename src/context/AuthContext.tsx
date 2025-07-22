@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useSettings();
 
   const seedInitialUsers = useCallback(() => {
+    // This function ensures that the demo users are in localStorage if it's empty.
     const storedUsers = localStorage.getItem(ALL_USERS_KEY);
     if (!storedUsers) {
       localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // On initial load, seed users if needed and check for an active session.
     seedInitialUsers();
     
     const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
@@ -104,6 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchUsers = async (): Promise<User[]> => {
+    // Directly fetch from localStorage. Guaranteed to work on client-side.
     try {
         const usersJson = localStorage.getItem(ALL_USERS_KEY);
         return usersJson ? JSON.parse(usersJson) : [];
@@ -117,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
     const updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
     localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    // If the currently logged-in user is the one being updated, refresh their session data.
     if (currentUser?.id === user.id) {
       setCurrentUser(user);
       sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
