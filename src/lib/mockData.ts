@@ -50,7 +50,7 @@ export const demoUsers: User[] = [
       email: `usuario${letter}${number}`,
       password: 'user123',
       role: 'User' as const,
-      status: 'Pending' as const,
+      status: 'Active' as const,
       joinedDate: today.toISOString().split('T')[0],
       tempCoins: 100 + Math.floor(Math.random() * 900),
       accessExpiresAt: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString(), // Expira em 6 meses
