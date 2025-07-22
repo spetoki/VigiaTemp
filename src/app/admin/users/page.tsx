@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from '@/hooks/use-toast';
-import { isFirebaseEnabled } from '@/lib/firebase';
+import { isFirebaseConfigured } from '@/lib/firebase';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminUsersPage() {
@@ -120,12 +120,12 @@ export default function AdminUsersPage() {
           </Button>
         </div>
         
-        {isFirebaseEnabled && (
-          <Alert variant="default" className="border-primary/50 text-primary bg-primary/5">
+        {isFirebaseConfigured && (
+          <Alert variant="default" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/5">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Modo Firebase Ativado</AlertTitle>
+            <AlertTitle>Modo de Demonstração Ativado</AlertTitle>
             <AlertDescription>
-            O gerenciamento de usuários nesta tela agora está conectado ao seu banco de dados Firebase. As alterações aqui afetarão os dados reais.
+            O gerenciamento de usuários nesta tela está operando em modo de demonstração. As alterações são salvas apenas no seu navegador e não afetarão o banco de dados real. As chaves do Firebase foram detectadas.
             </AlertDescription>
           </Alert>
         )}

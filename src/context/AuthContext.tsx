@@ -4,8 +4,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User, AuthState } from '@/types';
-import { isFirebaseEnabled, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/context/SettingsContext';
 import { demoUsers } from '@/lib/mockData';
@@ -33,162 +31,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const { t } = useSettings();
 
-  const seedInitialUsersForFirebase = useCallback(async () => {
-    if (!isFirebaseEnabled) return;
-    try {
-      console.log("Firebase is enabled, checking if initial user seeding is necessary...");
-      const usersRef = collection(db, "users");
-
-      for (const user of demoUsers) {
-        const q = query(usersRef, where("email", "==", user.email));
-        const snapshot = await getDocs(q);
-        
-        if (snapshot.empty) {
-          console.log(`Seeding user ${user.email} into Firebase...`);
-          const { id, ...userData } = user;
-          await addDoc(usersRef, userData);
-        }
-      }
-    } catch (error) {
-        console.error("Error seeding initial users into Firebase:", error);
+  const seedInitialUsers = useCallback(() => {
+    // This function ensures the demo users are in localStorage if not present.
+    const storedUsers = localStorage.getItem(ALL_USERS_KEY);
+    if (!storedUsers) {
+      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
     }
   }, []);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      if (isFirebaseEnabled) {
-        await seedInitialUsersForFirebase();
-        const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
-        if (sessionUserJson) {
-          const sessionUser: User = JSON.parse(sessionUserJson);
-          try {
-            const userDocRef = doc(db, "users", sessionUser.id);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              const freshUserData = { id: userDoc.id, ...userDoc.data() } as User;
-              if (freshUserData.status === 'Active') {
-                setCurrentUser(freshUserData);
-                setAuthState('authenticated');
-              } else {
-                throw new Error("User is not active.");
-              }
-            } else {
-              throw new Error("User not found in database.");
-            }
-          } catch (e) {
-            console.error("Session validation failed:", e);
-            sessionStorage.removeItem(SESSION_USER_KEY);
-            setAuthState('unauthenticated');
-          }
-        } else {
-          setAuthState('unauthenticated');
-        }
-      } else {
-        const storedUsers = localStorage.getItem(ALL_USERS_KEY);
-        if (!storedUsers) {
-          localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
-        }
-        const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
-        if (sessionUserJson) {
-          const sessionUser = JSON.parse(sessionUserJson);
-          setCurrentUser(sessionUser);
-          setAuthState('authenticated');
-        } else {
-          setAuthState('unauthenticated');
-        }
-      }
-    };
-    initializeAuth();
-  }, [seedInitialUsersForFirebase]);
+    seedInitialUsers();
+    
+    const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
+    if (sessionUserJson) {
+      const sessionUser: User = JSON.parse(sessionUserJson);
+      setCurrentUser(sessionUser);
+      setAuthState('authenticated');
+    } else {
+      setAuthState('unauthenticated');
+    }
+  }, [seedInitialUsers]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
-    setAuthState('loading');
-    if (isFirebaseEnabled) {
-      try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", email), where("password", "==", password));
-        const querySnapshot = await getDocs(q);
+    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+    const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
 
-        if (querySnapshot.empty) {
-          toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
-          setAuthState('unauthenticated');
-          return false;
-        }
-
-        const userDoc = querySnapshot.docs[0];
-        const user = { id: userDoc.id, ...userDoc.data() } as User;
-
-        if (user.status !== 'Active') {
-          toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
-          setAuthState('unauthenticated');
-          return false;
-        }
-
-        setCurrentUser(user);
-        setAuthState('authenticated');
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-        toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
-        router.push('/');
-        return true;
-      } catch (error) {
-        console.error("Firebase login failed:", error);
-        toast({ title: t('login.errorTitle', 'Login Error'), description: "An error occurred during login.", variant: 'destructive' });
-        setAuthState('unauthenticated');
+    if (user) {
+      if (user.status !== 'Active') {
+        toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
         return false;
       }
+      
+      setCurrentUser(user);
+      setAuthState('authenticated');
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+      toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
+      router.push('/');
+      return true;
     } else {
-      const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
-      const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-      if (user) {
-        if (user.status !== 'Active') {
-          toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
-          return false;
-        }
-        setCurrentUser(user);
-        setAuthState('authenticated');
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-        toast({ title: t('login.successTitle', 'Success'), description: t('login.userSuccess', 'Login successful!') });
-        router.push('/');
-        return true;
-      } else {
-        toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
-        return false;
-      }
+      toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
+      return false;
     }
   };
 
   const signup = async (newUser: Omit<User, 'id' | 'joinedDate'>): Promise<string | null> => {
-    if (isFirebaseEnabled) {
-        try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", newUser.email));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
-            return null;
-        }
-        const docRef = await addDoc(collection(db, "users"), { ...newUser, joinedDate: new Date().toISOString() });
-        return docRef.id;
-        } catch (error) {
-        console.error("Error creating user:", error);
-        toast({ title: t('signup.errorTitle', 'Error'), description: "Could not create user.", variant: "destructive" });
+    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+    if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
         return null;
-        }
-    } else {
-        const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
-        if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
-            toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
-            return null;
-        }
-        const finalNewUser: User = {
-          ...newUser,
-          id: `user-${Date.now()}`,
-          joinedDate: new Date().toISOString().split('T')[0],
-        };
-        const updatedUsers = [...allUsers, finalNewUser];
-        localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-        return finalNewUser.id;
     }
+    const finalNewUser: User = {
+      ...newUser,
+      id: `user-${Date.now()}`,
+      joinedDate: new Date().toISOString().split('T')[0],
+    };
+    const updatedUsers = [...allUsers, finalNewUser];
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    return finalNewUser.id;
   };
 
   const logout = () => {
@@ -199,69 +98,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchUsers = async (): Promise<User[]> => {
-    if (isFirebaseEnabled) {
-        try {
-            const usersRef = collection(db, "users");
-            const snapshot = await getDocs(usersRef);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
-        } catch (error) {
-            console.error("Error fetching users from Firebase:", error);
-            return [];
-        }
-    } else {
-        try {
-            const usersJson = localStorage.getItem(ALL_USERS_KEY);
-            return usersJson ? JSON.parse(usersJson) : [];
-        } catch (error) {
-            console.error("Error fetching users from localStorage:", error);
-            return [];
-        }
+    try {
+        const usersJson = localStorage.getItem(ALL_USERS_KEY);
+        return usersJson ? JSON.parse(usersJson) : [];
+    } catch (error) {
+        console.error("Error fetching users from localStorage:", error);
+        return [];
     }
   };
 
   const updateUser = async (user: User): Promise<boolean> => {
-    if (isFirebaseEnabled) {
-      try {
-        const userRef = doc(db, "users", user.id);
-        const { id, ...userData } = user;
-        await updateDoc(userRef, { ...userData });
-        if (currentUser?.id === user.id) {
-          setCurrentUser(user);
-          sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-        }
-        return true;
-      } catch (error) {
-        console.error("Error updating user in Firebase:", error);
-        return false;
-      }
-    } else {
-      const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
-      const updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
-      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-      if (currentUser?.id === user.id) {
-        setCurrentUser(user);
-        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-      }
-      return true;
+    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+    const updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    if (currentUser?.id === user.id) {
+      setCurrentUser(user);
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
     }
+    return true;
   };
 
   const deleteUser = async (userId: string): Promise<boolean> => {
-    if (isFirebaseEnabled) {
-      try {
-        const userRef = doc(db, "users", userId);
-        await deleteDoc(userRef);
-        return true;
-      } catch (error) {
-        console.error("Error deleting user in Firebase:", error);
-        return false;
-      }
-    } else {
-      const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
-      const updatedUsers = allUsers.filter(u => u.id !== userId);
-      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-      return true;
-    }
+    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+    const updatedUsers = allUsers.filter(u => u.id !== userId);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+    return true;
   };
 
   const value = { currentUser, authState, login, signup, logout, fetchUsers, updateUser, deleteUser };
