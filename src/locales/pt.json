@@ -5,7 +5,8 @@
   "nav.alerts": "Alertas",
   "nav.traceability": "Rastreabilidade",
   "nav.optimizeAlarms": "Otimizar Alarmes",
-  "nav.sensorCharts": "Gráficos dos Sensores",
+  "nav.sensorCharts": "Gráficos",
+  "nav.dataAnalysis": "Análise de Dados",
   "nav.wifiDiscovery": "Descoberta WiFi",
   "nav.bluetoothDiscovery": "Descoberta Bluetooth",
   "nav.hardwareAssembly": "Montagem",
@@ -558,5 +559,20 @@
   "deviceConfigurator.copySuccessTitle": "Copiado!",
   "deviceConfigurator.copySuccessDescription": "O código foi copiado para a sua área de transferência.",
   "deviceConfigurator.copyErrorTitle": "Falha ao Copiar",
-  "deviceConfigurator.copyErrorDescription": "Não foi possível copiar o código."
+  "deviceConfigurator.copyErrorDescription": "Não foi possível copiar o código.",
+  
+  "dataAnalysis.pageTitle": "Análise de Dados dos Sensores",
+  "dataAnalysis.pageDescription": "Explore visualizações avançadas sobre o comportamento dos seus sensores e a frequência de alertas para identificar padrões e otimizar a operação.",
+  "dataAnalysis.pieChart.title": "Distribuição de Status por Sensor",
+  "dataAnalysis.pieChart.description": "Percentual de tempo que cada sensor permaneceu em estado 'Normal', 'Atenção' ou 'Crítico'.",
+  "dataAnalysis.pieChart.statusNormal": "Normal",
+  "dataAnalysis.pieChart.statusWarning": "Atenção",
+  "dataAnalysis.pieChart.statusCritical": "Crítico",
+  "dataAnalysis.noData": "Sem dados históricos",
+  "dataAnalysis.noSensorData": "Não há dados de sensores para analisar.",
+  "dataAnalysis.noAlertData": "Não há dados de alertas para analisar.",
+  "dataAnalysis.barChart.title": "Frequência de Alertas por Nível",
+  "dataAnalysis.barChart.description": "Contagem de alertas de 'Atenção' e 'Críticos' agrupados por dia para identificar picos de incidentes.",
+  "dataAnalysis.heatmap.title": "Calendário de Atividade de Alertas (Heatmap)",
+  "dataAnalysis.heatmap.description": "Visualize a intensidade de alertas ao longo do ano. Dias mais escuros indicam uma maior ocorrência de alertas."
 }

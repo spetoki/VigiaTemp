@@ -5,7 +5,8 @@
   "nav.alerts": "Alertas",
   "nav.traceability": "Trazabilidad",
   "nav.optimizeAlarms": "Optimizar Alarmas",
-  "nav.sensorCharts": "Gráficos de Sensores",
+  "nav.sensorCharts": "Gráficos",
+  "nav.dataAnalysis": "Análisis de Datos",
   "nav.wifiDiscovery": "Descubrimiento WiFi",
   "nav.bluetoothDiscovery": "Descubrimiento Bluetooth",
   "nav.hardwareAssembly": "Montaje",
@@ -558,5 +559,20 @@
   "deviceConfigurator.copySuccessTitle": "¡Copiado!",
   "deviceConfigurator.copySuccessDescription": "El código ha sido copiado a su portapapeles.",
   "deviceConfigurator.copyErrorTitle": "Fallo al Copiar",
-  "deviceConfigurator.copyErrorDescription": "No se pudo copiar el código."
+  "deviceConfigurator.copyErrorDescription": "No se pudo copiar el código.",
+  
+  "dataAnalysis.pageTitle": "Análisis de Datos de Sensores",
+  "dataAnalysis.pageDescription": "Explore visualizaciones avanzadas del comportamiento de sus sensores y la frecuencia de alertas para identificar patrones y optimizar operaciones.",
+  "dataAnalysis.pieChart.title": "Distribución de Estado por Sensor",
+  "dataAnalysis.pieChart.description": "Porcentaje de tiempo que cada sensor ha permanecido en estado 'Normal', 'Advertencia' o 'Crítico'.",
+  "dataAnalysis.pieChart.statusNormal": "Normal",
+  "dataAnalysis.pieChart.statusWarning": "Advertencia",
+  "dataAnalysis.pieChart.statusCritical": "Crítico",
+  "dataAnalysis.noData": "Sin datos históricos",
+  "dataAnalysis.noSensorData": "No hay datos de sensores para analizar.",
+  "dataAnalysis.noAlertData": "No hay datos de alertas para analizar.",
+  "dataAnalysis.barChart.title": "Frecuencia de Alertas por Nivel",
+  "dataAnalysis.barChart.description": "Recuento de alertas de 'Advertencia' y 'Críticas' agrupadas por día para identificar picos de incidentes.",
+  "dataAnalysis.heatmap.title": "Calendario de Actividad de Alertas (Heatmap)",
+  "dataAnalysis.heatmap.description": "Visualice la intensidad de las alertas a lo largo del año. Los días más oscuros indican una mayor ocurrencia de alertas."
 }

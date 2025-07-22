@@ -5,7 +5,8 @@
   "nav.alerts": "Alerts",
   "nav.traceability": "Traceability",
   "nav.optimizeAlarms": "Optimize Alarms",
-  "nav.sensorCharts": "Sensor Charts",
+  "nav.sensorCharts": "Charts",
+  "nav.dataAnalysis": "Data Analysis",
   "nav.wifiDiscovery": "WiFi Discovery",
   "nav.bluetoothDiscovery": "Bluetooth Discovery",
   "nav.hardwareAssembly": "Assembly",
@@ -558,5 +559,20 @@
   "deviceConfigurator.copySuccessTitle": "Copied!",
   "deviceConfigurator.copySuccessDescription": "The code has been copied to your clipboard.",
   "deviceConfigurator.copyErrorTitle": "Copy Failed",
-  "deviceConfigurator.copyErrorDescription": "Could not copy the code."
+  "deviceConfigurator.copyErrorDescription": "Could not copy the code.",
+  
+  "dataAnalysis.pageTitle": "Sensor Data Analysis",
+  "dataAnalysis.pageDescription": "Explore advanced visualizations of your sensor behavior and alert frequency to identify patterns and optimize operations.",
+  "dataAnalysis.pieChart.title": "Status Distribution per Sensor",
+  "dataAnalysis.pieChart.description": "Percentage of time each sensor has been in 'Normal', 'Warning', or 'Critical' state.",
+  "dataAnalysis.pieChart.statusNormal": "Normal",
+  "dataAnalysis.pieChart.statusWarning": "Warning",
+  "dataAnalysis.pieChart.statusCritical": "Critical",
+  "dataAnalysis.noData": "No historical data",
+  "dataAnalysis.noSensorData": "No sensor data to analyze.",
+  "dataAnalysis.noAlertData": "No alert data to analyze.",
+  "dataAnalysis.barChart.title": "Alert Frequency by Level",
+  "dataAnalysis.barChart.description": "Count of 'Warning' and 'Critical' alerts grouped by day to identify incident peaks.",
+  "dataAnalysis.heatmap.title": "Alert Activity Calendar (Heatmap)",
+  "dataAnalysis.heatmap.description": "Visualize alert intensity throughout the year. Darker days indicate a higher occurrence of alerts."
 }
