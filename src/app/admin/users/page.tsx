@@ -98,6 +98,7 @@ export default function AdminUsersPage() {
     }
   };
 
+  /*
   if (isFirebaseEnabled) {
     return (
        <Alert variant="destructive" className="max-w-2xl mx-auto">
@@ -109,6 +110,7 @@ export default function AdminUsersPage() {
       </Alert>
     )
   }
+  */
 
   if (isLoading || authState !== 'authenticated' || currentUser?.role !== 'Admin') {
     return (
@@ -469,3 +471,6 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
     </Dialog>
   );
 }
+
+
+    
