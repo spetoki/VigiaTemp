@@ -578,5 +578,27 @@
   
   "ambientWeather.cardTitle": "Previsão do Tempo Ambiente",
   "ambientWeather.location": "Fazenda de Cacau (Simulado)",
-  "ambientWeather.unavailable": "Indisponível"
+  "ambientWeather.unavailable": "Indisponível",
+  "ambientWeather.viewForecast": "Ver Previsão Completa",
+
+  "weatherForecast.title": "Previsão do Tempo Detalhada",
+  "weatherForecast.description": "Analise as condições climáticas para os próximos dias, semana e mês.",
+  "weatherForecast.location": "Fazenda de Cacau, Bahia",
+  "weatherForecast.tabs.day": "Hoje",
+  "weatherForecast.tabs.week": "Próximos 7 Dias",
+  "weatherForecast.tabs.month": "Próximos 30 Dias",
+  "weatherForecast.minTemp": "Mínima",
+  "weatherForecast.maxTemp": "Máxima",
+  "weatherForecast.humidity": "Umidade",
+  "weatherForecast.wind": "Vento",
+  "weatherForecast.sunrise": "Nascer do Sol",
+  "weatherForecast.sunset": "Pôr do Sol",
+  "weatherForecast.table.date": "Data",
+  "weatherForecast.table.condition": "Condição",
+  "weatherForecast.table.description": "Descrição",
+  "weatherForecast.table.tempRange": "Temp. (Mín/Máx)",
+  "weatherForecast.table.humidity": "Umidade",
+  "weatherForecast.table.wind": "Vento (km/h)",
+  "weatherForecast.noData": "Não há dados de previsão disponíveis.",
+  "weatherForecast.error.unknown": "Ocorreu um erro desconhecido."
 }

@@ -578,5 +578,27 @@
 
   "ambientWeather.cardTitle": "Pronóstico del Tiempo Ambiente",
   "ambientWeather.location": "Finca de Cacao (Simulado)",
-  "ambientWeather.unavailable": "No disponible"
+  "ambientWeather.unavailable": "No disponible",
+  "ambientWeather.viewForecast": "Ver Pronóstico Completo",
+
+  "weatherForecast.title": "Pronóstico del Tiempo Detallado",
+  "weatherForecast.description": "Analice las condiciones climáticas para los próximos días, semana y mes.",
+  "weatherForecast.location": "Finca de Cacao, Bahia",
+  "weatherForecast.tabs.day": "Hoy",
+  "weatherForecast.tabs.week": "Próximos 7 Días",
+  "weatherForecast.tabs.month": "Próximos 30 Días",
+  "weatherForecast.minTemp": "Temp. Mín",
+  "weatherForecast.maxTemp": "Temp. Máx",
+  "weatherForecast.humidity": "Humedad",
+  "weatherForecast.wind": "Viento",
+  "weatherForecast.sunrise": "Amanecer",
+  "weatherForecast.sunset": "Atardecer",
+  "weatherForecast.table.date": "Fecha",
+  "weatherForecast.table.condition": "Condición",
+  "weatherForecast.table.description": "Descripción",
+  "weatherForecast.table.tempRange": "Temp. (Mín/Máx)",
+  "weatherForecast.table.humidity": "Humedad",
+  "weatherForecast.table.wind": "Viento (km/h)",
+  "weatherForecast.noData": "No hay datos de pronóstico disponibles.",
+  "weatherForecast.error.unknown": "Ocurrió un error desconocido."
 }

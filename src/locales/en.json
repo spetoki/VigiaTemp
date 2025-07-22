@@ -578,5 +578,27 @@
 
   "ambientWeather.cardTitle": "Ambient Weather Forecast",
   "ambientWeather.location": "Cocoa Farm (Simulated)",
-  "ambientWeather.unavailable": "Unavailable"
+  "ambientWeather.unavailable": "Unavailable",
+  "ambientWeather.viewForecast": "View Full Forecast",
+
+  "weatherForecast.title": "Detailed Weather Forecast",
+  "weatherForecast.description": "Analyze weather conditions for the upcoming day, week, and month.",
+  "weatherForecast.location": "Cocoa Farm, Bahia",
+  "weatherForecast.tabs.day": "Today",
+  "weatherForecast.tabs.week": "Next 7 Days",
+  "weatherForecast.tabs.month": "Next 30 Days",
+  "weatherForecast.minTemp": "Min Temp",
+  "weatherForecast.maxTemp": "Max Temp",
+  "weatherForecast.humidity": "Humidity",
+  "weatherForecast.wind": "Wind",
+  "weatherForecast.sunrise": "Sunrise",
+  "weatherForecast.sunset": "Sunset",
+  "weatherForecast.table.date": "Date",
+  "weatherForecast.table.condition": "Condition",
+  "weatherForecast.table.description": "Description",
+  "weatherForecast.table.tempRange": "Temp. (Min/Max)",
+  "weatherForecast.table.humidity": "Humidity",
+  "weatherForecast.table.wind": "Wind (km/h)",
+  "weatherForecast.noData": "No forecast data available.",
+  "weatherForecast.error.unknown": "An unknown error occurred."
 }
