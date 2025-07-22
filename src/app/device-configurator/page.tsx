@@ -14,72 +14,72 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const arduinoCodeTemplate = `
 /*
-  VigiaTemp - Código Universal com WiFi Manager
+  VigiaTemp - Universal Code with WiFi Manager
   ===========================================
   
-  BIBLIOTECA OBRIGATÓRIA: Para este código funcionar, você PRECISA instalar a 
-  biblioteca "WiFiManager" na sua Arduino IDE. 
-  Para fazer isso:
-  1. Vá em Ferramentas > Gerenciar Bibliotecas...
-  2. Na caixa de busca, digite "WiFiManager" (de tzapu).
-  3. Clique em Instalar.
+  REQUIRED LIBRARY: For this code to work, you MUST install the "WiFiManager" 
+  library in your Arduino IDE.
+  To do this:
+  1. Go to Tools > Manage Libraries...
+  2. In the search box, type "WiFiManager" (by tzapu).
+  3. Click Install.
 
-  Como funciona:
-  1. Ao ligar, o ESP32 tenta se conectar a uma rede já salva.
-  2. Se não conseguir, ele cria um Ponto de Acesso WiFi chamado "VigiaTemp-Config".
-  3. Conecte seu celular ou computador a esta rede.
-  4. Um portal de configuração abrirá automaticamente no seu navegador.
-  5. Selecione sua rede WiFi, insira a senha e o endereço do servidor.
-  6. O ESP32 salvará as informações e se conectará à sua rede.
+  How it works:
+  1. When powered on, the ESP32 tries to connect to a saved network.
+  2. If it fails, it creates a WiFi Access Point named "VigiaTemp-Config".
+  3. Connect your phone or computer to this network.
+  4. A configuration portal will automatically open in your browser.
+  5. Select your WiFi network, enter the password, and the server address.
+  6. The ESP32 will save the information and connect to your network.
 */
 #include <WiFi.h>
-#include <WiFiManager.h> // Biblioteca para o portal de configuração
+#include <WiFiManager.h> // Library for the configuration portal
 #include <HTTPClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// --- Configurações de Hardware ---
-// Pino GPIO onde o pino de dados do DS18B20 está conectado
+// --- Hardware Settings ---
+// GPIO pin where the DS18B20 data pin is connected
 const int oneWireBus = 4; // GPIO 4
 
-// --- Variáveis Globais ---
+// --- Global Variables ---
 OneWire oneWire(oneWireBus);
 DallasTemperature sensors(&oneWire);
 unsigned long lastTime = 0;
-unsigned long timerDelay = 30000; // Enviar dados a cada 30 segundos
+unsigned long timerDelay = 30000; // Send data every 30 seconds
 
-// Variáveis para armazenar as configurações do WiFiManager
-char server_url[100]; // Armazena a URL do servidor
+// Variables to store WiFiManager settings
+char server_url[100]; // Stores the server URL
 
 void setup() {
   Serial.begin(115200);
   sensors.begin();
 
-  // Inicia o WiFiManager
+  // Start WiFiManager
   WiFiManager wm;
   
-  // Cria um campo customizado no portal para a URL do servidor
-  WiFiManagerParameter custom_server_url("server", "URL do Servidor", "{serverName}", 100);
+  // Create a custom field in the portal for the server URL
+  WiFiManagerParameter custom_server_url("server", "Server URL", "{serverName}", 100);
   wm.addParameter(&custom_server_url);
 
-  // Tenta conectar ao WiFi. Se falhar, inicia o portal de configuração.
-  // O nome do Ponto de Acesso será "VigiaTemp-Config"
+  // Try to connect to WiFi. If it fails, start the configuration portal.
+  // The Access Point name will be "VigiaTemp-Config"
   if (!wm.autoConnect("VigiaTemp-Config")) {
-    Serial.println("Falha ao conectar e tempo limite esgotado. Reiniciando...");
+    Serial.println("Failed to connect and timeout expired. Restarting...");
     delay(3000);
-    ESP.restart(); // Reinicia o ESP se a configuração não for concluída
+    ESP.restart(); // Restart ESP if configuration is not completed
   }
 
-  // Se a conexão for bem-sucedida
-  Serial.println("\\nConectado à sua rede WiFi!");
-  Serial.print("Endereço IP: ");
+  // If the connection is successful
+  Serial.println("\\nConnected to your WiFi network!");
+  Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
-  Serial.print("Endereço MAC: ");
+  Serial.print("MAC Address: ");
   Serial.println(WiFi.macAddress());
 
-  // Salva o valor do campo customizado na nossa variável
+  // Save the value from the custom field to our variable
   strcpy(server_url, custom_server_url.getValue());
-  Serial.print("URL do Servidor configurada para: ");
+  Serial.print("Server URL configured to: ");
   Serial.println(server_url);
 }
 
@@ -89,11 +89,11 @@ void loop() {
     float temperatureC = sensors.getTempCByIndex(0);
 
     if (temperatureC == DEVICE_DISCONNECTED_C) {
-      Serial.println("Erro: Não foi possível ler a temperatura do sensor.");
+      Serial.println("Error: Could not read temperature from sensor.");
       return;
     }
 
-    Serial.print("Temperatura: ");
+    Serial.print("Temperature: ");
     Serial.print(temperatureC);
     Serial.println(" °C");
 
@@ -107,18 +107,18 @@ void loop() {
 
       int httpResponseCode = http.POST(jsonPayload);
       
-      Serial.print("Código de Resposta HTTP: ");
+      Serial.print("HTTP Response Code: ");
       Serial.println(httpResponseCode);
         
       if (httpResponseCode > 0) {
         String response = http.getString();
-        Serial.println("Resposta do Servidor:");
+        Serial.println("Server Response:");
         Serial.println(response);
       }
       
       http.end();
     } else {
-      Serial.println("WiFi Desconectado");
+      Serial.println("WiFi Disconnected");
     }
     
     lastTime = millis();
@@ -213,9 +213,10 @@ export default function DeviceConfiguratorPage() {
         <>
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Dependência Obrigatória</AlertTitle>
+          <AlertTitle>Dependência Obrigatória / Required Dependency</AlertTitle>
           <AlertDescription>
-            Antes de compilar, você <strong>precisa</strong> instalar a biblioteca <strong>`WiFiManager`</strong> (de tzapu) na sua Arduino IDE. Vá em `Ferramentas` → `Gerenciar Bibliotecas...` e pesquise por `WiFiManager`.
+            <p><strong>PT:</strong> Antes de compilar, você <strong>precisa</strong> instalar a biblioteca <strong>`WiFiManager`</strong> (de tzapu) na sua Arduino IDE. Vá em `Ferramentas` → `Gerenciar Bibliotecas...` e pesquise por `WiFiManager`.</p>
+            <p className="mt-2"><strong>EN:</strong> Before compiling, you <strong>must</strong> install the <strong>`WiFiManager`</strong> library (by tzapu) in your Arduino IDE. Go to `Tools` → `Manage Libraries...` and search for `WiFiManager`.</p>
           </AlertDescription>
         </Alert>
 
