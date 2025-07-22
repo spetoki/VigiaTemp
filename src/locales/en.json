@@ -21,6 +21,7 @@
   "nav.adminPanel": "Admin Panel",
   "nav.deviceConfigurator": "Device Configurator",
   "nav.users": "Users",
+  "nav.chat": "Chat AI",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
