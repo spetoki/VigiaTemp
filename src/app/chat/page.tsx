@@ -10,8 +10,8 @@ export default function ChatPage() {
   const { t } = useSettings();
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)]">
-       <div className="mb-4">
+    <div className="flex flex-col h-[calc(100vh-8rem)]">
+       <div className="mb-4 sr-only">
         <h1 className="text-3xl font-bold font-headline text-primary flex items-center">
           <MessageSquare className="mr-3 h-8 w-8" />
           {t('chat.title', 'Assistente Virtual IA')}

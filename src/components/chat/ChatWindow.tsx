@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useChat } from 'ai/react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,29 +10,71 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function ChatWindow() {
   const { currentUser } = useAuth();
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { t } = useSettings();
+  const getChatKey = () => currentUser ? `chat_history_${currentUser.email}` : 'chat_history_guest';
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
     api: '/api/chat',
+    onFinish: (message) => {
+      // Save the updated messages list to localStorage after the AI responds.
+      const updatedMessages = [...messages, message];
+      localStorage.setItem(getChatKey(), JSON.stringify(updatedMessages));
+    },
+    onError: (error) => {
+       console.error("Chat error:", error);
+       // Handle chat errors if needed
+    }
   });
+
+  // Load messages from localStorage on initial render
+  useEffect(() => {
+    const storedMessages = localStorage.getItem(getChatKey());
+    if (storedMessages) {
+      setMessages(JSON.parse(storedMessages));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, setMessages]); // Depend on currentUser to load history for the logged-in user
+
+  // Save user messages immediately for a better UX, even if the AI fails.
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(getChatKey(), JSON.stringify(messages));
+    }
+  }, [messages, currentUser]);
+
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
-        // A bit of a hack to get the viewport element from the Radix ScrollArea
         const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
         if (viewport) {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
   }, [messages]);
+  
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleSubmit(e);
+  };
+
 
   return (
     <div className="flex flex-col h-full bg-card border rounded-lg shadow-lg">
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
+          {messages.length === 0 && !isLoading && (
+            <div className="text-center text-muted-foreground pt-12">
+              <MessageSquare className="mx-auto h-12 w-12" />
+              <h3 className="text-lg font-semibold mt-4">{t('chat.title', 'Assistente Virtual IA')}</h3>
+              <p className="text-sm">{t('chat.description', 'Converse com nosso assistente para tirar dúvidas sobre o sistema, sensores ou o cultivo de cacau.')}</p>
+            </div>
+          )}
           {messages.map((m) => (
             <div
               key={m.id}
@@ -79,7 +121,7 @@ export default function ChatWindow() {
       </ScrollArea>
       <div className="border-t p-4 bg-background/80 rounded-b-lg">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           className="flex items-center gap-2"
         >
           <Textarea
@@ -91,8 +133,10 @@ export default function ChatWindow() {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                // @ts-ignore
-                handleSubmit(e);
+                const form = e.currentTarget.closest('form');
+                if (form) {
+                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
               }
             }}
           />

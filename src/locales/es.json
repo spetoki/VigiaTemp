@@ -21,10 +21,12 @@
   "nav.adminPanel": "Panel Admin",
   "nav.deviceConfigurator": "Configurador de Dispositivo",
   "nav.users": "Usuarios",
-  "nav.chat": "Chat AI",
+  "nav.chat": "Asistente de IA",
 
   "temperatureUnitSelection": "Selección de unidad de temperatura",
   "openMenu": "Abrir menú",
+  "chat.title": "Asistente Virtual de IA",
+  "chat.description": "Chatea con nuestro asistente para hacer preguntas sobre el sistema, los sensores o el cultivo de cacao.",
 
   "dashboard.title": "Panel de Sensores",
   "dashboard.refreshButton": "Actualizar Datos",
@@ -421,7 +423,7 @@
   "signup.addressComplementPlaceholder": "Ej: Apto 101, Bloque B",
   "signup.addressCityLabel": "Ciudad",
   "signup.addressCityPlaceholder": "Ej: Madrid",
-  "signup.addressStateLabel": "Estado/Provincia",
+  "signup.addressStateLabel": "Estado/Província",
   "signup.addressStatePlaceholder": "Ej: Madrid",
   "signup.addressCountryLabel": "País",
   "signup.addressCountryPlaceholder": "Ej: España",
