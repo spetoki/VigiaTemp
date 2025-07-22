@@ -47,6 +47,8 @@ Agora, você precisa inserir esses valores no painel do seu projeto na Vercel.
 1.  No painel do seu projeto na **Vercel**, vá para a aba **"Settings"** -> **"Environment Variables"**.
 2.  Use a tabela abaixo para saber exatamente o que copiar e colar em cada campo da Vercel.
 
+    **🚨 IMPORTANTE:** Copie **APENAS** o texto que está **DENTRO** das aspas (`"`). Não inclua as aspas no valor que você cola no Vercel.
+
 | O que colocar no campo "Name" da Vercel (Copie daqui) | O que colocar no campo "Value" da Vercel (Copie do seu `firebaseConfig`) |
 | --- | --- |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | O valor da sua `apiKey` |
