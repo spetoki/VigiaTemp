@@ -20,6 +20,7 @@
   "nav.closeMenu": "Cerrar Menú",
   "nav.adminPanel": "Panel Admin",
   "nav.deviceConfigurator": "Configurador de Dispositivo",
+  "nav.users": "Usuarios",
 
   "temperatureUnitSelection": "Selección de unidad de temperatura",
   "openMenu": "Abrir menú",
@@ -196,7 +197,7 @@
   "bluetoothPage.error.policy": "El acceso a Bluetooth fue bloqueado por la Política de Permisos del navegador. Esto puede deberse a una configuración de servidor faltante o a restricciones del navegador.",
   "bluetoothPage.error.unknown": "Ocurrió un error desconocido durante la búsqueda.",
   "bluetoothPage.defaultLocation": "Descubierto por Bluetooth",
-  "bluetoothPage.unknownModel": "Modelo Desconocido",
+  "bluetoothPage.unknownModel": "Modelo Desconhecido",
   "bluetoothPage.successMessage": "¡Sensor \"{sensorName}\" agregado con éxito! Puede gestionarlo en la página de Sensores.",
 
   "wifiDiscoveryPage.title": "Descubrimiento de Sensores por WiFi",
@@ -610,4 +611,3 @@
   "weatherForecast.hourly.time": "Hora",
   "weatherForecast.hourly.temperature": "Temp."
 }
-

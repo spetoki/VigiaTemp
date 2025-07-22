@@ -20,6 +20,7 @@
   "nav.closeMenu": "Fechar Menu",
   "nav.adminPanel": "Painel Admin",
   "nav.deviceConfigurator": "Configurar Dispositivo",
+  "nav.users": "Usuários",
 
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
@@ -610,4 +611,3 @@
   "weatherForecast.hourly.time": "Hora",
   "weatherForecast.hourly.temperature": "Temp."
 }
-

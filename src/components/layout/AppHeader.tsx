@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut, Cog, Activity } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut, Cog, Activity, Users as UsersIcon } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -41,43 +42,50 @@ export default function AppHeader() {
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
     { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: Cog, defaultLabel: 'Configurar Dispositivo' },
   ];
+  
+  const adminNavItems = [
+    { href: '/users', labelKey: 'nav.users', icon: UsersIcon, defaultLabel: 'Usuários' },
+    { href: '/admin', labelKey: 'nav.adminPanel', icon: LayoutPanelLeft, defaultLabel: 'Painel Admin' },
+  ];
 
   const userNavItems = [
     { href: '/user-profile', labelKey: 'nav.userProfile', icon: User, defaultLabel: 'Painel do Usuário' },
     { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
   ];
-  
-  const adminNavItems = [
-    { href: '/admin', labelKey: 'nav.adminPanel', icon: LayoutPanelLeft, defaultLabel: 'Painel Admin' },
-  ];
 
-  const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {
+  const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, isAdminOnly }: {
     href: string;
     labelKey: string;
     icon: React.ElementType;
     defaultLabel: string;
     isMobile?: boolean;
-  }) => (
-    <Link
-      href={href}
-      onClick={() => {
-        if (isMobile && isMobileMenuOpen) {
-          setIsMobileMenuOpen(false);
-        }
-      }}
-      className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-        pathname === href
-          ? "bg-primary/10 text-primary"
-          : "text-foreground/70 hover:text-foreground hover:bg-primary/5",
-        isMobile && "text-base w-full justify-start"
-      )}
-      aria-current={pathname === href ? "page" : undefined}
-    >
-      <Icon className="h-5 w-5" />
-      {t(labelKey, defaultLabel)}
-    </Link>
-  );
+    isAdminOnly?: boolean;
+  }) => {
+    if (isAdminOnly && currentUser?.role !== 'Admin') {
+      return null;
+    }
+    return (
+      <Link
+        href={href}
+        onClick={() => {
+          if (isMobile && isMobileMenuOpen) {
+            setIsMobileMenuOpen(false);
+          }
+        }}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+          pathname === href
+            ? "bg-primary/10 text-primary"
+            : "text-foreground/70 hover:text-foreground hover:bg-primary/5",
+          isMobile && "text-base w-full justify-start"
+        )}
+        aria-current={pathname === href ? "page" : undefined}
+      >
+        <Icon className="h-5 w-5" />
+        {t(labelKey, defaultLabel)}
+      </Link>
+    );
+  }
 
   const UserMenu = () => (
     <DropdownMenu>
@@ -105,6 +113,7 @@ export default function AppHeader() {
               </DropdownMenuItem>
             </Link>
           ))}
+          {currentUser?.role === 'Admin' && <DropdownMenuSeparator />}
           {currentUser?.role === 'Admin' && adminNavItems.map(item => (
             <Link href={item.href} passHref key={item.href}>
               <DropdownMenuItem className="cursor-pointer">
@@ -181,6 +190,7 @@ export default function AppHeader() {
         {authState === 'authenticated' && (
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
+             {adminNavItems.map(item => <NavLink key={item.href} {...item} isAdminOnly />)}
           </nav>
         )}
 

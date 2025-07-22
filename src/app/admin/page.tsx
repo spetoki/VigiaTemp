@@ -58,7 +58,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/admin/users">{t('admin.manageUsers.button', 'Ir para Usuários')}</Link>
+              <Link href="/users">{t('admin.manageUsers.button', 'Ir para Usuários')}</Link>
             </Button>
           </CardContent>
         </Card>
