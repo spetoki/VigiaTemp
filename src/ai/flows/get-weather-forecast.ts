@@ -16,6 +16,12 @@ const GetWeatherForecastInputSchema = z.object({
 });
 export type GetWeatherForecastInput = z.infer<typeof GetWeatherForecastInputSchema>;
 
+// Shared type for weather conditions and icons
+type WeatherCondition = {
+    condition: string;
+    icon: 'Sun' | 'Cloud' | 'Cloudy' | 'Rain' | 'Storm' | 'Snowflake';
+};
+
 // Output Schema: Defines the structure of the data the flow returns.
 const HourlyForecastSchema = z.object({
   time: z.string().describe("The time of the forecast in 'HH:00' format."),
@@ -62,7 +68,7 @@ function generateSimulatedForecast(period: 'day' | 'week' | 'month', location: s
   const today = new Date();
   const days = period === 'day' ? 1 : period === 'week' ? 7 : 30;
 
-  const conditions: {condition: string, icon: 'Sun' | 'Cloud' | 'Cloudy' | 'Rain' | 'Storm' | 'Snowflake'}[] = [
+  const conditions: WeatherCondition[] = [
     { condition: 'Ensolarado', icon: 'Sun' },
     { condition: 'Parcialmente Nublado', icon: 'Cloud' },
     { condition: 'Nublado', icon: 'Cloudy' },
@@ -91,45 +97,59 @@ function generateSimulatedForecast(period: 'day' | 'week' | 'month', location: s
     futureDate.setDate(today.getDate() + i);
 
     // Use seed to make the weather consistent for the same location
-    const randomizer = (offset: number) => Math.sin(seed + i * 100 + offset) * 0.5 + 0.5;
+    const dailyRandomizer = (offset: number) => Math.sin(seed + i * 100 + offset) * 0.5 + 0.5;
 
-    const baseMinTemp = 18;
-    const baseMaxTemp = 28;
-    
-    const minTemp = parseFloat((baseMinTemp + randomizer(1) * 4 - 2).toFixed(1));
-    const maxTemp = parseFloat((baseMaxTemp + randomizer(2) * 5 - 2.5).toFixed(1));
-    const selectedCondition = conditions[Math.floor(randomizer(3) * conditions.length)];
+    const baseMinTemp = 18 + dailyRandomizer(1) * 4 - 2; // Base min temp for the day
+    const baseMaxTemp = 28 + dailyRandomizer(2) * 5 - 2.5; // Base max temp for the day
     
     const hourlyForecasts: HourlyForecast[] = [];
-    let lastTemp = (minTemp + maxTemp) / 2;
+    
+    // Determine the primary condition for the day for summary, but allow hourly variations.
+    const primaryDayCondition = conditions[Math.floor(dailyRandomizer(3) * (conditions.length - 2))]; // Avoid storm/snow as primary
 
     for (let h = 0; h < 24; h++) {
         const hourRandomizer = (offset: number) => Math.sin(seed + i * 100 + h * 10 + offset) * 0.5 + 0.5;
-        // Simulate a daily temperature curve
-        const sineWave = -Math.cos((h / 24) * 2 * Math.PI); // Peaks at hour 12
-        let temp = minTemp + (maxTemp - minTemp) * (sineWave * 0.5 + 0.5);
+        
+        // Simulate a daily temperature curve (cooler at night, warmer mid-day)
+        const sineWave = -Math.cos((h / 23) * 2 * Math.PI); // Peaks around hour 12
+        let temp = baseMinTemp + (baseMaxTemp - baseMinTemp) * (sineWave * 0.5 + 0.5);
         temp += (hourRandomizer(1) - 0.5) * 2; // Add some noise
-        lastTemp = parseFloat(temp.toFixed(1));
+
+        // Simulate hourly weather condition changes
+        let currentHourCondition = primaryDayCondition;
+        // Chance of rain in the afternoon/evening
+        if (h > 14 && h < 20 && hourRandomizer(4) > 0.8) {
+            currentHourCondition = conditions.find(c => c.icon === 'Rain') as WeatherCondition;
+        } else if (hourRandomizer(5) > 0.9) { // Small chance of being different from primary
+            currentHourCondition = conditions[Math.floor(hourRandomizer(6) * (conditions.length - 2))];
+        }
 
         hourlyForecasts.push({
             time: `${h.toString().padStart(2, '0')}:00`,
-            temp: lastTemp,
-            condition: selectedCondition.condition, // Keep daily condition for simplicity
-            icon: selectedCondition.icon,
+            temp: parseFloat(temp.toFixed(1)),
+            condition: currentHourCondition.condition,
+            icon: currentHourCondition.icon,
             humidity: 60 + Math.floor(hourRandomizer(2) * 25),
             windSpeed: 5 + Math.floor(hourRandomizer(3) * 10),
         });
     }
 
+    // Calculate daily summary values from hourly data
+    const dayTemps = hourlyForecasts.map(h => h.temp);
+    const dayMinTemp = Math.min(...dayTemps);
+    const dayMaxTemp = Math.max(...dayTemps);
+    const avgHumidity = hourlyForecasts.reduce((sum, h) => sum + h.humidity, 0) / 24;
+    const avgWindSpeed = hourlyForecasts.reduce((sum, h) => sum + h.windSpeed, 0) / 24;
+
     forecasts.push({
       date: futureDate.toISOString().split('T')[0],
       dayOfWeek: dayNames[futureDate.getDay()],
-      minTemp: Math.min(minTemp, maxTemp - 2),
-      maxTemp: Math.max(maxTemp, minTemp + 2),
-      condition: selectedCondition.condition,
-      icon: selectedCondition.icon,
-      humidity: 60 + Math.floor(randomizer(4) * 25),
-      windSpeed: 5 + Math.floor(randomizer(5) * 10),
+      minTemp: parseFloat(dayMinTemp.toFixed(1)),
+      maxTemp: parseFloat(dayMaxTemp.toFixed(1)),
+      condition: primaryDayCondition.condition, // Use the primary summary condition for the day card
+      icon: primaryDayCondition.icon,
+      humidity: Math.round(avgHumidity),
+      windSpeed: Math.round(avgWindSpeed),
       hourly: hourlyForecasts,
     });
   }
