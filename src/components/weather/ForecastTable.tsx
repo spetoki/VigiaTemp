@@ -12,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 
 interface ForecastTableProps {
   forecasts: DailyForecast[];
+  onDayClick: (forecast: DailyForecast) => void;
 }
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -23,7 +24,7 @@ const iconMap: { [key: string]: React.ElementType } = {
   Snowflake,
 };
 
-export default function ForecastTable({ forecasts }: ForecastTableProps) {
+export default function ForecastTable({ forecasts, onDayClick }: ForecastTableProps) {
   const { temperatureUnit, t } = useSettings();
 
   return (
@@ -44,7 +45,7 @@ export default function ForecastTable({ forecasts }: ForecastTableProps) {
             const WeatherIcon = iconMap[forecast.icon] || Sun;
             const date = parseISO(forecast.date);
             return (
-              <TableRow key={forecast.date}>
+              <TableRow key={forecast.date} onClick={() => onDayClick(forecast)} className="cursor-pointer hover:bg-muted/50">
                 <TableCell className="font-medium">
                   <div>{format(date, "dd/MM/yyyy")}</div>
                   <div className="text-muted-foreground text-xs">{forecast.dayOfWeek}</div>

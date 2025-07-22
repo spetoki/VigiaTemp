@@ -583,7 +583,10 @@
 
   "weatherForecast.title": "Detailed Weather Forecast",
   "weatherForecast.description": "Analyze weather conditions for the upcoming day, week, and month.",
+  "weatherForecast.pageDescription": "Enter a location and analyze weather conditions for the upcoming day, week, and month.",
   "weatherForecast.location": "Cocoa Farm, Bahia",
+  "weatherForecast.locationPlaceholder": "E.g., Salvador, Bahia",
+  "weatherForecast.searchButton": "Search Forecast",
   "weatherForecast.tabs.day": "Today",
   "weatherForecast.tabs.week": "Next 7 Days",
   "weatherForecast.tabs.month": "Next 30 Days",
@@ -599,6 +602,12 @@
   "weatherForecast.table.tempRange": "Temp. (Min/Max)",
   "weatherForecast.table.humidity": "Humidity",
   "weatherForecast.table.wind": "Wind (km/h)",
-  "weatherForecast.noData": "No forecast data available.",
-  "weatherForecast.error.unknown": "An unknown error occurred."
+  "weatherForecast.noData": "No forecast data available for this location.",
+  "weatherForecast.error.unknown": "An unknown error occurred.",
+  "weatherForecast.error.locationRequired": "Please enter a location.",
+  "weatherForecast.hourly.title": "Hourly Forecast for {date}",
+  "weatherForecast.hourly.description": "Detailed weather conditions for {location}.",
+  "weatherForecast.hourly.time": "Time",
+  "weatherForecast.hourly.temperature": "Temp."
 }
+

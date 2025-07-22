@@ -583,7 +583,10 @@
 
   "weatherForecast.title": "Previsão do Tempo Detalhada",
   "weatherForecast.description": "Analise as condições climáticas para os próximos dias, semana e mês.",
+  "weatherForecast.pageDescription": "Insira uma localização e analise as condições climáticas para os próximos dias, semana ou mês.",
   "weatherForecast.location": "Fazenda de Cacau, Bahia",
+  "weatherForecast.locationPlaceholder": "Ex: Salvador, Bahia",
+  "weatherForecast.searchButton": "Buscar Previsão",
   "weatherForecast.tabs.day": "Hoje",
   "weatherForecast.tabs.week": "Próximos 7 Dias",
   "weatherForecast.tabs.month": "Próximos 30 Dias",
@@ -599,6 +602,12 @@
   "weatherForecast.table.tempRange": "Temp. (Mín/Máx)",
   "weatherForecast.table.humidity": "Umidade",
   "weatherForecast.table.wind": "Vento (km/h)",
-  "weatherForecast.noData": "Não há dados de previsão disponíveis.",
-  "weatherForecast.error.unknown": "Ocorreu um erro desconhecido."
+  "weatherForecast.noData": "Não há dados de previsão disponíveis para esta localização.",
+  "weatherForecast.error.unknown": "Ocorreu um erro desconhecido.",
+  "weatherForecast.error.locationRequired": "Por favor, insira uma localização.",
+  "weatherForecast.hourly.title": "Previsão Hora a Hora para {date}",
+  "weatherForecast.hourly.description": "Detalhes das condições climáticas para {location}.",
+  "weatherForecast.hourly.time": "Hora",
+  "weatherForecast.hourly.temperature": "Temp."
 }
+

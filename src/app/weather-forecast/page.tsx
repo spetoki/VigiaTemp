@@ -3,30 +3,43 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSettings } from '@/context/SettingsContext';
-import { CalendarRange } from 'lucide-react';
+import { CalendarRange, AlertCircle, Loader2, Search } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getWeatherForecast, DailyForecast } from '@/ai/flows/get-weather-forecast';
 import ForecastCard from '@/components/weather/ForecastCard';
 import ForecastTable from '@/components/weather/ForecastTable';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import HourlyForecastDisplay from '@/components/weather/HourlyForecastDisplay';
 
 type ViewMode = 'day' | 'week' | 'month';
 
 export default function WeatherForecastPage() {
   const { t } = useSettings();
+  const { toast } = useToast();
+  
   const [view, setView] = useState<ViewMode>('day');
   const [forecasts, setForecasts] = useState<DailyForecast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [location, setLocation] = useState('Fazenda de Cacau, Bahia');
+  
+  const [selectedDay, setSelectedDay] = useState<DailyForecast | null>(null);
+  const [isHourlyDialogOpen, setIsHourlyDialogOpen] = useState(false);
 
-  const fetchForecast = useCallback(async (period: ViewMode) => {
+  const fetchForecast = useCallback(async (period: ViewMode, loc: string) => {
     setIsLoading(true);
     setError(null);
     try {
+      if (!loc.trim()) {
+        throw new Error(t('weatherForecast.error.locationRequired', 'Por favor, insira uma localização.'));
+      }
       const result = await getWeatherForecast({ 
-        location: 'Fazenda de Cacau, Bahia', // Hardcoded for simulation
+        location: loc,
         period 
       });
       setForecasts(result.forecasts);
@@ -35,42 +48,59 @@ export default function WeatherForecastPage() {
       const errorMessage = err instanceof Error ? err.message : t('weatherForecast.error.unknown', 'An unknown error occurred.');
       setError(errorMessage);
       setForecasts([]);
+      toast({
+        variant: "destructive",
+        title: t('optimizeAlarmsForm.errorTitle', 'Erro'),
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [t, toast]);
 
   useEffect(() => {
-    fetchForecast(view);
-  }, [view, fetchForecast]);
+    fetchForecast(view, location);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]); // Fetch only when view changes, not location until form submit
+
+  const handleLocationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchForecast(view, location);
+  };
+  
+  const handleDayClick = (day: DailyForecast) => {
+    setSelectedDay(day);
+    setIsHourlyDialogOpen(true);
+  };
 
   const renderContent = () => {
     if (isLoading) {
-      return <Skeleton className="h-96 w-full" />;
+      return <Skeleton className="h-96 w-full mt-4" />;
     }
 
-    if (error) {
+    if (error && forecasts.length === 0) {
        return (
         <Alert variant="destructive" className="mt-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('optimizeAlarmsForm.errorTitle', 'Erro')}</AlertTitle>
+            <AlertTitle>{t('optimizeAlarmsForm.errorTitle', 'Erro ao Buscar Previsão')}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
        )
     }
 
     if (forecasts.length === 0) {
-      return <p className="text-center text-muted-foreground mt-8">{t('weatherForecast.noData', 'Não há dados de previsão disponíveis.')}</p>;
+      return <p className="text-center text-muted-foreground mt-8">{t('weatherForecast.noData', 'Não há dados de previsão disponíveis para esta localização.')}</p>;
     }
 
     if (view === 'day') {
       return <ForecastCard forecast={forecasts[0]} />;
     }
 
-    return <ForecastTable forecasts={forecasts} />;
+    return <ForecastTable forecasts={forecasts} onDayClick={handleDayClick} />;
   };
 
   return (
+    <>
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold font-headline text-primary flex items-center">
@@ -78,9 +108,23 @@ export default function WeatherForecastPage() {
           {t('weatherForecast.title', 'Previsão do Tempo Detalhada')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          {t('weatherForecast.description', 'Analise as condições climáticas para os próximos dias, semana e mês.')}
+          {t('weatherForecast.pageDescription', 'Insira uma localização e analise as condições climáticas para os próximos dias, semana ou mês.')}
         </p>
       </div>
+      
+      <form onSubmit={handleLocationSubmit} className="flex flex-col sm:flex-row items-center gap-2">
+        <Input 
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder={t('weatherForecast.locationPlaceholder', 'Ex: Salvador, Bahia')}
+            className="flex-grow"
+        />
+        <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+            {t('weatherForecast.searchButton', 'Buscar Previsão')}
+        </Button>
+      </form>
 
       <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -88,10 +132,27 @@ export default function WeatherForecastPage() {
           <TabsTrigger value="week">{t('weatherForecast.tabs.week', 'Próximos 7 Dias')}</TabsTrigger>
           <TabsTrigger value="month">{t('weatherForecast.tabs.month', 'Próximos 30 Dias')}</TabsTrigger>
         </TabsList>
-        <TabsContent value={view} className="mt-4">
+        <TabsContent value={view}>
           {renderContent()}
         </TabsContent>
       </Tabs>
     </div>
+    
+    <Dialog open={isHourlyDialogOpen} onOpenChange={setIsHourlyDialogOpen}>
+        <DialogContent className="sm:max-w-3xl">
+            {selectedDay && (
+                <>
+                <DialogHeader>
+                    <DialogTitle>{t('weatherForecast.hourly.title', 'Previsão Hora a Hora para {date}')}</DialogTitle>
+                    <DialogDescription>
+                         {t('weatherForecast.hourly.description', 'Detalhes das condições climáticas para {location}.')}
+                    </DialogDescription>
+                </DialogHeader>
+                <HourlyForecastDisplay forecast={selectedDay} />
+                </>
+            )}
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }

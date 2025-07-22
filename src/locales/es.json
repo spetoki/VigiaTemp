@@ -583,7 +583,10 @@
 
   "weatherForecast.title": "Pronóstico del Tiempo Detallado",
   "weatherForecast.description": "Analice las condiciones climáticas para los próximos días, semana y mes.",
+  "weatherForecast.pageDescription": "Introduzca una ubicación y analice las condiciones climáticas para los próximos días, semana y mes.",
   "weatherForecast.location": "Finca de Cacao, Bahia",
+  "weatherForecast.locationPlaceholder": "Ej: Madrid, España",
+  "weatherForecast.searchButton": "Buscar Pronóstico",
   "weatherForecast.tabs.day": "Hoy",
   "weatherForecast.tabs.week": "Próximos 7 Días",
   "weatherForecast.tabs.month": "Próximos 30 Días",
@@ -599,6 +602,12 @@
   "weatherForecast.table.tempRange": "Temp. (Mín/Máx)",
   "weatherForecast.table.humidity": "Humedad",
   "weatherForecast.table.wind": "Viento (km/h)",
-  "weatherForecast.noData": "No hay datos de pronóstico disponibles.",
-  "weatherForecast.error.unknown": "Ocurrió un error desconocido."
+  "weatherForecast.noData": "No hay datos de pronóstico disponibles para esta ubicación.",
+  "weatherForecast.error.unknown": "Ocurrió un error desconocido.",
+  "weatherForecast.error.locationRequired": "Por favor, ingrese una ubicación.",
+  "weatherForecast.hourly.title": "Pronóstico por Hora para {date}",
+  "weatherForecast.hourly.description": "Condiciones climáticas detalladas para {location}.",
+  "weatherForecast.hourly.time": "Hora",
+  "weatherForecast.hourly.temperature": "Temp."
 }
+
