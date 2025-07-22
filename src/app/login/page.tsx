@@ -7,12 +7,14 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/context/SettingsContext';
 import { Eye, EyeOff, Loader2, User, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 export default function LoginPage() {
   const { login, authState } = useAuth();
@@ -117,6 +119,15 @@ export default function LoginPage() {
               </Button>
             </form>
           </CardContent>
+           <CardFooter className="flex-col space-y-4">
+              <Separator />
+              <p className="text-center text-sm text-muted-foreground">
+                {t('login.noAccount', "Don't have an account?")}{' '}
+                <Link href="/signup" className="underline text-primary hover:text-primary/80">
+                  {t('signup.signUpLink', 'Sign up')}
+                </Link>
+              </p>
+           </CardFooter>
         </Card>
       </div>
     </div>

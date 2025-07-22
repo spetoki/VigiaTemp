@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
@@ -12,7 +13,7 @@ interface AuthContextType {
   currentUser: User | null;
   authState: AuthState;
   login: (email: string, password?: string) => Promise<boolean>;
-  signup: (newUser: Omit<User, 'id' | 'joinedDate'>) => Promise<string | null>;
+  signup: (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'tempCoins' | 'accessExpiresAt'>) => Promise<boolean>;
   logout: () => void;
   fetchUsers: () => Promise<User[]>;
   updateUser: (user: User) => Promise<boolean>;
@@ -32,7 +33,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useSettings();
 
   const seedInitialUsers = useCallback(() => {
-    // This function ensures the demo users are in localStorage if not present.
     const storedUsers = localStorage.getItem(ALL_USERS_KEY);
     if (!storedUsers) {
       localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
@@ -74,20 +74,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signup = async (newUser: Omit<User, 'id' | 'joinedDate'>): Promise<string | null> => {
+  const signup = async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'tempCoins' | 'accessExpiresAt'>): Promise<boolean> => {
     const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
     if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
-        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
-        return null;
+        return false;
     }
     const finalNewUser: User = {
       ...newUser,
       id: `user-${Date.now()}`,
       joinedDate: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      role: 'User',
+      tempCoins: 0,
+      accessExpiresAt: undefined,
     };
     const updatedUsers = [...allUsers, finalNewUser];
     localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-    return finalNewUser.id;
+    toast({ title: t('signup.successTitle', 'Sucesso!'), description: t('signup.successPendingApproval', 'Conta criada com sucesso! Sua conta está pendente de aprovação por um administrador e será ativada em breve.') });
+    router.push('/login');
+    return true;
   };
 
   const logout = () => {
