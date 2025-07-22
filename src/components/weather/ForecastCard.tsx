@@ -12,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 
 interface ForecastCardProps {
   forecast: DailyForecast;
+  location: string;
 }
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -23,7 +24,7 @@ const iconMap: { [key: string]: React.ElementType } = {
   Snowflake,
 };
 
-export default function ForecastCard({ forecast }: ForecastCardProps) {
+export default function ForecastCard({ forecast, location }: ForecastCardProps) {
   const { temperatureUnit, t } = useSettings();
   const WeatherIcon = iconMap[forecast.icon] || Sun;
 
@@ -36,7 +37,7 @@ export default function ForecastCard({ forecast }: ForecastCardProps) {
              {format(new Date(forecast.date), "PPP", { locale: ptBR })}
           </span>
         </CardTitle>
-        <CardDescription>{t('weatherForecast.location', 'Fazenda de Cacau, Bahia')}</CardDescription>
+        <CardDescription>{location}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-col items-center justify-center gap-4 text-center">

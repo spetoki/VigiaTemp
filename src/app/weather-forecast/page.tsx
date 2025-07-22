@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import HourlyForecastDisplay from '@/components/weather/HourlyForecastDisplay';
 
 type ViewMode = 'day' | 'week' | 'month';
+const LOCATION_STORAGE_KEY = 'weather_forecast_location';
 
 export default function WeatherForecastPage() {
   const { t } = useSettings();
@@ -26,12 +27,16 @@ export default function WeatherForecastPage() {
   const [forecasts, setForecasts] = useState<DailyForecast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [location, setLocation] = useState('Fazenda de Cacau, Bahia');
+  const [location, setLocation] = useState('');
   
   const [selectedDay, setSelectedDay] = useState<DailyForecast | null>(null);
   const [isHourlyDialogOpen, setIsHourlyDialogOpen] = useState(false);
 
   const fetchForecast = useCallback(async (period: ViewMode, loc: string) => {
+    if (!loc) {
+        setIsLoading(false);
+        return;
+    };
     setIsLoading(true);
     setError(null);
     try {
@@ -43,6 +48,8 @@ export default function WeatherForecastPage() {
         period 
       });
       setForecasts(result.forecasts);
+      // Save successful location search
+      localStorage.setItem(LOCATION_STORAGE_KEY, loc);
     } catch (err) {
       console.error("Failed to fetch weather forecast:", err);
       const errorMessage = err instanceof Error ? err.message : t('weatherForecast.error.unknown', 'An unknown error occurred.');
@@ -59,9 +66,20 @@ export default function WeatherForecastPage() {
   }, [t, toast]);
 
   useEffect(() => {
-    fetchForecast(view, location);
+    // This effect runs once on mount to get the stored location
+    const savedLocation = localStorage.getItem(LOCATION_STORAGE_KEY) || 'Fazenda de Cacau, Bahia';
+    setLocation(savedLocation);
+    // Initial fetch is now triggered by the view effect below
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]); // Fetch only when view changes, not location until form submit
+  }, []);
+
+  useEffect(() => {
+    // This effect runs when the view (day/week/month) changes, or when the location is loaded initially
+    if (location) {
+      fetchForecast(view, location);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, location]); 
 
   const handleLocationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +111,7 @@ export default function WeatherForecastPage() {
     }
 
     if (view === 'day') {
-      return <ForecastCard forecast={forecasts[0]} />;
+      return <ForecastCard forecast={forecasts[0]} location={location}/>;
     }
 
     return <ForecastTable forecasts={forecasts} onDayClick={handleDayClick} />;
@@ -143,9 +161,9 @@ export default function WeatherForecastPage() {
             {selectedDay && (
                 <>
                 <DialogHeader>
-                    <DialogTitle>{t('weatherForecast.hourly.title', 'Previsão Hora a Hora para {date}')}</DialogTitle>
+                    <DialogTitle>{t('weatherForecast.hourly.title', 'Previsão Hora a Hora para {date}', {date: new Date(selectedDay.date).toLocaleDateString(t('localeCode','pt-BR'), {weekday: 'long', day: '2-digit', month: 'long'})})}</DialogTitle>
                     <DialogDescription>
-                         {t('weatherForecast.hourly.description', 'Detalhes das condições climáticas para {location}.')}
+                         {t('weatherForecast.hourly.description', 'Detalhes das condições climáticas para {location}.', {location})}
                     </DialogDescription>
                 </DialogHeader>
                 <HourlyForecastDisplay forecast={selectedDay} />
