@@ -199,22 +199,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchUsers = async (): Promise<User[]> => {
-    if (isFirebaseEnabled) {
-      try {
-        const usersRef = collection(db, "users");
-        const snapshot = await getDocs(usersRef);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
-      } catch (error) {
-        console.error("Error fetching users from Firestore:", error);
-        toast({title: "Erro de Conexão", description: "Não foi possível buscar usuários do Firebase. Verifique as regras de segurança.", variant: "destructive"})
-        return []; 
-      }
-    } else {
-      // --- DEMO MODE FETCH ---
-      // Always return the fresh list from mockData to ensure it's up to date.
-      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
-      return demoUsers;
-    }
+    // Force return of demo users to ensure they are always visible for the demo.
+    return Promise.resolve(demoUsers);
   };
 
   const updateUser = async (user: User): Promise<boolean> => {
