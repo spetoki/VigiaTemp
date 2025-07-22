@@ -26,7 +26,25 @@ export const demoUsers: User[] = [
     joinedDate: '2024-07-01',
     tempCoins: 1000,
     accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Access valid for 1 year
-  }
+  },
+  // --- 20 contas de usuário sequenciais ---
+  ...Array.from({ length: 20 }, (_, i) => {
+    const letter = String.fromCharCode('a'.charCodeAt(0) + i);
+    const number = i + 1;
+    const today = new Date();
+    today.setDate(today.getDate() - (20 - i)); // Stagger join dates
+    return {
+      id: `user-seq-${number}`,
+      name: `Usuário ${letter.toUpperCase()}${number}`,
+      email: `usuario${letter}${number}`,
+      password: 'user123',
+      role: 'User' as const,
+      status: 'Active' as const,
+      joinedDate: today.toISOString().split('T')[0],
+      tempCoins: 100 + Math.floor(Math.random() * 900),
+      accessExpiresAt: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString(), // Expira em 6 meses
+    };
+  })
 ];
 
 
