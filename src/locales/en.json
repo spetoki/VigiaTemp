@@ -21,12 +21,9 @@
   "nav.adminPanel": "Admin Panel",
   "nav.deviceConfigurator": "Device Configurator",
   "nav.users": "Users",
-  "nav.chat": "AI Assistant",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
-  "chat.title": "AI Virtual Assistant",
-  "chat.description": "Chat with our assistant to ask questions about the system, sensors, or cocoa cultivation.",
 
   "dashboard.title": "Sensor Dashboard",
   "dashboard.refreshButton": "Refresh Data",

@@ -21,12 +21,9 @@
   "nav.adminPanel": "Painel Admin",
   "nav.deviceConfigurator": "Configurar Dispositivo",
   "nav.users": "Usuários",
-  "nav.chat": "Assistente IA",
 
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
-  "chat.title": "Assistente Virtual IA",
-  "chat.description": "Converse com nosso assistente para tirar dúvidas sobre o sistema, sensores ou o cultivo de cacau.",
 
   "dashboard.title": "Painel de Sensores",
   "dashboard.refreshButton": "Atualizar Dados",

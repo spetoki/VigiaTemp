@@ -3,7 +3,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut, Cog, Activity, Users as UsersIcon, MessageSquare } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, User, SlidersHorizontal, LayoutPanelLeft, Bell, Bluetooth, Wifi, Wrench, ClipboardList, LogIn, LogOut, Cog, Activity, Users as UsersIcon } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -38,7 +38,6 @@ export default function AppHeader() {
     { href: '/sensor-charts', labelKey: 'nav.sensorCharts', icon: LineChart, defaultLabel: 'Gráficos' },
     { href: '/data-analysis', labelKey: 'nav.dataAnalysis', icon: Activity, defaultLabel: 'Análise de Dados' },
     { href: '/traceability', labelKey: 'nav.traceability', icon: ClipboardList, defaultLabel: 'Rastreabilidade' },
-    { href: '/chat', labelKey: 'nav.chat', icon: MessageSquare, defaultLabel: 'Chat AI' },
     { href: '/optimize-alarms', labelKey: 'nav.optimizeAlarms', icon: BrainCircuit, defaultLabel: 'Otimizar Alarmes' },
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
     { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: Cog, defaultLabel: 'Configurar Dispositivo' },
