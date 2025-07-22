@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (newUser: Omit<User, 'id' | 'joinedDate' | 'status' | 'role' | 'tempCoins' | 'accessExpiresAt'>): Promise<boolean> => {
     const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
     if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
         return false;
     }
     const finalNewUser: User = {

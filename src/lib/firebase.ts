@@ -30,7 +30,7 @@ let auth: Auth;
 let db: Firestore;
 
 // Only initialize if the config is provided AND we want to enable it.
-if (isFirebaseConfigured && typeof window !== 'undefined') {
+if (isFirebaseConfigured && isFirebaseEnabled && typeof window !== 'undefined') {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
