@@ -38,6 +38,17 @@ export const demoUsers: User[] = [
     tempCoins: 1200,
     accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
   },
+  {
+    id: 'user-spetoki-placeholder-id',
+    name: 'Spetoki',
+    email: 'spetoki@gmail.com',
+    password: '123456',
+    role: 'User',
+    status: 'Active',
+    joinedDate: '2024-07-23',
+    tempCoins: 150,
+    accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
+  },
   // --- 20 contas de usuário sequenciais ---
   ...Array.from({ length: 20 }, (_, i) => {
     const letter = String.fromCharCode('a'.charCodeAt(0) + i);
