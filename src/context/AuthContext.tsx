@@ -33,14 +33,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const { t } = useSettings();
 
-  const seedUsersForDemo = useCallback(() => {
-    // This function seeds users into localStorage for the demo mode
-    const storedUsers = localStorage.getItem(ALL_USERS_KEY);
-    if (!storedUsers) {
-      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
-    }
-  }, []);
-
   const seedInitialUsersForFirebase = useCallback(async () => {
     if (!isFirebaseEnabled) return;
     try {
@@ -48,18 +40,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const usersRef = collection(db, "users");
 
       for (const user of demoUsers) {
-        // Check if a user with this email already exists
         const q = query(usersRef, where("email", "==", user.email));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
-          // User does not exist, so add them
           console.log(`Seeding user ${user.email} into Firebase...`);
-          // Don't include the placeholder ID when creating documents
           const { id, ...userData } = user;
           await addDoc(usersRef, userData);
-        } else {
-          // console.log(`User ${user.email} already exists in Firebase. Skipping.`);
         }
       }
     } catch (error) {
@@ -89,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               throw new Error("User not found in database.");
             }
           } catch (e) {
+            console.error("Session validation failed:", e);
             sessionStorage.removeItem(SESSION_USER_KEY);
             setAuthState('unauthenticated');
           }
@@ -96,8 +84,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setAuthState('unauthenticated');
         }
       } else {
-        // --- DEMO MODE ---
-        seedUsersForDemo();
+        const storedUsers = localStorage.getItem(ALL_USERS_KEY);
+        if (!storedUsers) {
+          localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
+        }
         const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
         if (sessionUserJson) {
           const sessionUser = JSON.parse(sessionUserJson);
@@ -109,9 +99,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     initializeAuth();
-  }, [seedInitialUsersForFirebase, seedUsersForDemo]);
+  }, [seedInitialUsersForFirebase]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
+    setAuthState('loading');
     if (isFirebaseEnabled) {
       try {
         const usersRef = collection(db, "users");
@@ -120,6 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (querySnapshot.empty) {
           toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.authError', 'Invalid email or password.'), variant: 'destructive' });
+          setAuthState('unauthenticated');
           return false;
         }
 
@@ -128,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (user.status !== 'Active') {
           toast({ title: t('login.errorTitle', 'Login Error'), description: t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
+          setAuthState('unauthenticated');
           return false;
         }
 
@@ -139,11 +132,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       } catch (error) {
         console.error("Firebase login failed:", error);
-        toast({ title: t('login.errorTitle', 'Login Error'), description: "Ocorreu um erro durante o login.", variant: 'destructive' });
+        toast({ title: t('login.errorTitle', 'Login Error'), description: "An error occurred during login.", variant: 'destructive' });
+        setAuthState('unauthenticated');
         return false;
       }
     } else {
-      // --- DEMO MODE LOGIN ---
       const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
       const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
       if (user) {
@@ -178,11 +171,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return docRef.id;
         } catch (error) {
         console.error("Error creating user:", error);
-        toast({ title: t('signup.errorTitle', 'Error'), description: "Não foi possível criar o usuário.", variant: "destructive" });
+        toast({ title: t('signup.errorTitle', 'Error'), description: "Could not create user.", variant: "destructive" });
         return null;
         }
     } else {
-        // --- DEMO MODE SIGNUP ---
         const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
         if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
             toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
@@ -214,10 +206,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
         } catch (error) {
             console.error("Error fetching users from Firebase:", error);
-            return []; // Return empty on error
+            return [];
         }
     } else {
-        // --- DEMO MODE ---
         try {
             const usersJson = localStorage.getItem(ALL_USERS_KEY);
             return usersJson ? JSON.parse(usersJson) : [];
@@ -234,17 +225,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userRef = doc(db, "users", user.id);
         const { id, ...userData } = user;
         await updateDoc(userRef, { ...userData });
+        if (currentUser?.id === user.id) {
+          setCurrentUser(user);
+          sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+        }
         return true;
       } catch (error) {
         console.error("Error updating user in Firebase:", error);
         return false;
       }
     } else {
-      // --- DEMO MODE UPDATE ---
       const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
       const updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
       localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-      // Update current user if it's the one being edited
       if (currentUser?.id === user.id) {
         setCurrentUser(user);
         sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
@@ -264,7 +257,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
     } else {
-      // --- DEMO MODE DELETE ---
       const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
       const updatedUsers = allUsers.filter(u => u.id !== userId);
       localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
@@ -284,5 +276,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    

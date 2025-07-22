@@ -39,7 +39,6 @@ export default function AdminUsersPage() {
       userList.sort((a, b) => {
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-        // This is safe because joinedDate is a mandatory string in the type
         return new Date(b.joinedDate || 0).getTime() - new Date(a.joinedDate || 0).getTime();
       });
       setUsers(userList);
@@ -66,7 +65,7 @@ export default function AdminUsersPage() {
     if (success) {
       toast({ title: "Sucesso", description: `Usuário ${updatedUser.name} atualizado.`});
       setEditingUser(null);
-      await loadUsers(); // Refresh list
+      await loadUsers(); 
     } else {
       toast({ title: "Erro", description: "Não foi possível atualizar o usuário.", variant: "destructive"});
     }
@@ -77,40 +76,23 @@ export default function AdminUsersPage() {
     if (newUserId) {
         toast({ title: "Sucesso", description: `Usuário ${newUser.name} adicionado.`});
         setIsAddUserDialogOpen(false);
-        await loadUsers(); // Refresh list
-    } else {
-        // Toast for failure is handled within the signup function
+        await loadUsers();
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    // Prevent admin from deleting themselves
     if (userId === currentUser?.id) {
         toast({ title: "Ação Inválida", description: "Você não pode excluir sua própria conta de administrador.", variant: "destructive"});
         return;
     }
     const success = await deleteUser(userId);
     if (success) {
-      toast({ title: t('sensorsPage.toast.deleted.title', "Usuário Excluído"), description: t('admin.usersTable.deleteAction', "Usuário excluído."), variant: "destructive" });
-      await loadUsers(); // Refresh list
+      toast({ title: t('sensorsPage.toast.deleted.title', "Usuário Excluído"), description: "Usuário excluído com sucesso.", variant: "destructive" });
+      await loadUsers();
     } else {
       toast({ title: "Erro", description: "Não foi possível excluir o usuário.", variant: "destructive"});
     }
   };
-
-  /*
-  if (isFirebaseEnabled) {
-    return (
-       <Alert variant="destructive" className="max-w-2xl mx-auto">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Modo Firebase Ativado</AlertTitle>
-        <AlertDescription>
-         O gerenciamento de usuários nesta tela agora está conectado ao seu banco de dados Firebase. As alterações aqui afetarão os dados reais. O modo de demonstração está desativado.
-        </AlertDescription>
-      </Alert>
-    )
-  }
-  */
 
   if (isLoading || authState !== 'authenticated' || currentUser?.role !== 'Admin') {
     return (
@@ -138,6 +120,16 @@ export default function AdminUsersPage() {
           </Button>
         </div>
         
+        {isFirebaseEnabled && (
+          <Alert variant="default" className="border-primary/50 text-primary bg-primary/5">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Modo Firebase Ativado</AlertTitle>
+            <AlertDescription>
+            O gerenciamento de usuários nesta tela agora está conectado ao seu banco de dados Firebase. As alterações aqui afetarão os dados reais.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <p className="text-muted-foreground">
           {t('admin.usersPage.description', 'Visualize, edite e gerencie as contas de todos os usuários do sistema.')}
         </p>
@@ -248,7 +240,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
       role,
       status,
       tempCoins,
-      // Only include password in the object if it's being changed.
       ...(password && { password }),
       accessExpiresAt: accessExpiresAt?.toISOString(),
     };
@@ -265,22 +256,18 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto px-2">
-          {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="edit-name">{t('admin.usersTable.name', 'Nome')}</Label>
             <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          {/* Email (read-only) */}
           <div className="space-y-2">
             <Label htmlFor="edit-email">{t('admin.usersTable.email', 'Email')}</Label>
             <Input id="edit-email" value={user.email} disabled />
           </div>
-          {/* Password */}
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="edit-password">{t('admin.editUserDialog.passwordLabel', 'Nova Senha (deixe em branco para não alterar)')}</Label>
             <Input id="edit-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
-          {/* Role */}
           <div className="space-y-2">
             <Label htmlFor="edit-role">{t('admin.usersTable.role', 'Função')}</Label>
             <Select value={role} onValueChange={(value) => setRole(value as 'Admin' | 'User')}>
@@ -293,7 +280,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          {/* Status */}
           <div className="space-y-2">
             <Label htmlFor="edit-status">{t('admin.usersTable.status', 'Status')}</Label>
             <Select value={status} onValueChange={(value) => setStatus(value as 'Active' | 'Inactive' | 'Pending')}>
@@ -307,7 +293,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          {/* TempCoins */}
           <div className="space-y-2">
             <Label htmlFor="edit-tempCoins" className="flex items-center gap-2">
               <Coins className="h-4 w-4 text-yellow-500" />
@@ -320,7 +305,6 @@ function EditUserDialog({ user, onSave, onClose }: EditUserDialogProps) {
               onChange={(e) => setTempCoins(parseInt(e.target.value, 10) || 0)}
             />
           </div>
-          {/* Access Expiration */}
           <div className="space-y-2">
             <Label htmlFor="edit-access-expires" className="flex items-center gap-2">
               <CalendarClock className="h-4 w-4" />
@@ -446,7 +430,6 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
               onChange={(e) => setTempCoins(parseInt(e.target.value, 10) || 0)}
             />
           </div>
-           {/* Access Expiration */}
            <div className="space-y-2">
             <Label htmlFor="add-access-expires" className="flex items-center gap-2">
               <CalendarClock className="h-4 w-4" />
@@ -471,6 +454,3 @@ function AddUserDialog({ onSave, onClose, existingUsers }: AddUserDialogProps) {
     </Dialog>
   );
 }
-
-
-    
