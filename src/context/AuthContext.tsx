@@ -139,6 +139,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
       const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
       if (user) {
+        if (user.status !== 'Active') {
+          toast({ title: t('login.errorTitle', 'Login Error'), description: user.status === 'Pending' ? t('login.pendingApproval', 'Your account is pending administrator approval.') : t('login.inactiveAccount', 'This account is inactive.'), variant: "destructive" });
+          return false;
+        }
         setCurrentUser(user);
         setAuthState('authenticated');
         sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
@@ -153,24 +157,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (newUser: Omit<User, 'id' | 'joinedDate'>): Promise<string | null> => {
-    if (!isFirebaseEnabled) {
-      toast({ title: t('signup.errorTitle', 'Error'), description: "Firebase não está configurado. Cadastro desabilitado.", variant: "destructive" });
-      return null;
-    }
-    try {
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", newUser.email));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
+    if (isFirebaseEnabled) {
+        try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("email", "==", newUser.email));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
+            return null;
+        }
+        const docRef = await addDoc(collection(db, "users"), { ...newUser, joinedDate: new Date().toISOString() });
+        return docRef.id;
+        } catch (error) {
+        console.error("Error creating user:", error);
+        toast({ title: t('signup.errorTitle', 'Error'), description: "Não foi possível criar o usuário.", variant: "destructive" });
         return null;
-      }
-      const docRef = await addDoc(collection(db, "users"), { ...newUser, joinedDate: new Date().toISOString() });
-      return docRef.id;
-    } catch (error) {
-      console.error("Error creating user:", error);
-      toast({ title: t('signup.errorTitle', 'Error'), description: "Não foi possível criar o usuário.", variant: "destructive" });
-      return null;
+        }
+    } else {
+        // --- DEMO MODE SIGNUP ---
+        const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+        if (allUsers.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+            toast({ title: t('signup.errorTitle', 'Error'), description: t('signup.emailInUse', 'This email is already in use.'), variant: "destructive" });
+            return null;
+        }
+        const finalNewUser: User = {
+          ...newUser,
+          id: `user-${Date.now()}`,
+          joinedDate: new Date().toISOString().split('T')[0],
+        };
+        const updatedUsers = [...allUsers, finalNewUser];
+        localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+        return finalNewUser.id;
     }
   };
 
@@ -186,11 +203,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const usersRef = collection(db, "users");
         const snapshot = await getDocs(usersRef);
-        if (snapshot.empty) return demoUsers; // Fallback
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
       } catch (error) {
-        console.error("Error fetching users from Firestore, falling back to mock data:", error);
-        return demoUsers; // Fallback
+        console.error("Error fetching users from Firestore:", error);
+        toast({title: "Erro de Conexão", description: "Não foi possível buscar usuários do Firebase. Verifique as regras de segurança.", variant: "destructive"})
+        return []; 
       }
     } else {
       // --- DEMO MODE FETCH ---
@@ -214,6 +231,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
       const updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
       localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+      // Update current user if it's the one being edited
+      if (currentUser?.id === user.id) {
+        setCurrentUser(user);
+        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+      }
       return true;
     }
   };

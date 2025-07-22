@@ -34,10 +34,6 @@ export default function AdminUsersPage() {
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
-    if (!isFirebaseEnabled) {
-      setIsLoading(false);
-      return;
-    }
     try {
       const userList = await fetchUsers();
       userList.sort((a, b) => {
@@ -48,7 +44,7 @@ export default function AdminUsersPage() {
       });
       setUsers(userList);
     } catch (error) {
-      console.error("Failed to load users from Firestore:", error);
+      console.error("Failed to load users:", error);
       toast({ title: "Erro ao Carregar", description: "Não foi possível carregar os dados dos usuários.", variant: "destructive"});
     } finally {
       setIsLoading(false);
@@ -102,13 +98,13 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (!isFirebaseEnabled) {
+  if (isFirebaseEnabled) {
     return (
        <Alert variant="destructive" className="max-w-2xl mx-auto">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Configuração Incompleta do Firebase</AlertTitle>
+        <AlertTitle>Modo Firebase Ativado</AlertTitle>
         <AlertDescription>
-          O gerenciamento de usuários está desabilitado. Por favor, configure as variáveis de ambiente do Firebase no seu arquivo .env ou no painel do Vercel para usar esta funcionalidade.
+         O gerenciamento de usuários nesta tela agora está conectado ao seu banco de dados Firebase. As alterações aqui afetarão os dados reais. O modo de demonstração está desativado.
         </AlertDescription>
       </Alert>
     )
