@@ -211,7 +211,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } else {
       // --- DEMO MODE FETCH ---
-      return JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
+      // Always return the fresh list from mockData to ensure it's up to date.
+      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
+      return demoUsers;
     }
   };
 
