@@ -574,5 +574,9 @@
   "dataAnalysis.barChart.title": "Frequência de Alertas por Nível",
   "dataAnalysis.barChart.description": "Contagem de alertas de 'Atenção' e 'Críticos' agrupados por dia para identificar picos de incidentes.",
   "dataAnalysis.heatmap.title": "Calendário de Atividade de Alertas (Heatmap)",
-  "dataAnalysis.heatmap.description": "Visualize a intensidade de alertas ao longo do ano. Dias mais escuros indicam uma maior ocorrência de alertas."
+  "dataAnalysis.heatmap.description": "Visualize a intensidade de alertas ao longo do ano. Dias mais escuros indicam uma maior ocorrência de alertas.",
+  
+  "ambientWeather.cardTitle": "Previsão do Tempo Ambiente",
+  "ambientWeather.location": "Fazenda de Cacau (Simulado)",
+  "ambientWeather.unavailable": "Indisponível"
 }

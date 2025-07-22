@@ -574,5 +574,9 @@
   "dataAnalysis.barChart.title": "Frecuencia de Alertas por Nivel",
   "dataAnalysis.barChart.description": "Recuento de alertas de 'Advertencia' y 'Críticas' agrupadas por día para identificar picos de incidentes.",
   "dataAnalysis.heatmap.title": "Calendario de Actividad de Alertas (Heatmap)",
-  "dataAnalysis.heatmap.description": "Visualice la intensidad de las alertas a lo largo del año. Los días más oscuros indican una mayor ocurrencia de alertas."
+  "dataAnalysis.heatmap.description": "Visualice la intensidad de las alertas a lo largo del año. Los días más oscuros indican una mayor ocurrencia de alertas.",
+
+  "ambientWeather.cardTitle": "Pronóstico del Tiempo Ambiente",
+  "ambientWeather.location": "Finca de Cacao (Simulado)",
+  "ambientWeather.unavailable": "No disponible"
 }

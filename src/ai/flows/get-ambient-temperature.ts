@@ -13,6 +13,7 @@
  */
 
 import {z} from 'zod';
+import { fetchSimulatedWeather } from '@/services/weather-service';
 
 const AmbientTemperatureOutputSchema = z.object({
   temperature: z.number().describe('The current ambient temperature in Celsius.'),
@@ -20,8 +21,7 @@ const AmbientTemperatureOutputSchema = z.object({
 export type AmbientTemperatureOutput = z.infer<typeof AmbientTemperatureOutputSchema>;
 
 /**
- * Gets the simulated ambient temperature. In a real application this could
- * call a weather API. For this prototype, it returns a static value.
+ * Gets the simulated ambient temperature by calling the weather service.
  * This is a server action and does not require Genkit to be initialized,
  * making the application's home page more resilient.
  * @returns {Promise<AmbientTemperatureOutput>} An object containing the temperature.
@@ -29,9 +29,9 @@ export type AmbientTemperatureOutput = z.infer<typeof AmbientTemperatureOutputSc
 export async function getAmbientTemperature(): Promise<AmbientTemperatureOutput> {
   // Simulate fetching ambient temperature from an external source
   try {
-    // In a real application, you might call a weather API.
-    // For this prototype, we'll return a static cool temperature.
-    return { temperature: 24 };
+    // In a real application, you might use a location from the user's profile.
+    const weatherData = await fetchSimulatedWeather("Fazenda de Cacau, Bahia");
+    return { temperature: weatherData.temperature };
   } catch (e) {
     console.error("Feature failed (getAmbientTemperature):", e);
     // Provide a fallback temperature

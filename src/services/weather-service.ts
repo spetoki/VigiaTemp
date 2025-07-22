@@ -17,7 +17,7 @@ export async function fetchSimulatedWeather(
   // In a real application, you would call a real weather API here.
   // For this simulation, we'll return a random cool temperature
   // to better match the user's context.
-  const simulatedTemp = 3 + Math.random() * 5; // Random temp between 3°C and 8°C
+  const simulatedTemp = 20 + Math.random() * 5; // Random temp between 20°C and 25°C
   return {
     temperature: parseFloat(simulatedTemp.toFixed(1)),
   };

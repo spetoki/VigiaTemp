@@ -13,10 +13,14 @@ import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { useRouter } from 'next/navigation';
+import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
+import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
+  const [ambientTemp, setAmbientTemp] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingAmbientTemp, setIsLoadingAmbientTemp] = useState(true);
   const { t, temperatureUnit } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
   const { currentUser, authState } = useAuth();
@@ -66,6 +70,22 @@ export default function DashboardPage() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
+
+  useEffect(() => {
+    async function fetchAmbientTemp() {
+      setIsLoadingAmbientTemp(true);
+      try {
+        const result = await getAmbientTemperature();
+        setAmbientTemp(result.temperature);
+      } catch (error) {
+        console.error("Could not fetch ambient temperature:", error);
+        setAmbientTemp(null); // Set to null on error
+      } finally {
+        setIsLoadingAmbientTemp(false);
+      }
+    }
+    fetchAmbientTemp();
+  }, []);
 
   // Effect to redirect if not authenticated
   useEffect(() => {
@@ -252,6 +272,14 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
+      
+      <section aria-labelledby="external-conditions">
+         <h2 id="external-conditions" className="sr-only">Condições Externas</h2>
+         <AmbientWeatherCard
+            temperature={ambientTemp}
+            isLoading={isLoadingAmbientTemp}
+          />
+      </section>
 
       <section aria-labelledby="real-time-monitoring">
         <h2 id="real-time-monitoring" className="text-2xl font-semibold mb-4 font-headline">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h2>

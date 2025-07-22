@@ -574,5 +574,9 @@
   "dataAnalysis.barChart.title": "Alert Frequency by Level",
   "dataAnalysis.barChart.description": "Count of 'Warning' and 'Critical' alerts grouped by day to identify incident peaks.",
   "dataAnalysis.heatmap.title": "Alert Activity Calendar (Heatmap)",
-  "dataAnalysis.heatmap.description": "Visualize alert intensity throughout the year. Darker days indicate a higher occurrence of alerts."
+  "dataAnalysis.heatmap.description": "Visualize alert intensity throughout the year. Darker days indicate a higher occurrence of alerts.",
+
+  "ambientWeather.cardTitle": "Ambient Weather Forecast",
+  "ambientWeather.location": "Cocoa Farm (Simulated)",
+  "ambientWeather.unavailable": "Unavailable"
 }
