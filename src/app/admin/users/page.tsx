@@ -7,7 +7,7 @@ import type { User } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock, AlertCircle } from 'lucide-react';
+import { Edit3, Trash2, UserPlus, Users, Coins, Save, CalendarClock } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -18,8 +18,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from '@/hooks/use-toast';
-import { isFirebaseConfigured } from '@/lib/firebase';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminUsersPage() {
   const { t } = useSettings();
@@ -120,16 +118,6 @@ export default function AdminUsersPage() {
           </Button>
         </div>
         
-        {isFirebaseConfigured && (
-          <Alert variant="default" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/5">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Modo de Demonstração Ativado</AlertTitle>
-            <AlertDescription>
-            O gerenciamento de usuários nesta tela está operando em modo de demonstração. As alterações são salvas apenas no seu navegador e não afetarão o banco de dados real. As chaves do Firebase foram detectadas.
-            </AlertDescription>
-          </Alert>
-        )}
-
         <p className="text-muted-foreground">
           {t('admin.usersPage.description', 'Visualize, edite e gerencie as contas de todos os usuários do sistema.')}
         </p>
