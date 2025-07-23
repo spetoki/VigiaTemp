@@ -1,4 +1,9 @@
 {
+  "build": {
+    "env": {
+      "GENKIT_ENV": "production"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

@@ -60,24 +60,24 @@ async function importLocale(locale: LanguageCode): Promise<Translations> {
   }
 }
 
-// In a server environment, fs doesn't exist. We create a stub.
-const fs = globalThis.fs || { readFileSync: () => DEFAULT_ACCESS_KEY };
-const path = globalThis.path || { resolve: () => '' };
+let ACCESS_KEYS: string[] = [DEFAULT_ACCESS_KEY];
 
-function getAccessKeys(): string[] {
+// This logic now runs only on the server, preventing build errors.
+if (typeof process !== 'undefined' && process.versions && process.versions.node) {
     try {
+        const fs = require('fs');
+        const path = require('path');
         const keyFilePath = path.resolve(process.cwd(), 'chaves-de-desbloqueio.txt');
         const fileContent = fs.readFileSync(keyFilePath, 'utf-8');
-        // Extract all 4-digit numbers from the file
         const keys = fileContent.match(/\b\d{4}\b/g);
-        return keys || [DEFAULT_ACCESS_KEY];
+        if (keys) {
+            ACCESS_KEYS = keys;
+        }
     } catch (error) {
         console.warn("Could not read 'chaves-de-desbloqueio.txt'. Falling back to default access key. Error:", error);
-        return [DEFAULT_ACCESS_KEY];
     }
 }
 
-const ACCESS_KEYS = getAccessKeys();
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [temperatureUnit, setTemperatureUnitState] = useState<TemperatureUnit>('C');
