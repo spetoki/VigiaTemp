@@ -1,74 +1,5 @@
 
-import type { Sensor, User } from '@/types';
-
-// This list represents the initial state of users, typically for an admin to see.
-// New users can be created by signing up. To use the predefined accounts below,
-// simply sign up with their respective email and password.
-export const demoUsers: User[] = [
-  {
-    id: 'admin-user-placeholder-id',
-    name: 'Admin VigiaTemp',
-    email: 'admin',
-    password: 'admin',
-    role: 'Admin',
-    status: 'Active',
-    joinedDate: '2023-01-15',
-    tempCoins: 99999,
-    accessExpiresAt: undefined, // Admin access never expires
-  },
-  {
-    id: 'user-placeholder-id',
-    name: 'Usuário Padrão',
-    email: 'user@vigiatemp.com',
-    password: 'user123',
-    role: 'User',
-    status: 'Active',
-    joinedDate: '2024-07-01',
-    tempCoins: 1000,
-    accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Access valid for 1 year
-  },
-  {
-    id: 'user-irineu-placeholder-id',
-    name: 'Irineu',
-    email: 'irineu@gmail.com',
-    password: '123456',
-    role: 'User',
-    status: 'Active',
-    joinedDate: '2024-07-22',
-    tempCoins: 1200,
-    accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
-  },
-  {
-    id: 'user-spetoki-placeholder-id',
-    name: 'Spetoki',
-    email: 'spetoki@gmail.com',
-    password: '123456',
-    role: 'User',
-    status: 'Active',
-    joinedDate: '2024-07-23',
-    tempCoins: 150,
-    accessExpiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
-  },
-  // --- 20 contas de usuário sequenciais ---
-  ...Array.from({ length: 20 }, (_, i) => {
-    const letter = String.fromCharCode('a'.charCodeAt(0) + i);
-    const number = i + 1;
-    const today = new Date();
-    today.setDate(today.getDate() - (20 - i)); // Stagger join dates
-    return {
-      id: `user-seq-${number}`,
-      name: `Usuário ${letter.toUpperCase()}${number}`,
-      email: `usuario${letter}${number}`,
-      password: 'user123',
-      role: 'User' as const,
-      status: 'Active' as const,
-      joinedDate: today.toISOString().split('T')[0],
-      tempCoins: 100 + Math.floor(Math.random() * 900),
-      accessExpiresAt: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString(), // Expira em 6 meses
-    };
-  })
-];
-
+import type { Sensor } from '@/types';
 
 const generateHistoricalData = (baseTemp: number, days: number): { timestamp: number, temperature: number }[] => {
   const data = [];
@@ -86,8 +17,8 @@ const generateHistoricalData = (baseTemp: number, days: number): { timestamp: nu
 export const demoSensors: Sensor[] = [
   {
     id: 'sensor-1',
-    name: 'Alpha Greenhouse - Zone 1',
-    location: 'North-East Corner',
+    name: 'Estufa Alpha - Zona 1',
+    location: 'Canto Nordeste',
     currentTemperature: 26.5, // Celsius
     highThreshold: 30, // Celsius
     lowThreshold: 20, // Celsius
@@ -99,8 +30,8 @@ export const demoSensors: Sensor[] = [
   },
   {
     id: 'sensor-2',
-    name: 'Alpha Greenhouse - Zone 2',
-    location: 'South-West Corner',
+    name: 'Estufa Alpha - Zona 2',
+    location: 'Canto Sudoeste',
     currentTemperature: 19.2, // Celsius
     highThreshold: 28, // Celsius
     lowThreshold: 18, // Celsius
@@ -112,8 +43,8 @@ export const demoSensors: Sensor[] = [
   },
   {
     id: 'sensor-3',
-    name: 'Beta Greenhouse - Center',
-    location: 'Center',
+    name: 'Estufa Beta - Centro',
+    location: 'Centro',
     currentTemperature: 31.0, // Celsius - Should trigger critical alert
     highThreshold: 29, // Celsius
     lowThreshold: 21, // Celsius
@@ -125,8 +56,8 @@ export const demoSensors: Sensor[] = [
   },
   {
     id: 'sensor-4',
-    name: 'Fermentation Box',
-    location: 'Main Warehouse',
+    name: 'Caixa de Fermentação',
+    location: 'Armazém Principal',
     currentTemperature: 21.5, // Celsius - Should trigger warning
     highThreshold: 32, // Celsius
     lowThreshold: 22, // Celsius

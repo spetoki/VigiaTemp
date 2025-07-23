@@ -2,21 +2,6 @@
 
 export type TemperatureUnit = 'C' | 'F';
 export type LanguageCode = 'pt-BR' | 'en-US' | 'es-ES';
-export type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
-
-// A User type that is used across the application
-export interface User {
-  id: string; 
-  name: string;
-  email: string;
-  password?: string;
-  role: 'Admin' | 'User';
-  status: 'Active' | 'Inactive' | 'Pending';
-  joinedDate: string;
-  tempCoins?: number;
-  accessExpiresAt?: string; // ISO 8601 date string
-}
-
 
 export interface HistoricalDataPoint {
   timestamp: number; // Unix timestamp
@@ -48,54 +33,4 @@ export interface Alert {
   message: string;
   acknowledged: boolean;
   reason?: 'high' | 'low';
-}
-
-// --- Poker Game Types ---
-export type Suit = 'Spades' | 'Hearts' | 'Diamonds' | 'Clubs';
-export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
-
-export interface Card {
-  suit: Suit;
-  rank: Rank;
-}
-
-export type HandRank = 'High Card' | 'Pair' | 'Two Pair' | 'Three of a Kind' | 'Straight' | 'Flush' | 'Full House' | 'Four of a Kind' | 'Straight Flush' | 'Royal Flush';
-
-export interface EvaluatedHand {
-    rank: HandRank;
-    value: number; // A numeric value for comparing hands of the same rank
-    description: string;
-    cards: Card[];
-}
-
-
-export type PlayerAction = 'Fold' | 'Check' | 'Call' | 'Bet' | 'Raise';
-export type PlayerStatus = 'Playing' | 'Folded' | 'All-in' | 'Sat Out';
-
-export interface PokerPlayer {
-  id: string;
-  name: string;
-  isBot: boolean;
-  chips: number;
-  cards: Card[];
-  currentBet: number;
-  status: PlayerStatus;
-  isDealer: boolean;
-  hand?: EvaluatedHand;
-}
-
-export type GameStage = 'pre-deal' | 'pre-flop' | 'flop' | 'turn' | 'river' | 'showdown';
-
-export interface PokerGameState {
-  players: PokerPlayer[];
-  deck: Card[];
-  communityCards: Card[];
-  stage: GameStage;
-  pot: number;
-  currentBet: number;
-  activePlayerIndex: number;
-  lastRaiserIndex?: number;
-  winnerInfo: { winners: PokerPlayer[], hand: EvaluatedHand | null } | null;
-  log: string[];
-  handCount: number;
 }
