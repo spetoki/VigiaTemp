@@ -169,7 +169,6 @@ export default function LockScreen() {
                   placeholder="----"
                   className="text-center text-2xl tracking-[1rem] font-mono"
                   autoFocus
-                  disabled={isLockedOut && key !== MASTER_UNLOCK_KEY}
                 />
               </div>
 
@@ -207,7 +206,7 @@ export default function LockScreen() {
           </form>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handleUnlock} disabled={key.length !== 4 || (isLockedOut && key !== MASTER_UNLOCK_KEY)}>
+          <Button className="w-full" onClick={handleUnlock} disabled={key.length !== 4}>
             <KeyRound className="mr-2 h-4 w-4" />
             {isLockedOut ? t('lockScreen.unlockButtonLocked', 'Desbloquear Espera') : t('lockScreen.unlockButton', 'Desbloquear')}
           </Button>
