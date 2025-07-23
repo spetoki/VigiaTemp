@@ -4,73 +4,73 @@
 
 @layer base {
   :root {
-    --background: 257 30% 11%; /* Very dark purple/black */
-    --foreground: 0 0% 98%; /* White */
-    --card: 257 30% 15%;
-    --card-foreground: 0 0% 98%;
-    --popover: 257 30% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 258 78% 68%; /* Vibrant Purple */
-    --primary-foreground: 257 30% 11%;
-    --secondary: 257 30% 25%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 257 30% 25%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 258 78% 75%; /* Lighter purple for accent */
-    --accent-foreground: 257 30% 11%;
+    --background: 25 35% 15%; /* Dark Brown */
+    --foreground: 40 30% 98%; /* Light Beige */
+    --card: 25 35% 20%;
+    --card-foreground: 40 30% 98%;
+    --popover: 25 35% 12%;
+    --popover-foreground: 40 30% 98%;
+    --primary: 45 85% 55%; /* Golden Yellow */
+    --primary-foreground: 25 35% 10%;
+    --secondary: 25 35% 25%;
+    --secondary-foreground: 40 30% 98%;
+    --muted: 25 35% 25%;
+    --muted-foreground: 40 10% 65%;
+    --accent: 45 85% 65%; /* Lighter Yellow for accent */
+    --accent-foreground: 25 35% 10%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 257 30% 25%;
-    --input: 257 30% 25%;
-    --ring: 258 78% 68%; /* Primary color for ring */
-    --chart-1: 258 78% 68%;
-    --chart-2: 300 70% 60%;
-    --chart-3: 280 65% 65%;
-    --chart-4: 250 60% 70%;
-    --chart-5: 320 75% 65%;
+    --border: 25 35% 30%;
+    --input: 25 35% 30%;
+    --ring: 45 85% 55%; /* Primary color for ring */
+    --chart-1: 45 85% 55%;
+    --chart-2: 35 80% 60%;
+    --chart-3: 25 75% 65%;
+    --chart-4: 50 70% 50%;
+    --chart-5: 20 65% 55%;
     --radius: 0.5rem;
-    --sidebar-background: 257 30% 15%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 258 78% 68%;
-    --sidebar-primary-foreground: 257 30% 11%;
-    --sidebar-accent: 257 30% 25%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 257 30% 20%;
-    --sidebar-ring: 258 78% 68%;
+    --sidebar-background: 25 35% 20%;
+    --sidebar-foreground: 40 30% 98%;
+    --sidebar-primary: 45 85% 55%;
+    --sidebar-primary-foreground: 25 35% 10%;
+    --sidebar-accent: 25 35% 30%;
+    --sidebar-accent-foreground: 40 30% 98%;
+    --sidebar-border: 25 35% 25%;
+    --sidebar-ring: 45 85% 55%;
   }
   .dark {
-    --background: 257 30% 11%;
-    --foreground: 0 0% 98%;
-    --card: 257 30% 15%;
-    --card-foreground: 0 0% 98%;
-    --popover: 257 30% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 258 78% 68%;
-    --primary-foreground: 257 30% 11%;
-    --secondary: 257 30% 25%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 257 30% 25%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 258 78% 75%;
-    --accent-foreground: 257 30% 11%;
+    --background: 25 35% 15%; /* Dark Brown */
+    --foreground: 40 30% 98%; /* Light Beige */
+    --card: 25 35% 20%;
+    --card-foreground: 40 30% 98%;
+    --popover: 25 35% 12%;
+    --popover-foreground: 40 30% 98%;
+    --primary: 45 85% 55%; /* Golden Yellow */
+    --primary-foreground: 25 35% 10%;
+    --secondary: 25 35% 25%;
+    --secondary-foreground: 40 30% 98%;
+    --muted: 25 35% 25%;
+    --muted-foreground: 40 10% 65%;
+    --accent: 45 85% 65%; /* Lighter Yellow for accent */
+    --accent-foreground: 25 35% 10%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 257 30% 25%;
-    --input: 257 30% 25%;
-    --ring: 258 78% 68%;
-    --chart-1: 258 78% 68%;
-    --chart-2: 300 70% 60%;
-    --chart-3: 280 65% 65%;
-    --chart-4: 250 60% 70%;
-    --chart-5: 320 75% 65%;
-    --sidebar-background: 257 30% 15%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 258 78% 68%;
-    --sidebar-primary-foreground: 257 30% 11%;
-    --sidebar-accent: 257 30% 25%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 257 30% 20%;
-    --sidebar-ring: 258 78% 68%;
+    --border: 25 35% 30%;
+    --input: 25 35% 30%;
+    --ring: 45 85% 55%; /* Primary color for ring */
+    --chart-1: 45 85% 55%;
+    --chart-2: 35 80% 60%;
+    --chart-3: 25 75% 65%;
+    --chart-4: 50 70% 50%;
+    --chart-5: 20 65% 55%;
+    --sidebar-background: 25 35% 20%;
+    --sidebar-foreground: 40 30% 98%;
+    --sidebar-primary: 45 85% 55%;
+    --sidebar-primary-foreground: 25 35% 10%;
+    --sidebar-accent: 25 35% 30%;
+    --sidebar-accent-foreground: 40 30% 98%;
+    --sidebar-border: 25 35% 25%;
+    --sidebar-ring: 45 85% 55%;
   }
 }
 
