@@ -21,6 +21,7 @@
   "nav.adminPanel": "Admin Panel",
   "nav.deviceConfigurator": "Device Configurator",
   "nav.users": "Users",
+  "nav.chat": "AI Assistant",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
@@ -428,8 +429,12 @@
   "lockScreen.description": "Please enter the access key to continue.",
   "lockScreen.keyLabel": "Access Key",
   "lockScreen.unlockButton": "Unlock",
+  "lockScreen.unlockButtonLocked": "Locked",
   "lockScreen.error.invalidFormat": "The key must be 4 digits.",
   "lockScreen.error.incorrectKey": "Incorrect access key. Please try again.",
+  "lockScreen.error.tooManyAttempts": "Too many incorrect attempts. Please try again later.",
+  "lockScreen.lockedOutDescription": "System locked for security.",
+  "lockScreen.tryAgainIn": "Try again in: {time}",
   "lockScreen.toast.successTitle": "Unlocked!",
   "lockScreen.toast.successDescription": "Welcome to VigiaTemp."
 }

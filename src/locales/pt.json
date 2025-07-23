@@ -21,6 +21,7 @@
   "nav.adminPanel": "Painel Admin",
   "nav.deviceConfigurator": "Configurar Dispositivo",
   "nav.users": "Usuários",
+  "nav.chat": "Assistente IA",
 
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
@@ -428,8 +429,12 @@
   "lockScreen.description": "Por favor, insira a chave de acesso para continuar.",
   "lockScreen.keyLabel": "Chave de Acesso",
   "lockScreen.unlockButton": "Desbloquear",
+  "lockScreen.unlockButtonLocked": "Bloqueado",
   "lockScreen.error.invalidFormat": "A chave deve conter 4 dígitos.",
   "lockScreen.error.incorrectKey": "Chave de acesso incorreta. Tente novamente.",
+  "lockScreen.error.tooManyAttempts": "Muitas tentativas incorretas. Tente novamente mais tarde.",
+  "lockScreen.lockedOutDescription": "Sistema bloqueado por segurança.",
+  "lockScreen.tryAgainIn": "Tente novamente em: {time}",
   "lockScreen.toast.successTitle": "Desbloqueado!",
   "lockScreen.toast.successDescription": "Bem-vindo ao VigiaTemp."
 }
