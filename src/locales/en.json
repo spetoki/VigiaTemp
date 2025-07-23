@@ -436,5 +436,7 @@
   "lockScreen.lockedOutDescription": "System locked for security.",
   "lockScreen.tryAgainIn": "Try again in: {time}",
   "lockScreen.toast.successTitle": "Unlocked!",
-  "lockScreen.toast.successDescription": "Welcome to VigiaTemp."
+  "lockScreen.toast.successDescription": "Welcome to VigiaTemp.",
+  "lockScreen.contactForAccess": "To acquire an access key, please contact us on WhatsApp: +55 45 99931-4560.",
+  "lockScreen.warning.lockout": "Warning: After 3 incorrect attempts, access will be temporarily blocked."
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { KeyRound, ThermometerSnowflake, ShieldAlert } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const FAILED_ATTEMPTS_KEY = 'vigiatemp_failed_attempts';
 const LOCKOUT_END_TIME_KEY = 'vigiatemp_lockout_end_time';
@@ -127,7 +128,7 @@ export default function LockScreen() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
@@ -148,8 +149,7 @@ export default function LockScreen() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleUnlock}>
-            <div className="grid w-full items-center gap-4">
+          <form onSubmit={handleUnlock} className="space-y-4">
               <div className="flex flex-col space-y-1.5">
                 <label htmlFor="access-key" className="sr-only">{t('lockScreen.keyLabel', 'Chave de Acesso')}</label>
                 <Input
@@ -164,13 +164,29 @@ export default function LockScreen() {
                   disabled={isLockedOut}
                 />
               </div>
+
+              {!isLockedOut && (
+                  <div className="text-center text-sm text-muted-foreground pt-2 space-y-2">
+                    <p>{t('lockScreen.contactForAccess', 'Para adquirir uma chave de acesso, entre em contato pelo WhatsApp: +55 45 99931-4560.')}</p>
+                  </div>
+              )}
+             
               {error && <p className="text-sm text-destructive text-center">{error}</p>}
-               {isLockedOut && timeRemaining && (
+               
+              {isLockedOut && timeRemaining && (
                 <div className="text-center text-destructive font-medium">
-                  {t('lockScreen.tryAgainIn', 'Tente novamente em: {time}', {time: timeRemaining})}
+                  <p>{t('lockScreen.tryAgainIn', 'Tente novamente em: {time}', {time: timeRemaining})}</p>
                 </div>
               )}
-            </div>
+
+              {!isLockedOut && !error && (
+                <Alert variant="default" className="border-amber-500/50 text-amber-600 bg-amber-500/5">
+                  <ShieldAlert className="h-4 w-4 !text-amber-600" />
+                  <AlertDescription>
+                    {t('lockScreen.warning.lockout', 'Atenção: Após 3 tentativas incorretas, o acesso será bloqueado temporariamente.')}
+                  </AlertDescription>
+                </Alert>
+              )}
           </form>
         </CardContent>
         <CardFooter>
