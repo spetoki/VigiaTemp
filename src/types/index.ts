@@ -6,10 +6,10 @@ export type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
 
 // A User type that is used across the application
 export interface User {
-  id: string; // This will be the UID from Firebase
+  id: string; 
   name: string;
   email: string;
-  password?: string; // Only used when an admin creates a user, not for secure storage.
+  password?: string;
   role: 'Admin' | 'User';
   status: 'Active' | 'Inactive' | 'Pending';
   joinedDate: string;

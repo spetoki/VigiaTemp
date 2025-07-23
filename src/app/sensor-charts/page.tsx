@@ -7,49 +7,46 @@ import MultiSensorTemperatureChart from '@/components/dashboard/MultiSensorTempe
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
+
+const SENSORS_KEY = 'demo_sensors';
 
 export default function SensorChartsPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { currentUser } = useAuth();
   const { t } = useSettings();
 
   useEffect(() => {
-    if (currentUser) {
-      setIsLoading(true);
-      const SENSORS_KEY = `sensors_${currentUser.email}`;
-      try {
-        const storedSensors = localStorage.getItem(SENSORS_KEY);
-        if (storedSensors) {
-          const parsedSensors: any[] = JSON.parse(storedSensors);
-           // Data sanitization: ensure all properties exist with fallbacks
-          const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-              id: s.id || `sensor-${Date.now()}${Math.random()}`,
-              name: s.name || 'Unnamed Sensor',
-              location: s.location || 'Unknown Location',
-              currentTemperature: s.currentTemperature ?? 25,
-              highThreshold: s.highThreshold ?? 30,
-              lowThreshold: s.lowThreshold ?? 20,
-              historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-              model: s.model || 'Unknown Model',
-              ipAddress: s.ipAddress || '',
-              macAddress: s.macAddress || '',
-              criticalAlertSound: s.criticalAlertSound || undefined,
-          }));
-          setSensors(cleanedSensors);
-        } else {
-          setSensors([]);
-        }
-      } catch (error) {
-        console.error("Failed to load sensors for charts, defaulting to empty.", error);
+    setIsLoading(true);
+    try {
+      const storedSensors = localStorage.getItem(SENSORS_KEY);
+      if (storedSensors) {
+        const parsedSensors: any[] = JSON.parse(storedSensors);
+         // Data sanitization: ensure all properties exist with fallbacks
+        const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
+            id: s.id || `sensor-${Date.now()}${Math.random()}`,
+            name: s.name || 'Unnamed Sensor',
+            location: s.location || 'Unknown Location',
+            currentTemperature: s.currentTemperature ?? 25,
+            highThreshold: s.highThreshold ?? 30,
+            lowThreshold: s.lowThreshold ?? 20,
+            historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
+            model: s.model || 'Unknown Model',
+            ipAddress: s.ipAddress || '',
+            macAddress: s.macAddress || '',
+            criticalAlertSound: s.criticalAlertSound || undefined,
+        }));
+        setSensors(cleanedSensors);
+      } else {
         setSensors([]);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error) {
+      console.error("Failed to load sensors for charts, defaulting to empty.", error);
+      setSensors([]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentUser]);
+  }, []);
 
   if (isLoading) {
     return (

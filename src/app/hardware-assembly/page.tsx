@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Cpu, Wrench, Pencil, X, CodeXml, Cog } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -99,12 +98,12 @@ const ComponentItem = ({
 
 export default function HardwareAssemblyPage() {
   const { t } = useSettings();
-  const { currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [components, setComponents] = useState<Component[]>(defaultComponents);
   const [mainDiagramUrl, setMainDiagramUrl] = useState("https://placehold.co/800x600.png");
   
-  const isAdmin = currentUser?.role === 'Admin';
+  // Since user system is removed, admin editing is disabled.
+  const isAdmin = false;
 
   useEffect(() => {
     // This effect runs only on the client side, making it safe to access localStorage.

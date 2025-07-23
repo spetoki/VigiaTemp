@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import type { Sensor } from '@/types';
-import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Wifi, Loader2, PlusCircle, CheckCircle } from 'lucide-react';
@@ -23,8 +22,9 @@ const mockDiscoveredDevices = [
 
 type DiscoveredDevice = typeof mockDiscoveredDevices[0];
 
+const SENSORS_KEY = 'demo_sensors';
+
 export default function WifiDiscoveryPage() {
-  const { currentUser } = useAuth();
   const { t } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
@@ -43,13 +43,11 @@ export default function WifiDiscoveryPage() {
   };
   
   const handleScan = async () => {
-    if (!currentUser) return;
     setIsScanning(true);
     setDiscoveredDevices([]);
 
     await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate network scan
 
-    const SENSORS_KEY = `sensors_${currentUser.email}`;
     const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
     const existingSensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
     const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => mac !== undefined));
@@ -60,8 +58,6 @@ export default function WifiDiscoveryPage() {
   };
   
   const handleAddSensor = (device: DiscoveredDevice) => {
-    if (!currentUser) return;
-    const SENSORS_KEY = `sensors_${currentUser.email}`;
     const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
     const sensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
 

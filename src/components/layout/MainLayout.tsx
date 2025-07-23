@@ -6,7 +6,6 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import AppHeader from '@/components/layout/AppHeader';
 import { SettingsProvider, useSettings } from '@/context/SettingsContext';
-import { AuthProvider } from '@/context/AuthContext';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -30,7 +29,6 @@ function LayoutContent({ children }: MainLayoutProps) {
         </div>
       </main>
       <footer className="bg-primary text-primary-foreground text-center p-4 text-sm">
-        {/* Render footer text only on the client to prevent hydration mismatch */}
         {footerText || <>&nbsp;</>}
       </footer>
       <Toaster />
@@ -42,9 +40,7 @@ function LayoutContent({ children }: MainLayoutProps) {
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <SettingsProvider>
-      <AuthProvider>
-        <LayoutContent>{children}</LayoutContent>
-      </AuthProvider>
+      <LayoutContent>{children}</LayoutContent>
     </SettingsProvider>
   );
 }

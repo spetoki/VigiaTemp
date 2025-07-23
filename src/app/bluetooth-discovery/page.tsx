@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import type { Sensor } from '@/types';
-import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -11,8 +10,9 @@ import { Bluetooth, BluetoothConnected, XCircle, Loader2, CheckCircle } from 'lu
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
+const SENSORS_KEY = 'demo_sensors';
+
 export default function BluetoothDiscoveryPage() {
-  const { currentUser } = useAuth();
   const { t } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
@@ -20,11 +20,6 @@ export default function BluetoothDiscoveryPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleScan = async () => {
-    if (!currentUser) {
-      setError(t('bluetoothPage.error.notLoggedIn', 'Você precisa estar logado para adicionar sensores.'));
-      return;
-    }
-
     if (typeof navigator === 'undefined' || !navigator.bluetooth) {
       setError(t('bluetoothPage.error.notSupported', 'A API de Bluetooth não é suportada neste navegador.'));
       setSuccessMessage(null);
@@ -41,7 +36,6 @@ export default function BluetoothDiscoveryPage() {
         optionalServices: ['battery_service'] 
       });
       
-      const SENSORS_KEY = `sensors_${currentUser.email}`;
       const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
       const sensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
 

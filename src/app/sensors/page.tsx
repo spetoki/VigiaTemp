@@ -11,7 +11,6 @@ import { PlusCircle, Bluetooth, Wifi } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
-import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -20,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+const SENSORS_KEY = 'demo_sensors';
+
 export default function SensorsPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -27,50 +28,39 @@ export default function SensorsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useSettings();
-  const { currentUser } = useAuth();
-
-  const getSensorsKey = () => currentUser ? `sensors_${currentUser.email}` : null;
 
   useEffect(() => {
-    if (currentUser) {
-      const SENSORS_KEY = getSensorsKey();
-      if (!SENSORS_KEY) {
-        setIsLoading(false);
-        return;
-      };
-      
-      setIsLoading(true);
-      try {
-        const storedSensors = localStorage.getItem(SENSORS_KEY);
-        if (storedSensors) {
-          const parsedSensors: any[] = JSON.parse(storedSensors);
-           // Data sanitization: ensure all properties exist with fallbacks
-          const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-              id: s.id || `sensor-${Date.now()}${Math.random()}`,
-              name: s.name || 'Unnamed Sensor',
-              location: s.location || 'Unknown Location',
-              currentTemperature: s.currentTemperature ?? 25,
-              highThreshold: s.highThreshold ?? 30,
-              lowThreshold: s.lowThreshold ?? 20,
-              historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-              model: s.model || 'Unknown Model',
-              ipAddress: s.ipAddress || '',
-              macAddress: s.macAddress || '',
-              criticalAlertSound: s.criticalAlertSound || undefined,
-          }));
-          setSensors(cleanedSensors);
-        } else {
-          // New users start with an empty array
-          setSensors([]);
-        }
-      } catch (error) {
-        console.error("Failed to parse sensors from localStorage, defaulting to empty.", error);
-        setSensors([]); // Default to empty array on error
-      } finally {
-          setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const storedSensors = localStorage.getItem(SENSORS_KEY);
+      if (storedSensors) {
+        const parsedSensors: any[] = JSON.parse(storedSensors);
+         // Data sanitization: ensure all properties exist with fallbacks
+        const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
+            id: s.id || `sensor-${Date.now()}${Math.random()}`,
+            name: s.name || 'Unnamed Sensor',
+            location: s.location || 'Unknown Location',
+            currentTemperature: s.currentTemperature ?? 25,
+            highThreshold: s.highThreshold ?? 30,
+            lowThreshold: s.lowThreshold ?? 20,
+            historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
+            model: s.model || 'Unknown Model',
+            ipAddress: s.ipAddress || '',
+            macAddress: s.macAddress || '',
+            criticalAlertSound: s.criticalAlertSound || undefined,
+        }));
+        setSensors(cleanedSensors);
+      } else {
+        // New users start with an empty array
+        setSensors([]);
       }
+    } catch (error) {
+      console.error("Failed to parse sensors from localStorage, defaulting to empty.", error);
+      setSensors([]); // Default to empty array on error
+    } finally {
+        setIsLoading(false);
     }
-  }, [currentUser]);
+  }, []);
 
   const handleAddSensor = () => {
     setEditingSensor(null);
@@ -83,15 +73,11 @@ export default function SensorsPage() {
   };
 
   const handleDeleteSensor = (sensorId: string) => {
-    const SENSORS_KEY = getSensorsKey();
-    if (!SENSORS_KEY) return;
-
     setSensors(prevSensors => {
         const updatedSensors = prevSensors.filter(s => s.id !== sensorId);
         try {
             localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
         } catch (e) {
-            // This is less likely to happen on delete, but good to have
             if (e instanceof DOMException && e.name === 'QuotaExceededError') {
                 toast({
                     title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
@@ -111,9 +97,6 @@ export default function SensorsPage() {
   };
 
   const handleFormSubmit = (data: SensorFormData) => {
-    const SENSORS_KEY = getSensorsKey();
-    if (!SENSORS_KEY) return;
-
     if (editingSensor) {
       setSensors(prevSensors => {
         const updatedSensors = prevSensors.map(s =>
@@ -133,7 +116,7 @@ export default function SensorsPage() {
                     description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
                     variant: "destructive"
                 });
-                return prevSensors; // Return original sensors if save fails
+                return prevSensors;
             }
         }
         return updatedSensors;
@@ -146,7 +129,7 @@ export default function SensorsPage() {
       const newSensor: Sensor = {
         id: `sensor-${Date.now()}`,
         ...data,
-        currentTemperature: 25, // Default temp in Celsius
+        currentTemperature: 25, 
         historicalData: [],
       };
       setSensors(prevSensors => {
@@ -160,7 +143,7 @@ export default function SensorsPage() {
                     description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
                     variant: "destructive"
                 });
-                return prevSensors; // Return original sensors if save fails
+                return prevSensors;
             }
           }
           return updatedSensors;

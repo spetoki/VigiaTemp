@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Sensor, Alert } from '@/types';
-import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -12,53 +11,42 @@ import SensorStatusPieChart from '@/components/charts/SensorStatusPieChart';
 import AlertFrequencyBarChart from '@/components/charts/AlertFrequencyBarChart';
 import AlertsCalendarHeatmap from '@/components/charts/AlertsCalendarHeatmap';
 
+const SENSORS_KEY = 'demo_sensors';
+const ALERTS_KEY = 'demo_alerts';
+
 export default function DataAnalysisPage() {
-  const { currentUser } = useAuth();
   const { t } = useSettings();
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getAlertsKey = useCallback(() => {
-    return currentUser ? `alerts_${currentUser.email}` : null;
-  }, [currentUser]);
-
-  const getSensorsKey = useCallback(() => {
-    return currentUser ? `sensors_${currentUser.email}` : null;
-  }, [currentUser]);
-
   useEffect(() => {
-    if (currentUser) {
-      setIsLoading(true);
-      const SENSORS_KEY = getSensorsKey();
-      const ALERTS_KEY = getAlertsKey();
-      
-      try {
-        // Load Sensors
-        const storedSensors = localStorage.getItem(SENSORS_KEY as string);
-        if (storedSensors) {
-          setSensors(JSON.parse(storedSensors));
-        } else {
-          setSensors([]);
-        }
-
-        // Load Alerts
-        const storedAlerts = localStorage.getItem(ALERTS_KEY as string);
-        if (storedAlerts) {
-          setAlerts(JSON.parse(storedAlerts));
-        } else {
-          setAlerts([]);
-        }
-
-      } catch (error) {
-        console.error("Failed to load data for analysis page:", error);
+    setIsLoading(true);
+    try {
+      // Load Sensors
+      const storedSensors = localStorage.getItem(SENSORS_KEY);
+      if (storedSensors) {
+        setSensors(JSON.parse(storedSensors));
+      } else {
         setSensors([]);
-        setAlerts([]);
-      } finally {
-        setIsLoading(false);
       }
+
+      // Load Alerts
+      const storedAlerts = localStorage.getItem(ALERTS_KEY);
+      if (storedAlerts) {
+        setAlerts(JSON.parse(storedAlerts));
+      } else {
+        setAlerts([]);
+      }
+
+    } catch (error) {
+      console.error("Failed to load data for analysis page:", error);
+      setSensors([]);
+      setAlerts([]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentUser, getAlertsKey, getSensorsKey]);
+  }, []);
   
   const alertsByDay = useMemo(() => {
     return alerts.reduce((acc, alert) => {

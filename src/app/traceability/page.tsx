@@ -14,7 +14,6 @@ import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/context/AuthContext';
 
 // --- Types ---
 interface TraceabilityData {
@@ -63,10 +62,11 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const LOTS_KEY = 'demo_traceability_lots';
+
 export default function TraceabilityPage() {
   const { t } = useSettings();
   const { toast } = useToast();
-  const { currentUser } = useAuth();
   
   type View = 'list' | 'form' | 'details';
   const [view, setView] = useState<View>('form');
@@ -76,18 +76,7 @@ export default function TraceabilityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
-  const getLotsKey = () => {
-    return currentUser ? `traceability_lots_${currentUser.email}` : null;
-  };
-
   useEffect(() => {
-    const LOTS_KEY = getLotsKey();
-    if (!LOTS_KEY) {
-      setIsLoading(false);
-      setLots([]); // Clear lots if user logs out
-      return;
-    }
-    
     try {
       const storedLots = localStorage.getItem(LOTS_KEY);
       if (storedLots) {
@@ -101,7 +90,7 @@ export default function TraceabilityPage() {
         });
         setLots(parsedLots);
       } else {
-        setLots([]); // No lots for this user yet
+        setLots([]);
       }
     } catch (error) {
       console.error("Failed to load lots from localStorage, defaulting to empty.", error);
@@ -109,7 +98,7 @@ export default function TraceabilityPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [currentUser]);
+  }, []);
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {
@@ -161,16 +150,6 @@ export default function TraceabilityPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const LOTS_KEY = getLotsKey();
-    if (!LOTS_KEY) {
-      toast({
-        variant: 'destructive',
-        title: t('traceability.saveErrorTitle', 'Erro ao Salvar'),
-        description: t('traceability.saveErrorNoUser', 'Usuário não autenticado. Não é possível salvar o lote.'),
-      });
-      return;
-    }
-
     const newLot: TraceabilityData = {
       ...formData,
       id: `lot-${Date.now()}`,

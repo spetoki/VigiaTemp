@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Alert } from '@/types';
-import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -11,27 +10,18 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AlertsTable from '@/components/alerts/AlertsTable';
 
+const ALERTS_KEY = 'demo_alerts';
+
 export default function AlertsPage() {
-  const { currentUser } = useAuth();
   const { t } = useSettings();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('unacknowledged');
 
-  const getAlertsKey = useCallback(() => {
-    return currentUser ? `alerts_${currentUser.email}` : null;
-  }, [currentUser]);
-
   const loadAlerts = useCallback(() => {
-    const ALERTS_KEY = getAlertsKey();
-    if (!ALERTS_KEY) {
-      setIsLoading(false);
-      return;
-    }
     try {
       const storedAlerts = localStorage.getItem(ALERTS_KEY);
       if (storedAlerts) {
-        // Data sanitization for alerts
         const parsedAlerts: any[] = JSON.parse(storedAlerts);
         const cleanedAlerts: Alert[] = parsedAlerts.map(a => ({
           id: a.id || `alert-${Date.now()}${Math.random()}`,
@@ -53,25 +43,21 @@ export default function AlertsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [getAlertsKey]);
+  }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      loadAlerts();
-      
-      const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === getAlertsKey()) {
-          loadAlerts();
-        }
-      };
-      window.addEventListener('storage', handleStorageChange);
-      return () => window.removeEventListener('storage', handleStorageChange);
-    }
-  }, [loadAlerts, currentUser, getAlertsKey]);
+    loadAlerts();
+    
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === ALERTS_KEY) {
+        loadAlerts();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [loadAlerts]);
 
   const handleAcknowledge = (alertId: string) => {
-    const ALERTS_KEY = getAlertsKey();
-    if (!ALERTS_KEY) return;
     const updatedAlerts = alerts.map(alert =>
       alert.id === alertId ? { ...alert, acknowledged: true } : alert
     );
@@ -80,8 +66,6 @@ export default function AlertsPage() {
   };
 
   const handleAcknowledgeAll = () => {
-    const ALERTS_KEY = getAlertsKey();
-    if (!ALERTS_KEY) return;
     const updatedAlerts = alerts.map(alert => ({ ...alert, acknowledged: true }));
     setAlerts(updatedAlerts);
     localStorage.setItem(ALERTS_KEY, JSON.stringify(updatedAlerts));

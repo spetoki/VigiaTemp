@@ -10,11 +10,12 @@ import { RefreshCcw, VolumeX, Volume2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
 import { defaultCriticalSound } from '@/lib/sounds';
-import { useRouter } from 'next/navigation';
 import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
+
+const SENSORS_KEY = 'demo_sensors';
+const ALERTS_KEY = 'demo_alerts';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -23,9 +24,7 @@ export default function DashboardPage() {
   const [isLoadingAmbientTemp, setIsLoadingAmbientTemp] = useState(true);
   const { t, temperatureUnit } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
-  const { currentUser, authState } = useAuth();
-  const router = useRouter();
-
+  
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
 
@@ -87,61 +86,44 @@ export default function DashboardPage() {
     fetchAmbientTemp();
   }, []);
 
-  // Effect to redirect if not authenticated
-  useEffect(() => {
-    if (authState === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [authState, router]);
 
   // Effect to load initial sensor data
   useEffect(() => {
-    if (currentUser) {
-      const SENSORS_KEY = `sensors_${currentUser.email}`;
-      try {
-          const storedSensors = localStorage.getItem(SENSORS_KEY);
-          if (storedSensors) {
-              const parsedSensors: any[] = JSON.parse(storedSensors);
-              const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-                  id: s.id || `sensor-${Date.now()}${Math.random()}`,
-                  name: s.name || 'Unnamed Sensor',
-                  location: s.location || 'Unknown Location',
-                  currentTemperature: s.currentTemperature ?? 25,
-                  highThreshold: s.highThreshold ?? 30,
-                  lowThreshold: s.lowThreshold ?? 20,
-                  historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-                  model: s.model || 'Unknown Model',
-                  ipAddress: s.ipAddress || '',
-                  macAddress: s.macAddress || '',
-                  criticalAlertSound: s.criticalAlertSound || undefined,
-              }));
-              setSensors(cleanedSensors);
-          } else {
-              // If no sensors for this user, seed with demo data
-              localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
-              setSensors(demoSensors);
-          }
-      } catch (e) {
-          console.error("Failed to parse sensors from localStorage, defaulting to demo data.", e);
-          setSensors(demoSensors);
-      } finally {
-          setIsLoading(false);
-      }
-    } else if (authState === 'unauthenticated') {
-      router.push('/login');
-    } else {
-      setIsLoading(true);
+    try {
+        const storedSensors = localStorage.getItem(SENSORS_KEY);
+        if (storedSensors) {
+            const parsedSensors: any[] = JSON.parse(storedSensors);
+            const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
+                id: s.id || `sensor-${Date.now()}${Math.random()}`,
+                name: s.name || 'Unnamed Sensor',
+                location: s.location || 'Unknown Location',
+                currentTemperature: s.currentTemperature ?? 25,
+                highThreshold: s.highThreshold ?? 30,
+                lowThreshold: s.lowThreshold ?? 20,
+                historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
+                model: s.model || 'Unknown Model',
+                ipAddress: s.ipAddress || '',
+                macAddress: s.macAddress || '',
+                criticalAlertSound: s.criticalAlertSound || undefined,
+            }));
+            setSensors(cleanedSensors);
+        } else {
+            // If no sensors for this user, seed with demo data
+            localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
+            setSensors(demoSensors);
+        }
+    } catch (e) {
+        console.error("Failed to parse sensors from localStorage, defaulting to demo data.", e);
+        setSensors(demoSensors);
+    } finally {
+        setIsLoading(false);
     }
-  }, [currentUser, authState, router]);
+  }, []);
 
 
   // Effect for the main update interval
   useEffect(() => {
-    if (!currentUser) return; // Only run updates if logged in
-
     const intervalId = setInterval(() => {
-        const SENSORS_KEY = `sensors_${currentUser.email}`;
-        const ALERTS_KEY = `alerts_${currentUser.email}`;
         
         let currentSensors: Sensor[] = [];
         try {
@@ -225,15 +207,12 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [currentUser, t, temperatureUnit]);
+  }, [t, temperatureUnit]);
 
 
   const handleRefreshData = () => {
     setIsLoading(true);
-    if (currentUser) {
-        const SENSORS_KEY = `sensors_${currentUser.email}`;
-        localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
-    }
+    localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
     setSensors(demoSensors);
     setTimeout(() => {
       setIsLoading(false);
@@ -241,7 +220,7 @@ export default function DashboardPage() {
   };
   
 
-  if (isLoading || authState !== 'authenticated') {
+  if (isLoading) {
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">
