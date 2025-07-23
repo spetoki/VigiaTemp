@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const FAILED_ATTEMPTS_KEY = 'vigiatemp_failed_attempts';
 const LOCKOUT_END_TIME_KEY = 'vigiatemp_lockout_end_time';
+const MASTER_UNLOCK_KEY = '6894';
 
 const getInitialState = <T,>(key: string, defaultValue: T): T => {
   if (typeof window === 'undefined') {
@@ -25,6 +26,9 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
     return defaultValue;
   }
 };
+
+// Progressive lockout times in minutes
+const lockoutTimes = [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60, 1440]; // 1440 mins = 1 day
 
 export default function LockScreen() {
   const { unlockApp, t } = useSettings();
@@ -61,7 +65,7 @@ export default function LockScreen() {
 
       if (remainingMs === 0) {
         setLockoutEndTime(null);
-        setFailedAttempts(0); // Reset attempts after lockout
+        // Do not reset failed attempts here, only on successful login
         clearInterval(intervalId);
         return;
       }
@@ -91,6 +95,14 @@ export default function LockScreen() {
     setError('');
 
     if (isLockedOut) {
+      if (key === MASTER_UNLOCK_KEY) {
+        setLockoutEndTime(null);
+        setKey('');
+        toast({
+          title: t('lockScreen.toast.lockoutRemovedTitle', 'Bloqueio Removido'),
+          description: t('lockScreen.toast.lockoutRemovedDescription', 'O bloqueio de tempo foi removido. Pode tentar a sua chave de acesso novamente.'),
+        });
+      }
       return;
     }
 
@@ -113,12 +125,8 @@ export default function LockScreen() {
       setKey('');
 
       if (newFailedAttempts >= 3) {
-          const lockoutCount = Math.floor((newFailedAttempts - 3) / 3);
-          // Base 20 minutes, doubles each time, max 1 day, then adds days
-          let lockoutMinutes = 20 * Math.pow(2, lockoutCount);
-          if (lockoutMinutes >= 1440) { // 24 hours in minutes
-            lockoutMinutes = 1440 * (1 + lockoutCount - Math.floor(Math.log2(1440/20)));
-          }
+          const lockoutIndex = Math.min(newFailedAttempts - 3, lockoutTimes.length - 1);
+          const lockoutMinutes = lockoutTimes[lockoutIndex];
 
           const newLockoutEndTime = Date.now() + lockoutMinutes * 60 * 1000;
           setLockoutEndTime(newLockoutEndTime);
@@ -161,7 +169,7 @@ export default function LockScreen() {
                   placeholder="----"
                   className="text-center text-2xl tracking-[1rem] font-mono"
                   autoFocus
-                  disabled={isLockedOut}
+                  disabled={isLockedOut && key !== MASTER_UNLOCK_KEY}
                 />
               </div>
 
@@ -179,6 +187,15 @@ export default function LockScreen() {
                 </div>
               )}
 
+              {isLockedOut && (
+                 <Alert variant="default" className="border-sky-500/50 text-sky-600 bg-sky-500/5">
+                   <KeyRound className="h-4 w-4 !text-sky-600" />
+                   <AlertDescription>
+                       {t('lockScreen.masterKeyInfo', 'Bloqueado? Use a chave mestra para liberar o tempo de espera.')}
+                   </AlertDescription>
+                 </Alert>
+              )}
+
               {!isLockedOut && !error && (
                 <Alert variant="default" className="border-amber-500/50 text-amber-600 bg-amber-500/5">
                   <ShieldAlert className="h-4 w-4 !text-amber-600" />
@@ -190,9 +207,9 @@ export default function LockScreen() {
           </form>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handleUnlock} disabled={key.length !== 4 || isLockedOut}>
+          <Button className="w-full" onClick={handleUnlock} disabled={key.length !== 4 || (isLockedOut && key !== MASTER_UNLOCK_KEY)}>
             <KeyRound className="mr-2 h-4 w-4" />
-            {isLockedOut ? t('lockScreen.unlockButtonLocked', 'Bloqueado') : t('lockScreen.unlockButton', 'Desbloquear')}
+            {isLockedOut ? t('lockScreen.unlockButtonLocked', 'Desbloquear Espera') : t('lockScreen.unlockButton', 'Desbloquear')}
           </Button>
         </CardFooter>
       </Card>

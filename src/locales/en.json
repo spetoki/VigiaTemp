@@ -433,7 +433,7 @@
   "lockScreen.description": "Please enter the access key to continue.",
   "lockScreen.keyLabel": "Access Key",
   "lockScreen.unlockButton": "Unlock",
-  "lockScreen.unlockButtonLocked": "Locked",
+  "lockScreen.unlockButtonLocked": "Unlock Wait",
   "lockScreen.error.invalidFormat": "The key must be 4 digits.",
   "lockScreen.error.incorrectKey": "Incorrect access key. Please try again.",
   "lockScreen.error.tooManyAttempts": "Too many incorrect attempts. Please try again later.",
@@ -442,5 +442,8 @@
   "lockScreen.toast.successTitle": "Unlocked!",
   "lockScreen.toast.successDescription": "Welcome to VigiaTemp.",
   "lockScreen.contactForAccess": "To acquire an access key, please contact us on WhatsApp: +55 45 99931-4560.",
-  "lockScreen.warning.lockout": "Warning: After 3 incorrect attempts, access will be temporarily blocked."
+  "lockScreen.warning.lockout": "Warning: After 3 incorrect attempts, access will be temporarily blocked.",
+  "lockScreen.toast.lockoutRemovedTitle": "Lockout Removed",
+  "lockScreen.toast.lockoutRemovedDescription": "The time lock has been removed. You can try your access key again.",
+  "lockScreen.masterKeyInfo": "Locked out? Use the master key to clear the waiting time."
 }

@@ -433,7 +433,7 @@
   "lockScreen.description": "Por favor, introduzca la clave de acceso para continuar.",
   "lockScreen.keyLabel": "Clave de Acceso",
   "lockScreen.unlockButton": "Desbloquear",
-  "lockScreen.unlockButtonLocked": "Bloqueado",
+  "lockScreen.unlockButtonLocked": "Desbloquear Espera",
   "lockScreen.error.invalidFormat": "La clave debe tener 4 dígitos.",
   "lockScreen.error.incorrectKey": "Clave de acceso incorrecta. Por favor, inténtelo de nuevo.",
   "lockScreen.error.tooManyAttempts": "Demasiados intentos incorrectos. Por favor, inténtelo de nuevo más tarde.",
@@ -442,5 +442,8 @@
   "lockScreen.toast.successTitle": "¡Desbloqueado!",
   "lockScreen.toast.successDescription": "Bienvenido a VigiaTemp.",
   "lockScreen.contactForAccess": "Para adquirir una clave de acceso, contáctenos por WhatsApp: +55 45 99931-4560.",
-  "lockScreen.warning.lockout": "Advertencia: Después de 3 intentos incorrectos, el acceso se bloqueará temporalmente."
+  "lockScreen.warning.lockout": "Advertencia: Después de 3 intentos incorrectos, el acceso se bloqueará temporalmente.",
+  "lockScreen.toast.lockoutRemovedTitle": "Bloqueo Eliminado",
+  "lockScreen.toast.lockoutRemovedDescription": "El bloqueo de tiempo ha sido eliminado. Puede intentar su clave de acceso de nuevo.",
+  "lockScreen.masterKeyInfo": "¿Bloqueado? Use la clave maestra para eliminar el tiempo de espera."
 }
