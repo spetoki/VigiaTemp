@@ -6,19 +6,24 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import AppHeader from '@/components/layout/AppHeader';
 import { SettingsProvider, useSettings } from '@/context/SettingsContext';
+import LockScreen from './LockScreen';
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
 function LayoutContent({ children }: MainLayoutProps) {
-  const { t } = useSettings();
+  const { t, isLocked } = useSettings();
   const [footerText, setFooterText] = useState('');
 
   useEffect(() => {
     const year = new Date().getFullYear();
     setFooterText(t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a I.M.B', { year }));
   }, [t]);
+  
+  if (isLocked) {
+    return <LockScreen />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

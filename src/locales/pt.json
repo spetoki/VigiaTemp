@@ -422,5 +422,14 @@
   "weatherForecast.hourly.title": "Previsão Hora a Hora para {date}",
   "weatherForecast.hourly.description": "Detalhes das condições climáticas para {location}.",
   "weatherForecast.hourly.time": "Hora",
-  "weatherForecast.hourly.temperature": "Temp."
+  "weatherForecast.hourly.temperature": "Temp.",
+
+  "lockScreen.title": "VigiaTemp",
+  "lockScreen.description": "Por favor, insira a chave de acesso para continuar.",
+  "lockScreen.keyLabel": "Chave de Acesso",
+  "lockScreen.unlockButton": "Desbloquear",
+  "lockScreen.error.invalidFormat": "A chave deve conter 4 dígitos.",
+  "lockScreen.error.incorrectKey": "Chave de acesso incorreta. Tente novamente.",
+  "lockScreen.toast.successTitle": "Desbloqueado!",
+  "lockScreen.toast.successDescription": "Bem-vindo ao VigiaTemp."
 }

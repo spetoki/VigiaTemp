@@ -422,5 +422,14 @@
   "weatherForecast.hourly.title": "Hourly Forecast for {date}",
   "weatherForecast.hourly.description": "Detailed weather conditions for {location}.",
   "weatherForecast.hourly.time": "Time",
-  "weatherForecast.hourly.temperature": "Temp."
+  "weatherForecast.hourly.temperature": "Temp.",
+
+  "lockScreen.title": "VigiaTemp",
+  "lockScreen.description": "Please enter the access key to continue.",
+  "lockScreen.keyLabel": "Access Key",
+  "lockScreen.unlockButton": "Unlock",
+  "lockScreen.error.invalidFormat": "The key must be 4 digits.",
+  "lockScreen.error.incorrectKey": "Incorrect access key. Please try again.",
+  "lockScreen.toast.successTitle": "Unlocked!",
+  "lockScreen.toast.successDescription": "Welcome to VigiaTemp."
 }

@@ -10,6 +10,9 @@ interface Translations {
 
 type Theme = 'light' | 'dark';
 
+const ACCESS_KEY = '1234'; // A chave de acesso de 4 dígitos.
+const UNLOCKED_KEY = 'vigiatemp_unlocked_status';
+
 interface SettingsContextType {
   temperatureUnit: TemperatureUnit;
   setTemperatureUnit: (unit: TemperatureUnit) => void;
@@ -18,6 +21,8 @@ interface SettingsContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   t: (key: string, fallback?: string, replacements?: Record<string, string | number>) => string;
+  isLocked: boolean;
+  unlockApp: (key: string) => boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -48,8 +53,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<LanguageCode>('pt-BR');
   const [theme, setThemeState] = useState<Theme>('light');
   const [translations, setTranslations] = useState<Translations>({});
+  const [isLocked, setIsLocked] = useState<boolean>(true);
 
   useEffect(() => {
+    // Check lock status first
+    const unlockedStatus = localStorage.getItem(UNLOCKED_KEY);
+    if (unlockedStatus === 'true') {
+      setIsLocked(false);
+    } else {
+      setIsLocked(true);
+    }
+    
     const storedUnit = localStorage.getItem('temperatureUnit') as TemperatureUnit | null;
     if (storedUnit) setTemperatureUnitState(storedUnit);
 
@@ -78,6 +92,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('theme', theme);
     }
   }, [theme]);
+  
+  const unlockApp = (key: string): boolean => {
+    if (key === ACCESS_KEY) {
+      localStorage.setItem(UNLOCKED_KEY, 'true');
+      setIsLocked(false);
+      return true;
+    }
+    return false;
+  };
 
   const loadTranslations = useCallback(async (lang: LanguageCode) => {
     const loadedTranslations = await importLocale(lang);
@@ -110,7 +133,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [translations]);
 
   return (
-    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t }}>
+    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp }}>
       {children}
     </SettingsContext.Provider>
   );
