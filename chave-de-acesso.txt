@@ -1,5 +1,17 @@
 A chave de acesso principal para desbloquear o aplicativo VigiaTemp é:
 
-8352
-1093
-Nota: Todas as 100 chaves no arquivo 'chaves-de-desbloqueio.txt' também funcionarão.
+As 10 primeiras chaves de acesso para teste são:
+1. 8352
+2. 5819
+3. 2743
+4. 9067
+5. 1482
+6. 7539
+7. 4201
+8. 6915
+9. 0378
+10. 9254
+
+Chave Mestra para Desbloqueio de Tempo: 6894
+
+Nota: Todas as 100 chaves no arquivo 'chaves-de-desbloqueio.txt' também funcionarão para acesso regular. A chave mestra serve apenas para remover o tempo de espera por muitas tentativas erradas.
