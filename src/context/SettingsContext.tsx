@@ -10,7 +10,8 @@ interface Translations {
 
 type Theme = 'light' | 'dark';
 
-const ACCESS_KEY = '1234'; // A chave de acesso de 4 dígitos.
+// This is the default key used if the text file isn't available.
+const DEFAULT_ACCESS_KEY = '1234'; 
 const UNLOCKED_KEY = 'vigiatemp_unlocked_status';
 
 interface SettingsContextType {
@@ -47,6 +48,29 @@ async function importLocale(locale: LanguageCode): Promise<Translations> {
     return {};
   }
 }
+
+// In a server environment, fs doesn't exist. We create a stub.
+const fs = globalThis.fs || { readFileSync: () => DEFAULT_ACCESS_KEY };
+const path = globalThis.path || { resolve: () => '' };
+
+function getAccessKey() {
+    try {
+        // This code runs on the server during the build process, so it can read files.
+        // The 'fs' module is available in this context.
+        const keyFilePath = path.resolve(process.cwd(), 'chave-de-acesso.txt');
+        const fileContent = fs.readFileSync(keyFilePath, 'utf-8');
+        // Extract the first 4-digit number found in the file
+        const match = fileContent.match(/\b\d{4}\b/);
+        return match ? match[0] : DEFAULT_ACCESS_KEY;
+    } catch (error) {
+        // If the file doesn't exist or can't be read, use the default key.
+        // This is important for environments like Vercel where file access might be tricky.
+        console.warn("Could not read 'chave-de-acesso.txt'. Falling back to default access key. Error:", error);
+        return DEFAULT_ACCESS_KEY;
+    }
+}
+
+const ACCESS_KEY = getAccessKey();
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [temperatureUnit, setTemperatureUnitState] = useState<TemperatureUnit>('C');
