@@ -34,9 +34,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const seedInitialUsers = useCallback(() => {
     // This function ensures that the demo users are in localStorage if it's empty.
-    const storedUsers = localStorage.getItem(ALL_USERS_KEY);
-    if (!storedUsers) {
-      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
+    // It's safe because it only runs on the client.
+    try {
+      const storedUsers = localStorage.getItem(ALL_USERS_KEY);
+      if (!storedUsers) {
+        localStorage.setItem(ALL_USERS_KEY, JSON.stringify(demoUsers));
+      }
+    } catch (error) {
+      console.error("Failed to seed initial users into localStorage:", error);
     }
   }, []);
 
@@ -46,9 +51,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     const sessionUserJson = sessionStorage.getItem(SESSION_USER_KEY);
     if (sessionUserJson) {
-      const sessionUser: User = JSON.parse(sessionUserJson);
-      setCurrentUser(sessionUser);
-      setAuthState('authenticated');
+      try {
+        const sessionUser: User = JSON.parse(sessionUserJson);
+        setCurrentUser(sessionUser);
+        setAuthState('authenticated');
+      } catch (e) {
+         setAuthState('unauthenticated');
+      }
     } else {
       setAuthState('unauthenticated');
     }
@@ -106,33 +115,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchUsers = async (): Promise<User[]> => {
-    // Directly fetch from localStorage. Guaranteed to work on client-side.
+    // This function is now robust. It ensures users are seeded before trying to parse.
     try {
+        seedInitialUsers(); // Ensure data exists
         const usersJson = localStorage.getItem(ALL_USERS_KEY);
+        // The check for usersJson is crucial to prevent JSON.parse(null)
         return usersJson ? JSON.parse(usersJson) : [];
     } catch (error) {
         console.error("Error fetching users from localStorage:", error);
+        // Return empty array on error to prevent crashing the page.
         return [];
     }
   };
 
   const updateUser = async (user: User): Promise<boolean> => {
-    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
-    const updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
-    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-    // If the currently logged-in user is the one being updated, refresh their session data.
-    if (currentUser?.id === user.id) {
-      setCurrentUser(user);
-      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+    try {
+      const allUsers = await fetchUsers();
+      const userExists = allUsers.some(u => u.id === user.id);
+      let updatedUsers;
+      if (userExists) {
+        updatedUsers = allUsers.map(u => u.id === user.id ? user : u);
+      } else {
+        // This handles the case for adding a new user through the admin panel
+        updatedUsers = [...allUsers, user];
+      }
+      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+      
+      if (currentUser?.id === user.id) {
+        setCurrentUser(user);
+        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+      }
+      return true;
+    } catch (error) {
+       console.error("Failed to update user:", error);
+       return false;
     }
-    return true;
   };
 
   const deleteUser = async (userId: string): Promise<boolean> => {
-    const allUsers: User[] = JSON.parse(localStorage.getItem(ALL_USERS_KEY) || '[]');
-    const updatedUsers = allUsers.filter(u => u.id !== userId);
-    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
-    return true;
+    try {
+        const allUsers = await fetchUsers();
+        const updatedUsers = allUsers.filter(u => u.id !== userId);
+        localStorage.setItem(ALL_USERS_KEY, JSON.stringify(updatedUsers));
+        return true;
+    } catch (error) {
+        console.error("Failed to delete user:", error);
+        return false;
+    }
   };
 
   const value = { currentUser, authState, login, signup, logout, fetchUsers, updateUser, deleteUser };
