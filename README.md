@@ -35,8 +35,4 @@ A maneira mais recomendada e fácil de hospedar este aplicativo é usando a **Ve
     *   Selecione o repositório do seu aplicativo.
     *   A Vercel detectará automaticamente que é um projeto Next.js e preencherá as configurações de build. Você não precisa mudar nada.
 
-4.  **Configure as Variáveis de Ambiente (Opcional, se usar Firebase):**
-    *   Se você decidiu conectar o app a um projeto Firebase, vá para a aba "Settings" -> "Environment Variables" no seu projeto Vercel.
-    *   Adicione as chaves do seu `firebaseConfig` (como `NEXT_PUBLIC_FIREBASE_API_KEY`, etc.) conforme o arquivo `.env` de exemplo.
-
-5.  **Faça o Deploy:** Clique no botão "Deploy". A Vercel irá construir e hospedar seu aplicativo. Em poucos minutos, ele estará no ar com um link `.vercel.app`!
+4.  **Faça o Deploy:** Clique no botão "Deploy". A Vercel irá construir e hospedar seu aplicativo. Em poucos minutos, ele estará no ar com um link `.vercel.app`!

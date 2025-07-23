@@ -1,4 +1,3 @@
-
 # VigiaTemp - Monitoramento de Temperatura
 
 Este é um aplicativo de monitoramento de temperatura em tempo real construído com Next.js, TypeScript e ShadCN UI.
@@ -11,71 +10,11 @@ Este é um aplicativo de monitoramento de temperatura em tempo real construído 
 *   Sistema de Alertas (Crítico e Atenção)
 *   Descoberta de Sensores via WiFi e Bluetooth (Simulado)
 *   Otimização de Alarmes com IA (Genkit)
-*   Sistema de Autenticação e Gerenciamento de Usuários
 *   Suporte a Múltiplos Idiomas (i18n)
 
 ---
 
-## 1. Configurando as Chaves do Firebase (Passo Obrigatório)
-
-Para que o login, o cadastro e o gerenciamento de usuários funcionem, o aplicativo precisa se conectar ao Firebase. Para isso, você deve fornecer suas chaves de API.
-
-### Passo 1: Encontre suas Chaves no Firebase
-
-1.  Acesse o **[Console do Firebase](https://console.firebase.google.com/)**.
-2.  Crie um novo projeto ou selecione um projeto existente.
-3.  No painel do projeto, clique no ícone de engrenagem (⚙️) e vá para **"Configurações do projeto"**.
-4.  Na aba "Geral", role para baixo até a seção **"Seus apps"**.
-5.  Se não tiver um aplicativo da Web, clique no ícone **`</>`** para criar um.
-6.  O Firebase exibirá um objeto `firebaseConfig`. São esses valores que você usará.
-
-    ```javascript
-    // Exemplo do que você verá no Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSy...SUA_CHAVE_SECRETA...", // <- Este é o VALOR que você copia
-      authDomain: "seu-projeto.firebaseapp.com", // <- Este é o VALOR que você copia
-      projectId: "seu-projeto", // <- Este é o VALOR que você copia
-      storageBucket: "seu-projeto.appspot.com", // <- Este é o VALOR que você copia
-      messagingSenderId: "1234567890", // <- Este é o VALOR que você copia
-      appId: "1:1234567890:web:abcdef123456" // <- Este é o VALOR que você copia
-    };
-    ```
-
-### Passo 2: Adicione as Chaves ao seu Projeto na Vercel
-
-Agora, você precisa inserir esses valores no painel do seu projeto na Vercel.
-
-1.  No painel do seu projeto na **Vercel**, vá para a aba **"Settings"** -> **"Environment Variables"**.
-2.  Use a tabela abaixo para saber exatamente o que copiar e colar em cada campo da Vercel.
-
-    **🚨 IMPORTANTE:** Copie **APENAS** o texto que está **DENTRO** das aspas (`"`). Não inclua as aspas no valor que você cola no Vercel.
-
-| O que colocar no campo "Name" da Vercel (Copie daqui) | O que colocar no campo "Value" da Vercel (Copie do seu `firebaseConfig`) |
-| --- | --- |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | O valor da sua `apiKey` |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | O valor do seu `authDomain` |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | O valor do seu `projectId` |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | O valor do seu `storageBucket` |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | O valor do seu `messagingSenderId` |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | O valor do seu `appId` |
-
-3.  Salve cada variável. Após configurar, faça um **Redeploy** para que as alterações tenham efeito. Siga as instruções abaixo.
-
-### Passo 3: Faça o "Redeploy" para Aplicar as Alterações
-
-Depois de adicionar as variáveis, você precisa "reiniciar" a aplicação para que ela use as novas configurações.
-
-1.  No seu painel da Vercel, vá para a aba **"Deployments"**.
-2.  Encontre o último deploy no topo da lista (ele terá a marca "Current").
-3.  Clique no menu de três pontinhos (`...`) à direita desse deploy.
-4.  Selecione **"Redeploy"** no menu.
-5.  Uma janela de confirmação aparecerá. Clique no botão vermelho **"Redeploy"** novamente.
-
-Após alguns minutos, seu site estará atualizado e a autenticação estará funcionando!
-
----
-
-## 2. Como Colocar o Aplicativo no Ar (Deploy)
+## Como Colocar o Aplicativo no Ar (Deploy)
 
 A maneira mais recomendada e fácil de hospedar este aplicativo é usando a **Vercel**.
 
@@ -88,8 +27,6 @@ A maneira mais recomendada e fácil de hospedar este aplicativo é usando a **Ve
 3.  **Importe o Projeto na Vercel:**
     *   No seu painel da Vercel, clique em "Add New..." -> "Project".
     *   Selecione o repositório do seu aplicativo.
-    *   A Vercel detectará automaticamente que é um projeto Next.js e preencherá as configurações de build.
+    *   A Vercel detectará automaticamente que é um projeto Next.js e preencherá as configurações de build. Você não precisa mudar nada.
 
-4.  **Configure as Variáveis de Ambiente:** Siga as instruções da **Seção 1** acima para adicionar suas chaves do Firebase nas configurações do projeto na Vercel.
-
-5.  **Faça o Deploy:** Clique no botão "Deploy". A Vercel irá construir e hospedar seu aplicativo. Em poucos minutos, ele estará no ar!
+4.  **Faça o Deploy:** Clique no botão "Deploy". A Vercel irá construir e hospedar seu aplicativo. Em poucos minutos, ele estará no ar!
