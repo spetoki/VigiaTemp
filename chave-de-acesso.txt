@@ -1,5 +1,5 @@
 A chave de acesso principal para desbloquear o aplicativo VigiaTemp é:
 
 8352
-
+1093
 Nota: Todas as 100 chaves no arquivo 'chaves-de-desbloqueio.txt' também funcionarão.
