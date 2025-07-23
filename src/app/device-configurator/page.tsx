@@ -53,6 +53,7 @@ char server_url[100]; // Stores the server URL
 
 void setup() {
   Serial.begin(115200);
+  delay(1000); // Important delay to allow for easier flashing
   sensors.begin();
 
   // Start WiFiManager
