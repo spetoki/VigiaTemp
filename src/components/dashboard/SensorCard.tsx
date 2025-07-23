@@ -26,7 +26,12 @@ export default function SensorCard({ sensor }: SensorCardProps) {
   const CurrentStatusIcon = statusConfig[status].icon;
 
   return (
-    <Card className={cn("shadow-lg hover:shadow-xl transition-shadow duration-300", status === 'critical' ? "border-red-600 ring-2 ring-red-600/50" : status === 'warning' ? "border-yellow-500" : "border-gray-200")}>
+    <Card className={cn(
+      "shadow-lg hover:shadow-xl transition-shadow duration-300",
+      status === 'critical' ? "border-red-600 ring-2 ring-red-600/50 animate-flash" :
+      status === 'warning' ? "border-yellow-500" :
+      "border-gray-200"
+    )}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-headline">{sensor.name}</CardTitle>
