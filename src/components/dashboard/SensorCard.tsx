@@ -20,7 +20,7 @@ export default function SensorCard({ sensor }: SensorCardProps) {
   const statusConfig: Record<SensorStatus, { icon: React.ElementType; colorClass: string; label: string }> = {
     normal: { icon: CheckCircle2, colorClass: 'text-green-600', label: t('sensorCard.label.normal', 'Normal') },
     warning: { icon: AlertTriangle, colorClass: 'text-yellow-500', label: t('sensorCard.label.warning', 'Atenção') },
-    critical: { icon: AlertTriangle, colorClass: 'text-white', label: t('sensorCard.label.critical', 'Crítico') },
+    critical: { icon: AlertTriangle, colorClass: 'text-destructive-foreground', label: t('sensorCard.label.critical', 'Crítico') },
   };
 
   const CurrentStatusIcon = statusConfig[status].icon;
@@ -28,7 +28,7 @@ export default function SensorCard({ sensor }: SensorCardProps) {
   return (
     <Card className={cn(
       "shadow-lg hover:shadow-xl transition-all duration-300",
-      status === 'critical' ? "bg-destructive text-destructive-foreground animate-flash" :
+      status === 'critical' ? "bg-destructive text-destructive-foreground animate-flash-bg" :
       status === 'warning' ? "border-yellow-500" :
       "border-gray-200"
     )}>

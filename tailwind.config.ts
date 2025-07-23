@@ -88,15 +88,15 @@ export default {
             height: '0',
           },
         },
-        flash: {
-          '0%, 100%': { borderColor: 'hsl(var(--destructive))' },
-          '50%': { borderColor: 'hsl(var(--destructive) / 0.3)' },
+        'flash-bg': {
+          '0%, 100%': { backgroundColor: 'hsl(var(--destructive))' },
+          '50%': { backgroundColor: 'hsl(var(--destructive) / 0.8)' },
         },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        flash: 'flash 1.5s infinite',
+        'flash-bg': 'flash-bg 1.5s infinite',
       },
     },
   },
