@@ -26,6 +26,10 @@
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
 
+  "logoutDialog.title": "Confirmar Saída",
+  "logoutDialog.description": "Tem certeza de que deseja sair? Isso irá bloquear o aplicativo e você precisará inserir uma chave de acesso para entrar novamente.",
+  "logoutDialog.cancel": "Cancelar",
+
   "dashboard.title": "Painel de Sensores",
   "dashboard.refreshButton": "Atualizar Dados",
   "dashboard.refreshingButton": "Atualizando...",

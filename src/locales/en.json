@@ -26,6 +26,10 @@
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
 
+  "logoutDialog.title": "Confirm Logout",
+  "logoutDialog.description": "Are you sure you want to log out? This will lock the application and you will need to enter an access key to log back in.",
+  "logoutDialog.cancel": "Cancel",
+
   "dashboard.title": "Sensor Dashboard",
   "dashboard.refreshButton": "Refresh Data",
   "dashboard.refreshingButton": "Refreshing...",

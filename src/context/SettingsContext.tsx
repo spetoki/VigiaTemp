@@ -12,7 +12,9 @@ type Theme = 'light' | 'dark';
 
 // This is the default key used if the text file isn't available.
 const DEFAULT_ACCESS_KEY = '8352'; 
-const UNLOCKED_KEY = 'vigiatemp_unlocked_status';
+const UNLOCKED_KEY_PREFIX = 'vigiatemp_unlocked_status';
+const ACTIVE_KEY_STORAGE = 'vigiatemp_active_key';
+
 
 interface SettingsContextType {
   temperatureUnit: TemperatureUnit;
@@ -24,6 +26,15 @@ interface SettingsContextType {
   t: (key: string, fallback?: string, replacements?: Record<string, string | number>) => string;
   isLocked: boolean;
   unlockApp: (key: string) => boolean;
+  lockApp: () => void;
+  activeKey: string | null;
+  storageKeys: {
+    sensors: string;
+    alerts: string;
+    lots: string;
+    components: string;
+    diagram: string;
+  }
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -74,16 +85,37 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>('light');
   const [translations, setTranslations] = useState<Translations>({});
   const [isLocked, setIsLocked] = useState<boolean>(true);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+
+  const storageKeys = {
+    sensors: activeKey ? `${activeKey}_demo_sensors` : 'demo_sensors',
+    alerts: activeKey ? `${activeKey}_demo_alerts` : 'demo_alerts',
+    lots: activeKey ? `${activeKey}_demo_traceability_lots` : 'demo_traceability_lots',
+    components: activeKey ? `${activeKey}_hardware_components` : 'hardware_components',
+    diagram: activeKey ? `${activeKey}_hardware_diagram` : 'hardware_diagram'
+  };
 
   useEffect(() => {
-    // Check lock status first
-    const unlockedStatus = localStorage.getItem(UNLOCKED_KEY);
-    if (unlockedStatus === 'true') {
-      setIsLocked(false);
+    // This effect runs once on mount to check initial state from localStorage
+    const savedActiveKey = localStorage.getItem(ACTIVE_KEY_STORAGE);
+    
+    if (savedActiveKey) {
+        // If there's an active key, check if it has an unlock flag
+        const unlockedStatus = localStorage.getItem(`${UNLOCKED_KEY_PREFIX}_${savedActiveKey}`);
+        if (unlockedStatus === 'true') {
+            setIsLocked(false);
+            setActiveKey(savedActiveKey);
+        } else {
+            // Key is present but not marked as unlocked, force lock
+            setIsLocked(true);
+            setActiveKey(null);
+            localStorage.removeItem(ACTIVE_KEY_STORAGE);
+        }
     } else {
-      setIsLocked(true);
+        setIsLocked(true);
     }
     
+    // Load other user preferences
     const storedUnit = localStorage.getItem('temperatureUnit') as TemperatureUnit | null;
     if (storedUnit) setTemperatureUnitState(storedUnit);
 
@@ -95,13 +127,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const storedTheme = localStorage.getItem('theme') as Theme | null;
     if (storedTheme) {
       setThemeState(storedTheme);
-    } else if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      // Prefer system theme if no preference is stored
-      // setThemeState('dark'); // This line caused initial dark mode, removing for default light
     }
   }, []);
 
   useEffect(() => {
+    // This effect handles applying the theme to the document
     if (typeof window !== 'undefined') {
         const root = window.document.documentElement;
         if (theme === 'dark') {
@@ -115,11 +145,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   
   const unlockApp = (key: string): boolean => {
     if (ACCESS_KEYS.includes(key)) {
-      localStorage.setItem(UNLOCKED_KEY, 'true');
+      localStorage.setItem(`${UNLOCKED_KEY_PREFIX}_${key}`, 'true');
+      localStorage.setItem(ACTIVE_KEY_STORAGE, key);
       setIsLocked(false);
+      setActiveKey(key);
       return true;
     }
     return false;
+  };
+
+  const lockApp = () => {
+    if (activeKey) {
+        localStorage.removeItem(`${UNLOCKED_KEY_PREFIX}_${activeKey}`);
+    }
+    localStorage.removeItem(ACTIVE_KEY_STORAGE);
+    setIsLocked(true);
+    setActiveKey(null);
   };
 
   const loadTranslations = useCallback(async (lang: LanguageCode) => {
@@ -153,7 +194,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [translations]);
 
   return (
-    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp }}>
+    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp, lockApp, activeKey, storageKeys }}>
       {children}
     </SettingsContext.Provider>
   );

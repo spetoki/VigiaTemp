@@ -26,6 +26,10 @@
   "temperatureUnitSelection": "Selección de unidad de temperatura",
   "openMenu": "Abrir menú",
 
+  "logoutDialog.title": "Confirmar Cierre de Sesión",
+  "logoutDialog.description": "¿Está seguro de que desea cerrar la sesión? Esto bloqueará la aplicación y deberá introducir una clave de acceso para volver a iniciarla.",
+  "logoutDialog.cancel": "Cancelar",
+
   "dashboard.title": "Panel de Sensores",
   "dashboard.refreshButton": "Actualizar Datos",
   "dashboard.refreshingButton": "Actualizando...",

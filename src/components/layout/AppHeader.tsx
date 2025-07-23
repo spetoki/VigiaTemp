@@ -3,7 +3,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Cog, Activity } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Cog, Activity, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -12,9 +12,21 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Separator } from '../ui/separator';
 
 export default function AppHeader() {
-  const { temperatureUnit, setTemperatureUnit, t } = useSettings();
+  const { temperatureUnit, setTemperatureUnit, t, lockApp } = useSettings();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -61,6 +73,34 @@ export default function AppHeader() {
     );
   }
 
+  const LogoutButton = ({ isMobile }: { isMobile?: boolean }) => (
+     <AlertDialog>
+        <AlertDialogTrigger asChild>
+           <button className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors text-foreground/70 hover:text-foreground hover:bg-destructive/10",
+                 isMobile && "text-base w-full justify-start"
+            )}>
+              <LogOut className="h-5 w-5" />
+              {t('nav.logout', 'Sair')}
+            </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{t('logoutDialog.title', 'Confirmar Saída')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                    {t('logoutDialog.description', 'Tem certeza de que deseja sair? Isso irá bloquear o aplicativo e você precisará inserir uma chave de acesso para entrar novamente.')}
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>{t('logoutDialog.cancel', 'Cancelar')}</AlertDialogCancel>
+                <AlertDialogAction onClick={lockApp} className="bg-destructive hover:bg-destructive/90">
+                    {t('nav.logout', 'Sair')}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+  );
+
   const MobileNavMenu = () => (
      <div className="md:hidden">
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -77,6 +117,8 @@ export default function AppHeader() {
                 <div className="flex-grow overflow-y-auto p-4">
                     <div className="flex flex-col space-y-2">
                       {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                      <Separator className="my-2" />
+                      <LogoutButton isMobile />
                     </div>
                 </div>
           </SheetContent>
@@ -112,6 +154,10 @@ export default function AppHeader() {
                 <Label htmlFor="unit-f-desktop" className="cursor-pointer">°F</Label>
               </div>
             </RadioGroup>
+
+            <div className="hidden md:block">
+              <LogoutButton />
+            </div>
           
           <MobileNavMenu />
         </div>
