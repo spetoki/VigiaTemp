@@ -3,16 +3,5 @@
     "env": {
       "GENKIT_ENV": "production"
     }
-  },
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Permissions-Policy",
-          "value": "bluetooth=*"
-        }
-      ]
-    }
-  ]
+  }
 }
