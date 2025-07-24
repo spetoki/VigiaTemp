@@ -4,11 +4,8 @@
 import { db } from '@/lib/firebase';
 import {
   collection,
-  doc,
   getDocs,
   addDoc,
-  updateDoc,
-  deleteDoc,
   DocumentData,
   QueryDocumentSnapshot,
   Timestamp,
@@ -23,6 +20,17 @@ export interface TraceabilityData {
   createdAt: string; // Stored as ISO string
   lotDescription: string;
   name: string;
+  wetCocoaWeight: number;
+  dryCocoaWeight: number;
+  fermentationTime: number;
+  dryingTime: number;
+  isoClassification: string;
+}
+
+// The data structure received from the form
+export interface TraceabilityFormData {
+  lotDescription: string;
+  name: string;
   wetCocoaWeight: string;
   dryCocoaWeight: string;
   fermentationTime: string;
@@ -30,17 +38,18 @@ export interface TraceabilityData {
   isoClassification: string;
 }
 
+
 const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData => {
     const data = doc.data();
     return {
         id: doc.id,
         createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
-        lotDescription: data.lotDescription,
+        lotDescription: data.lotDescription || '',
         name: data.name,
-        wetCocoaWeight: data.wetCocoaWeight,
-        dryCocoaWeight: data.dryCocoaWeight,
-        fermentationTime: data.fermentationTime,
-        dryingTime: data.dryingTime,
+        wetCocoaWeight: data.wetCocoaWeight || 0,
+        dryCocoaWeight: data.dryCocoaWeight || 0,
+        fermentationTime: data.fermentationTime || 0,
+        dryingTime: data.dryingTime || 0,
         isoClassification: data.isoClassification,
     };
 };
@@ -61,31 +70,44 @@ export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
     }
 }
 
-export async function addLot(accessKey: string, lotData: Omit<TraceabilityData, 'id' | 'createdAt'>): Promise<TraceabilityData> {
+export async function addLot(accessKey: string, lotData: TraceabilityFormData): Promise<TraceabilityData> {
     if (!db) {
         throw new Error("Firestore not configured.");
     }
 
     const lotsCol = collection(db, `users/${accessKey}/lots`);
     
-    // Create a clean data object to be saved.
-    const dataToSave: DocumentData = {
-        ...lotData,
+    // Create a clean data object to be saved, converting strings to numbers
+    const dataToSave: Omit<TraceabilityData, 'id' | 'createdAt'> & { createdAt: Timestamp } = {
+        name: lotData.name,
+        lotDescription: lotData.lotDescription,
+        wetCocoaWeight: parseFloat(lotData.wetCocoaWeight) || 0,
+        dryCocoaWeight: parseFloat(lotData.dryCocoaWeight) || 0,
+        fermentationTime: parseInt(lotData.fermentationTime, 10) || 0,
+        dryingTime: parseInt(lotData.dryingTime, 10) || 0,
+        isoClassification: lotData.isoClassification,
         createdAt: Timestamp.now(),
     };
     
     // Ensure no undefined values are sent to Firestore
     Object.keys(dataToSave).forEach(key => {
-        if (dataToSave[key] === undefined) {
-            delete dataToSave[key];
+        const dataKey = key as keyof typeof dataToSave;
+        if (dataToSave[dataKey] === undefined) {
+            delete dataToSave[dataKey];
         }
     });
 
-    const docRef = await addDoc(lotsCol, dataToSave);
+    const docRef = await addDoc(lotsCol, dataToSave as DocumentData);
     
     return {
-        ...lotData,
         id: docRef.id,
-        createdAt: (dataToSave.createdAt as Timestamp).toDate().toISOString(),
+        createdAt: dataToSave.createdAt.toDate().toISOString(),
+        name: dataToSave.name,
+        lotDescription: dataToSave.lotDescription,
+        wetCocoaWeight: dataToSave.wetCocoaWeight,
+        dryCocoaWeight: dataToSave.dryCocoaWeight,
+        fermentationTime: dataToSave.fermentationTime,
+        dryingTime: dataToSave.dryingTime,
+        isoClassification: dataToSave.isoClassification,
     };
 }

@@ -14,19 +14,9 @@ import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TraceabilityData, addLot, getLots } from '@/services/traceability-service';
+import { TraceabilityData, addLot, getLots, TraceabilityFormData } from '@/services/traceability-service';
 
-interface FormData {
-  lotDescription: string;
-  name: string;
-  wetCocoaWeight: string;
-  dryCocoaWeight: string;
-  fermentationTime: string;
-  dryingTime: string;
-  isoClassification: string;
-}
-
-const initialFormData: FormData = {
+const initialFormData: TraceabilityFormData = {
     lotDescription: '',
     name: '',
     wetCocoaWeight: '',
@@ -44,7 +34,7 @@ export default function TraceabilityPage() {
   const [view, setView] = useState<View>('form');
   const [lots, setLots] = useState<TraceabilityData[]>([]);
   const [selectedLot, setSelectedLot] = useState<TraceabilityData | null>(null);
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] = useState<TraceabilityFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
@@ -118,10 +108,7 @@ export default function TraceabilityPage() {
     setIsSubmitting(true);
 
     try {
-        const newLotData: Omit<TraceabilityData, 'id' | 'createdAt'> = {
-            ...formData
-        };
-        const newLot = await addLot(activeKey, newLotData);
+        const newLot = await addLot(activeKey, formData);
         
         setLots(prevLots => [newLot, ...prevLots]);
         setSelectedLot(newLot);
