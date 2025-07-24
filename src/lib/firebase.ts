@@ -1,6 +1,7 @@
+
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp, FirebaseOptions } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
 import dotenv from 'dotenv';
 
 dotenv.config({ path: `.env.local` });
@@ -21,8 +22,8 @@ const isConfigValid = (config: FirebaseOptions): boolean => {
 };
 
 // Initialize Firebase
-let app;
-let db;
+let app: FirebaseApp | undefined;
+let db: Firestore | undefined;
 
 if (isConfigValid(firebaseConfig)) {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
