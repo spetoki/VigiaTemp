@@ -2,10 +2,10 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, FirebaseApp, FirebaseOptions } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
-import dotenv from 'dotenv';
 
-dotenv.config({ path: `.env.local` });
-
+// NOTE: O Next.js carrega automaticamente as variáveis de .env.local, 
+// então não é necessário usar 'dotenv'.
+// As variáveis precisam ser prefixadas com NEXT_PUBLIC_ para serem acessíveis no lado do cliente.
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -25,15 +25,19 @@ const isConfigValid = (config: FirebaseOptions): boolean => {
 let app: FirebaseApp | undefined;
 let db: Firestore | undefined;
 
+// This check ensures we only try to initialize Firebase on the client-side
+// or in server environments where the config is valid.
 if (isConfigValid(firebaseConfig)) {
-    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    db = getFirestore(app);
+    try {
+        app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        db = getFirestore(app);
+    } catch (error) {
+        console.error("Firebase initialization failed:", error);
+        app = undefined;
+        db = undefined;
+    }
 } else {
-    console.error("Firebase config is invalid. Please check your .env.local file.");
-    // We provide mock/dummy instances so the app doesn't crash on import
-    // for developers who haven't set up their Firebase account yet.
-    app = undefined;
-    db = undefined;
+    console.warn("Firebase config is incomplete or invalid. The application will run without database features. Please check your environment variables (e.g., .env.local). They must be prefixed with NEXT_PUBLIC_.");
 }
 
 
