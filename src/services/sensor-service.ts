@@ -80,7 +80,8 @@ export async function updateSensor(
     if (!db) throw new Error("Firestore not configured.");
 
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
-    await updateDoc(sensorDoc, sensorData);
+    // Explicitly cast sensorData to the expected type for Firestore
+    await updateDoc(sensorDoc, sensorData as DocumentData);
     
     // This return is optimistic; it doesn't re-fetch the data
     return { id: sensorId, ...sensorData } as Sensor;
