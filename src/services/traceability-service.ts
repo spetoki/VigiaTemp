@@ -70,13 +70,16 @@ export async function addLot(accessKey: string, lotData: Omit<TraceabilityData, 
 
     const lotsCol = collection(db, `users/${accessKey}/lots`);
     
-    // Create a clean data object, excluding any undefined fields
+    // Create a clean data object to be saved.
     const dataToSave: DocumentData = {
+        ...lotData,
         createdAt: Timestamp.now(),
     };
-    Object.entries(lotData).forEach(([key, value]) => {
-        if (value !== undefined) {
-            dataToSave[key] = value;
+    
+    // Ensure no undefined values are sent to Firestore
+    Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) {
+            delete dataToSave[key];
         }
     });
 
