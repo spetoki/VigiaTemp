@@ -9,37 +9,23 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSettings } from '@/context/SettingsContext';
-import { ClipboardList, Leaf, Save, Printer, PlusCircle, QrCode, List, Eye } from 'lucide-react';
+import { ClipboardList, Leaf, Save, Printer, PlusCircle, QrCode, List, Eye, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getLots, addLot, TraceabilityData, TraceabilityFormData } from '@/services/traceability-service';
 
-// --- Types ---
-interface TraceabilityData {
-  id: string;
-  createdAt: string;
-  lotDescription: string;
-  name: string;
-  wetCocoaWeight: number | '';
-  dryCocoaWeight: number | '';
-  fermentationTime: number | '';
-  dryingTime: number | '';
-  isoClassification: string;
-  classificationBoardImageBase64: string | null; // Changed to store Base64
-}
 
-// Separate type for form state, without id/createdAt
-interface TraceabilityFormData {
-  lotDescription: string;
-  name: string;
-  wetCocoaWeight: number | '';
-  dryCocoaWeight: number | '';
-  fermentationTime: number | '';
-  dryingTime: number | '';
-  isoClassification: string;
-  classificationBoardImageBase64: string | null; // Changed to store Base64
-}
+// Helper to convert a file to a Base64 string
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 const initialFormData: TraceabilityFormData = {
     lotDescription: '',
@@ -52,20 +38,9 @@ const initialFormData: TraceabilityFormData = {
     classificationBoardImageBase64: null,
 };
 
-// Helper to convert a file to a Base64 string
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-const LOTS_KEY = 'demo_traceability_lots';
 
 export default function TraceabilityPage() {
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
   const { toast } = useToast();
   
   type View = 'list' | 'form' | 'details';
@@ -74,31 +49,34 @@ export default function TraceabilityPage() {
   const [selectedLot, setSelectedLot] = useState<TraceabilityData | null>(null);
   const [formData, setFormData] = useState<TraceabilityFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
   useEffect(() => {
-    try {
-      const storedLots = localStorage.getItem(LOTS_KEY);
-      if (storedLots) {
-        // Basic migration: ensure old data structure doesn't break the new one
-        const parsedLots = JSON.parse(storedLots).map((lot: any) => {
-            if (lot.classificationBoardImagePreview && !lot.classificationBoardImageBase64) {
-                // Cannot recover old blob URLs, but can prevent crashes
-                return { ...lot, classificationBoardImageBase64: null };
-            }
-            return lot;
-        });
-        setLots(parsedLots);
-      } else {
-        setLots([]);
-      }
-    } catch (error) {
-      console.error("Failed to load lots from localStorage, defaulting to empty.", error);
-      setLots([]);
-    } finally {
+    if (!activeKey) {
         setIsLoading(false);
-    }
-  }, []);
+        return;
+    };
+    
+    setIsLoading(true);
+    getLots(activeKey)
+        .then(storedLots => {
+            setLots(storedLots);
+        })
+        .catch(error => {
+            console.error("Failed to load lots from Firestore:", error);
+            toast({
+                variant: 'destructive',
+                title: t('traceability.loadErrorTitle', 'Erro ao Carregar Lotes'),
+                description: t('traceability.loadErrorDescription', 'Não foi possível buscar os lotes salvos.')
+            });
+            setLots([]);
+        })
+        .finally(() => {
+            setIsLoading(false);
+        });
+
+  }, [activeKey, toast, t]);
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {
@@ -148,26 +126,36 @@ export default function TraceabilityPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newLot: TraceabilityData = {
-      ...formData,
-      id: `lot-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
+    if (!activeKey) {
+      toast({
+        variant: 'destructive',
+        title: t('traceability.saveErrorTitle', 'Erro ao Salvar'),
+        description: t('traceability.saveErrorNoUser', 'Chave de acesso não encontrada. Não é possível salvar o lote.'),
+      });
+      return;
+    }
     
-    const updatedLots = [newLot, ...lots];
-    
-    setLots(updatedLots);
-    localStorage.setItem(LOTS_KEY, JSON.stringify(updatedLots));
-    
-    setSelectedLot(newLot);
-    setView('details');
-    
-    toast({ 
-      title: t('traceability.saveSuccessTitle', 'Sucesso!'), 
-      description: t('traceability.saveSuccessDescription', 'O registro de rastreabilidade foi salvo e o QR code foi gerado.'),
-    });
+    setIsSubmitting(true);
+    try {
+        const newLot = await addLot(activeKey, formData);
+        setLots(prevLots => [newLot, ...prevLots]);
+        setSelectedLot(newLot);
+        setView('details');
+        toast({ 
+          title: t('traceability.saveSuccessTitle', 'Sucesso!'), 
+          description: t('traceability.saveSuccessDescription', 'O registro de rastreabilidade foi salvo e o QR code foi gerado.'),
+        });
+    } catch(error) {
+         toast({
+            variant: 'destructive',
+            title: t('traceability.saveErrorTitle', 'Erro ao Salvar'),
+            description: error instanceof Error ? error.message : String(error)
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const handleViewDetails = (lot: TraceabilityData) => {
@@ -263,7 +251,19 @@ export default function TraceabilityPage() {
                             )}
                         </div>
                         <div className="flex justify-end pt-4">
-                            <Button type="submit"> <Save className="mr-2 h-4 w-4" /> {t('traceability.saveButton', 'Salvar Registro de Rastreabilidade')} </Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? (
+                                    <>
+                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                     {t('traceability.savingButton', 'Salvando...')}
+                                    </>
+                                ) : (
+                                    <>
+                                     <Save className="mr-2 h-4 w-4" />
+                                     {t('traceability.saveButton', 'Salvar Registro de Rastreabilidade')}
+                                    </>
+                                )}
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
@@ -369,5 +369,3 @@ export default function TraceabilityPage() {
     </div>
   );
 }
-
-    
