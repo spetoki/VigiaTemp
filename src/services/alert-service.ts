@@ -70,20 +70,20 @@ export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>):
 
 
 export async function updateAlert(accessKey: string, alertId: string, updateData: Partial<Alert>) {
-    if (!db) throw new Error("Firestore not configured.");
-
+    if (!db) {
+      throw new Error("Firestore not configured.");
+    }
     const alertDoc = doc(db, `users/${accessKey}/alerts`, alertId);
-    // Explicitly cast updateData to the expected type for Firestore
     await updateDoc(alertDoc, updateData as DocumentData);
 }
 
 export async function updateMultipleAlerts(accessKey: string, alertIds: string[], updateData: Partial<Alert>) {
-    if (!db || alertIds.length === 0) return;
-
+    if (!db || alertIds.length === 0) {
+      return;
+    }
     const batch = writeBatch(db);
     alertIds.forEach(id => {
         const alertDoc = doc(db, `users/${accessKey}/alerts`, id);
-        // Explicitly cast updateData to the expected type for Firestore
         batch.update(alertDoc, updateData as DocumentData);
     });
 

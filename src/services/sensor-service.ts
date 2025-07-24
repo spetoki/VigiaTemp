@@ -56,7 +56,9 @@ export async function addSensor(
     accessKey: string, 
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
-    if (!db) throw new Error("Firestore not configured.");
+    if (!db) {
+      throw new Error("Firestore not configured.");
+    }
 
     const sensorsCol = collection(db, `users/${accessKey}/sensors`);
     const docRef = await addDoc(sensorsCol, {
@@ -77,10 +79,10 @@ export async function updateSensor(
     sensorId: string,
     sensorData: Partial<Sensor>
 ): Promise<Sensor> {
-    if (!db) throw new Error("Firestore not configured.");
-
+    if (!db) {
+      throw new Error("Firestore not configured.");
+    }
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
-    // Explicitly cast sensorData to the expected type for Firestore
     await updateDoc(sensorDoc, sensorData as DocumentData);
     
     // This return is optimistic; it doesn't re-fetch the data
@@ -88,8 +90,9 @@ export async function updateSensor(
 }
 
 export async function deleteSensor(accessKey: string, sensorId: string): Promise<void> {
-    if (!db) throw new Error("Firestore not configured.");
-
+    if (!db) {
+      throw new Error("Firestore not configured.");
+    }
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
     await deleteDoc(sensorDoc);
 }

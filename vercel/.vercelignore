@@ -1,0 +1,2 @@
+# Ignore the Genkit development file during Vercel builds
+src/ai/dev.ts
