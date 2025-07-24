@@ -1,52 +1,52 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Sensor } from '@/types';
 import MultiSensorTemperatureChart from '@/components/dashboard/MultiSensorTemperatureChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
-
-const SENSORS_KEY = 'demo_sensors';
+import { getSensors } from '@/services/sensor-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SensorChartsPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
+  const { toast } = useToast();
 
-  useEffect(() => {
+  const fetchSensors = useCallback(async () => {
+    if (!activeKey) {
+        setIsLoading(false);
+        return;
+    }
     setIsLoading(true);
     try {
-      const storedSensors = localStorage.getItem(SENSORS_KEY);
-      if (storedSensors) {
-        const parsedSensors: any[] = JSON.parse(storedSensors);
-         // Data sanitization: ensure all properties exist with fallbacks
-        const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-            id: s.id || `sensor-${Date.now()}${Math.random()}`,
-            name: s.name || 'Unnamed Sensor',
-            location: s.location || 'Unknown Location',
-            currentTemperature: s.currentTemperature ?? 25,
-            highThreshold: s.highThreshold ?? 30,
-            lowThreshold: s.lowThreshold ?? 20,
-            historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-            model: s.model || 'Unknown Model',
-            ipAddress: s.ipAddress || '',
-            macAddress: s.macAddress || '',
-            criticalAlertSound: s.criticalAlertSound || undefined,
-        }));
-        setSensors(cleanedSensors);
-      } else {
-        setSensors([]);
-      }
+        // NOTE: In a production app with a lot of historical data,
+        // you would not fetch all historical data here. Instead, you'd
+        // fetch it on-demand inside the MultiSensorTemperatureChart component
+        // based on the selected time period. For this prototype, fetching
+        // all data upfront is acceptable.
+      const fetchedSensors = await getSensors(activeKey);
+      setSensors(fetchedSensors);
     } catch (error) {
       console.error("Failed to load sensors for charts, defaulting to empty.", error);
+       toast({
+        title: "Erro ao Carregar Sensores",
+        description: "Não foi possível buscar os dados dos sensores para os gráficos.",
+        variant: "destructive",
+      });
       setSensors([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeKey, toast]);
+
+  useEffect(() => {
+    fetchSensors();
+  }, [fetchSensors]);
 
   if (isLoading) {
     return (

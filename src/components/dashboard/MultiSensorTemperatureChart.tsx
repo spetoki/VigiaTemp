@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Sensor, HistoricalDataPoint, TemperatureUnit } from '@/types';
+import type { Sensor, HistoricalDataPoint } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { convertTemperature } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,11 +12,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { ListFilter } from 'lucide-react';
+import { generateHistoricalData } from '@/lib/mockData';
 
-interface MultiSensorTemperatureChartProps {
-  sensors: Sensor[];
-  initialTimePeriod?: 'hour' | 'day' | 'week' | 'month';
-}
+// Since historical data is not stored in Firestore in this version,
+// we will use the mock data generation for chart display.
+const getChartDataForSensor = (sensor: Sensor) => {
+    if (sensor.historicalData && sensor.historicalData.length > 0) {
+        return sensor.historicalData;
+    }
+    // Generate mock historical data if it's missing
+    return generateHistoricalData(sensor.currentTemperature, 30);
+};
+
 
 const filterDataByTimePeriod = (data: HistoricalDataPoint[], timePeriod: 'hour' | 'day' | 'week' | 'month'): HistoricalDataPoint[] => {
   const now = Date.now();
@@ -89,13 +96,12 @@ const chartColors = [
   "hsl(50 90% 50%)",
 ];
 
-export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod = 'day' }: MultiSensorTemperatureChartProps) {
+export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod = 'day' }: { sensors: Sensor[], initialTimePeriod?: 'hour' | 'day' | 'week' | 'month' }) {
   const { temperatureUnit, t } = useSettings();
   const [currentTimePeriod, setCurrentTimePeriod] = useState<'hour' | 'day' | 'week' | 'month'>(initialTimePeriod);
   const [selectedSensorIds, setSelectedSensorIds] = useState<string[]>([]);
 
   useEffect(() => {
-    // Initialize selectedSensorIds with all sensor IDs when the component mounts or sensors prop changes
     setSelectedSensorIds(sensors.map(s => s.id));
   }, [sensors]);
 
@@ -104,7 +110,6 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   }, [sensors, selectedSensorIds]);
 
   const chartConfig = useMemo(() => {
-    // Create chartConfig for ALL sensors to maintain stable colors
     return sensors.reduce((config, sensor, index) => {
       config[`sensor_${sensor.id}`] = {
         label: sensor.name,
@@ -119,7 +124,8 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     if (displayedSensors.length === 0) return [];
 
     const processedSensorsData = displayedSensors.map(sensor => {
-      const filtered = filterDataByTimePeriod(sensor.historicalData, currentTimePeriod);
+      const historicalData = getChartDataForSensor(sensor);
+      const filtered = filterDataByTimePeriod(historicalData, currentTimePeriod);
       const aggregated = aggregateData(filtered, currentTimePeriod);
       return {
         sensorId: sensor.id,
@@ -154,7 +160,6 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   const translatedTimePeriod = t(`temperatureChart.timePeriod.${currentTimePeriod}`);
   
   const cardDescriptionText = useMemo(() => {
-    const fallback = `Comparativo - Última(o) {timePeriod}`;
     if (displayedSensors.length === 1) {
         return t('multiSensorChart.desc.single', '{sensorName} - Última(o) {timePeriod}', {
             sensorName: displayedSensors[0].name,
@@ -172,7 +177,6 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
             timePeriod: translatedTimePeriod
         });
     }
-    // All sensors are selected
     return t('multiSensorChart.desc.all', 'Todos os Sensores - Última(o) {timePeriod}', {
         timePeriod: translatedTimePeriod
     });

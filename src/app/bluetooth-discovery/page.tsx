@@ -9,17 +9,25 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Bluetooth, BluetoothConnected, XCircle, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-
-const SENSORS_KEY = 'demo_sensors';
+import { addSensor } from '@/services/sensor-service';
 
 export default function BluetoothDiscoveryPage() {
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleScan = async () => {
+    if (!activeKey) {
+        toast({
+            title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
+            description: "Chave de acesso não encontrada. Não é possível adicionar o sensor.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     if (typeof navigator === 'undefined' || !navigator.bluetooth) {
       setError(t('bluetoothPage.error.notSupported', 'A API de Bluetooth não é suportada neste navegador.'));
       setSuccessMessage(null);
@@ -36,25 +44,17 @@ export default function BluetoothDiscoveryPage() {
         optionalServices: ['battery_service'] 
       });
       
-      const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
-      const sensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
-
-      const newSensor: Sensor = {
-        id: `sensor-${device.id}-${Date.now()}`,
+      const newSensorData = {
         name: device.name || `Sensor ${device.id.substring(0, 6)}...`,
         location: t('bluetoothPage.defaultLocation', 'Descoberto via Bluetooth'),
-        currentTemperature: 25, // Default temp in Celsius
-        highThreshold: 30, // Default high
-        lowThreshold: 20, // Default low
-        historicalData: [],
+        highThreshold: 30,
+        lowThreshold: 20,
         model: 'Bluetooth Generic',
         ipAddress: '',
         macAddress: device.id, // Using device.id as a stand-in for MAC
-        criticalAlertSound: undefined
       };
       
-      const updatedSensors = [newSensor, ...sensors];
-      localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
+      const newSensor = await addSensor(activeKey, newSensorData);
       
       toast({
           title: t('bluetoothPage.toast.sensorAdded.title', 'Sensor Adicionado'),

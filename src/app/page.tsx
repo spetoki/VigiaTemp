@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SensorCard from '@/components/dashboard/SensorCard';
-import { demoSensors, simulateTemperatureUpdate } from '@/lib/mockData';
+import { simulateTemperatureUpdate } from '@/lib/mockData';
 import type { Sensor, Alert } from '@/types';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, VolumeX, Volume2 } from 'lucide-react';
@@ -13,16 +13,15 @@ import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
-
-const SENSORS_KEY = 'demo_sensors';
-const ALERTS_KEY = 'demo_alerts';
+import { getSensors, updateSensor } from '@/services/sensor-service';
+import { getAlerts, addAlert } from '@/services/alert-service';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [ambientTemp, setAmbientTemp] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingAmbientTemp, setIsLoadingAmbientTemp] = useState(true);
-  const { t, temperatureUnit } = useSettings();
+  const { t, temperatureUnit, activeKey } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
   
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
@@ -86,75 +85,65 @@ export default function DashboardPage() {
     fetchAmbientTemp();
   }, []);
 
+  const fetchInitialData = useCallback(async () => {
+      if (!activeKey) return;
+      setIsLoading(true);
+      try {
+          const fetchedSensors = await getSensors(activeKey);
+          setSensors(fetchedSensors);
+      } catch (error) {
+          console.error("Failed to load initial sensor data from Firestore:", error);
+          setSensors([]);
+      } finally {
+          setIsLoading(false);
+      }
+  }, [activeKey]);
 
   // Effect to load initial sensor data
   useEffect(() => {
-    try {
-        const storedSensors = localStorage.getItem(SENSORS_KEY);
-        if (storedSensors) {
-            const parsedSensors: any[] = JSON.parse(storedSensors);
-            const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-                id: s.id || `sensor-${Date.now()}${Math.random()}`,
-                name: s.name || 'Unnamed Sensor',
-                location: s.location || 'Unknown Location',
-                currentTemperature: s.currentTemperature ?? 25,
-                highThreshold: s.highThreshold ?? 30,
-                lowThreshold: s.lowThreshold ?? 20,
-                historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-                model: s.model || 'Unknown Model',
-                ipAddress: s.ipAddress || '',
-                macAddress: s.macAddress || '',
-                criticalAlertSound: s.criticalAlertSound || undefined,
-            }));
-            setSensors(cleanedSensors);
-        } else {
-            // If no sensors for this user, seed with demo data
-            localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
-            setSensors(demoSensors);
-        }
-    } catch (e) {
-        console.error("Failed to parse sensors from localStorage, defaulting to demo data.", e);
-        setSensors(demoSensors);
-    } finally {
-        setIsLoading(false);
-    }
-  }, []);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
 
   // Effect for the main update interval
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    if (!activeKey) return;
+
+    const intervalId = setInterval(async () => {
         
         let currentSensors: Sensor[] = [];
         try {
-            const storedSensors = localStorage.getItem(SENSORS_KEY);
-            currentSensors = storedSensors ? JSON.parse(storedSensors) : [];
+            // Fetch the latest sensor state to work with
+            currentSensors = await getSensors(activeKey);
         } catch (e) {
-            console.error("Failed to parse sensors from localStorage during update.", e);
+            console.error("Failed to fetch sensors during update.", e);
             return;
         }
 
+        const updatePromises: Promise<void>[] = [];
         const updatedSensors = currentSensors.map((sensor) => {
             const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
-            return {
-                ...sensor,
-                currentTemperature: newTemperature,
-                historicalData: [
-                    ...(sensor.historicalData || []),
-                    { timestamp: Date.now(), temperature: newTemperature }
-                ].slice(-200)
-            };
+            // Firestore doesn't store historicalData in the main doc, so we don't update it here.
+            const updatedSensor = { ...sensor, currentTemperature: newTemperature };
+            updatePromises.push(updateSensor(activeKey, sensor.id, { currentTemperature: newTemperature }));
+            return updatedSensor;
         });
+        
+        // Wait for all sensor temperature updates to be sent to Firestore
+        await Promise.all(updatePromises);
+        
+        // Update local state to reflect new temperatures immediately
+        setSensors(updatedSensors);
 
         let currentAlerts: Alert[] = [];
         try {
-            const storedAlerts = localStorage.getItem(ALERTS_KEY);
-            currentAlerts = storedAlerts ? JSON.parse(storedAlerts) : [];
+            currentAlerts = await getAlerts(activeKey);
         } catch (e) {
             currentAlerts = [];
         }
 
         const soundsToQueueForThisInterval: (string | undefined)[] = [];
+        const newAlertPromises: Promise<any>[] = [];
         
         updatedSensors.forEach(sensor => {
             const status = getSensorStatus(sensor);
@@ -162,6 +151,7 @@ export default function DashboardPage() {
                 const hasRecentUnacknowledgedAlert = currentAlerts.some(
                     alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
                 );
+
                 if (!hasRecentUnacknowledgedAlert) {
                     const isHigh = sensor.currentTemperature > sensor.highThreshold;
                     const message = t('alert.message.template', 
@@ -172,8 +162,7 @@ export default function DashboardPage() {
                             limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
                         }
                     );
-                    const newAlert: Alert = {
-                        id: `alert-${Date.now()}-${sensor.id}`,
+                    const newAlert: Omit<Alert, 'id'> = {
                         sensorId: sensor.id,
                         sensorName: sensor.name,
                         timestamp: Date.now(),
@@ -182,7 +171,7 @@ export default function DashboardPage() {
                         acknowledged: false,
                         reason: isHigh ? 'high' : 'low',
                     };
-                    currentAlerts.unshift(newAlert);
+                    newAlertPromises.push(addAlert(activeKey, newAlert));
                 }
             }
 
@@ -190,42 +179,29 @@ export default function DashboardPage() {
                 soundsToQueueForThisInterval.push(sensor.criticalAlertSound || defaultCriticalSound);
             }
         });
+        
+        // Add new alerts to Firestore
+        if (newAlertPromises.length > 0) {
+            await Promise.all(newAlertPromises);
+        }
 
         if (soundsToQueueForThisInterval.length > 0) {
             setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
         }
-        
-        try {
-          localStorage.setItem(ALERTS_KEY, JSON.stringify(currentAlerts.slice(0, 100)));
-          localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
-          setSensors(updatedSensors);
-        } catch(e) {
-            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                console.error("LocalStorage quota exceeded on dashboard update. Further updates may fail.");
-            }
-        }
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [t, temperatureUnit]);
-
-
-  const handleRefreshData = () => {
-    setIsLoading(true);
-    localStorage.setItem(SENSORS_KEY, JSON.stringify(demoSensors));
-    setSensors(demoSensors);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-  };
-  
+  }, [activeKey, t, temperatureUnit]);
 
   if (isLoading) {
     return (
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-10 w-28" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-28" />
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
@@ -245,7 +221,7 @@ export default function DashboardPage() {
             {isMuted ? <Volume2 className="mr-2 h-4 w-4" /> : <VolumeX className="mr-2 h-4 w-4" />}
             {isMuted ? t('dashboard.unmuteButton', 'Ativar Som') : t('dashboard.muteButton', 'Silenciar Alarme')}
           </Button>
-          <Button onClick={handleRefreshData} variant="outline" disabled={isLoading}>
+          <Button onClick={fetchInitialData} variant="outline" disabled={isLoading}>
             <RefreshCcw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             {isLoading ? t('dashboard.refreshingButton', 'Atualizando...') : t('dashboard.refreshButton', 'Atualizar Dados')}
           </Button>
@@ -290,5 +266,3 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
-
-    

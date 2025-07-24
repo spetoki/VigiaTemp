@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,20 +14,7 @@ import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// --- Types specific to this page's localStorage implementation ---
-interface TraceabilityData {
-  id: string;
-  createdAt: string;
-  lotDescription: string;
-  name: string;
-  wetCocoaWeight: string;
-  dryCocoaWeight: string;
-  fermentationTime: string;
-  dryingTime: string;
-  isoClassification: string;
-  classificationBoardImageBase64: string | null;
-}
+import { TraceabilityData, addLot, getLots } from '@/services/traceability-service';
 
 interface FormData {
   lotDescription: string;
@@ -51,23 +38,6 @@ const initialFormData: FormData = {
     classificationBoardImageBase64: null,
 };
 
-// --- Helper Functions ---
-const getStoredLots = (): TraceabilityData[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem('demo_traceability_lots');
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Failed to parse lots from localStorage", error);
-    return [];
-  }
-};
-
-const setStoredLots = (lots: TraceabilityData[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('demo_traceability_lots', JSON.stringify(lots));
-};
-
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -78,7 +48,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export default function TraceabilityPage() {
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
   const { toast } = useToast();
   
   type View = 'list' | 'form' | 'details';
@@ -89,12 +59,30 @@ export default function TraceabilityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  
+  const fetchLots = useCallback(async () => {
+    if (!activeKey) {
+        setIsLoading(false);
+        return;
+    }
+    setIsLoading(true);
+    try {
+        const fetchedLots = await getLots(activeKey);
+        setLots(fetchedLots);
+    } catch (error) {
+        toast({
+            title: t('traceability.loadErrorTitle', "Erro ao Carregar Lotes"),
+            description: t('traceability.loadErrorDescription', "Não foi possível buscar os lotes salvos."),
+            variant: "destructive"
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  }, [activeKey, t, toast]);
 
   useEffect(() => {
-    setIsLoading(true);
-    setLots(getStoredLots());
-    setIsLoading(false);
-  }, []);
+    fetchLots();
+  }, [fetchLots]);
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {
@@ -140,26 +128,36 @@ export default function TraceabilityPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeKey) {
+        toast({
+            title: t('traceability.saveErrorTitle', "Erro ao Salvar"),
+            description: t('traceability.saveErrorNoUser', "Chave de acesso não encontrada. Não é possível salvar o lote."),
+            variant: "destructive"
+        });
+        return;
+    }
     setIsSubmitting(true);
 
-    const newLot: TraceabilityData = {
-      id: `lot-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      ...formData,
-    };
-    
-    const updatedLots = [newLot, ...lots];
-    setLots(updatedLots);
-    setStoredLots(updatedLots);
-    
-    setSelectedLot(newLot);
-    setView('details');
-    toast({ 
-      title: t('traceability.saveSuccessTitle', 'Sucesso!'), 
-      description: t('traceability.saveSuccessDescription', 'O registro de rastreabilidade foi salvo e o QR code foi gerado.'),
-    });
-
-    setIsSubmitting(false);
+    try {
+        const newLot = await addLot(activeKey, formData);
+        
+        setLots(prevLots => [newLot, ...prevLots]);
+        setSelectedLot(newLot);
+        setView('details');
+        setFormData(initialFormData); // Clear form
+        toast({ 
+          title: t('traceability.saveSuccessTitle', 'Sucesso!'), 
+          description: t('traceability.saveSuccessDescription', 'O registro de rastreabilidade foi salvo e o QR code foi gerado.'),
+        });
+    } catch (error) {
+         toast({
+            title: t('traceability.saveErrorTitle', "Erro ao Salvar"),
+            description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido.",
+            variant: "destructive"
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const handleViewDetails = (lot: TraceabilityData) => {
@@ -189,7 +187,7 @@ export default function TraceabilityPage() {
                 </Button>
             )}
             {view !== 'form' && (
-                <Button onClick={() => { setView('form'); setFormData(initialFormData); }}>
+                <Button onClick={() => { setView('form'); setFormData(initialFormData); setSelectedLot(null); }}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t('traceability.registerNewLotButton', 'Registrar Novo Lote')}
                 </Button>

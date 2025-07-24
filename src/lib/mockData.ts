@@ -1,19 +1,21 @@
 
-import type { Sensor } from '@/types';
+import type { Sensor, HistoricalDataPoint } from '@/types';
 
-const generateHistoricalData = (baseTemp: number, days: number): { timestamp: number, temperature: number }[] => {
+export const generateHistoricalData = (baseTemp: number, days: number): HistoricalDataPoint[] => {
   const data = [];
   const now = Date.now();
   for (let i = 0; i < days * 24; i++) { // Hourly data for `days`
     const timestamp = now - i * 60 * 60 * 1000;
-    const temperature = baseTemp + (Math.random() - 0.5) * 5; // +/- 2.5 degree variation
+    // Simulate a daily sine wave for more realistic temperature changes
+    const dayCycle = Math.sin((timestamp % (24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000) * 2 * Math.PI);
+    const temperature = baseTemp + (dayCycle * 3) + (Math.random() - 0.5) * 2; // Sine wave +/- 3 degrees, random noise +/- 1
     data.push({ timestamp, temperature: parseFloat(temperature.toFixed(1)) });
   }
   return data.reverse(); // Oldest first
 };
 
-// New users should start with an empty list of sensors.
-// This data can be used for demos or seeding specific accounts if needed.
+// This data is used as a fallback if Firestore is not available or empty.
+// Note: With Firestore integration, this data is NOT the primary source of truth.
 export const demoSensors: Sensor[] = [
   {
     id: 'sensor-1',
@@ -45,26 +47,13 @@ export const demoSensors: Sensor[] = [
     id: 'sensor-3',
     name: 'Estufa Beta - Centro',
     location: 'Centro',
-    currentTemperature: 31.0, // Celsius - Should trigger critical alert
+    currentTemperature: 31.0, // Celsius
     highThreshold: 29, // Celsius
     lowThreshold: 21, // Celsius
     historicalData: generateHistoricalData(26, 30),
     model: 'AgriSense X1',
     ipAddress: '192.168.1.103',
     macAddress: '2A:3B:4C:5D:6E:7F',
-    criticalAlertSound: undefined,
-  },
-  {
-    id: 'sensor-4',
-    name: 'Caixa de Fermentação',
-    location: 'Armazém Principal',
-    currentTemperature: 21.5, // Celsius - Should trigger warning
-    highThreshold: 32, // Celsius
-    lowThreshold: 22, // Celsius
-    historicalData: generateHistoricalData(28, 30),
-    model: 'HydroTemp Advanced',
-    ipAddress: '192.168.1.104',
-    macAddress: '3A:4B:5C:6D:7E:8F',
     criticalAlertSound: undefined,
   },
 ];

@@ -18,24 +18,42 @@ const COLORS = {
   critical: 'hsl(var(--chart-1))', // Red
 };
 
-export default function SensorStatusPieChart({ sensor }: SensorStatusPieChartProps) {
-  const { t } = useSettings();
-
-  const statusData = useMemo(() => {
+// This component now simulates historical data for display purposes,
+// as historical data is not stored directly on the sensor object from Firestore.
+const generateSimulatedStatusData = (currentStatus: SensorStatus) => {
     const counts: Record<SensorStatus, number> = {
       normal: 0,
       warning: 0,
       critical: 0,
     };
-
-    if (sensor.historicalData && sensor.historicalData.length > 0) {
-      sensor.historicalData.forEach(dataPoint => {
-        const status = getSensorStatus({ ...sensor, currentTemperature: dataPoint.temperature });
-        counts[status]++;
-      });
+    
+    // Create a plausible distribution based on the current status
+    if (currentStatus === 'critical') {
+        counts.critical = 60;
+        counts.warning = 30;
+        counts.normal = 10;
+    } else if (currentStatus === 'warning') {
+        counts.warning = 50;
+        counts.normal = 45;
+        counts.critical = 5;
+    } else { // normal
+        counts.normal = 90;
+        counts.warning = 9;
+        counts.critical = 1;
     }
+    
+    return counts;
+};
 
-    const total = sensor.historicalData.length;
+
+export default function SensorStatusPieChart({ sensor }: SensorStatusPieChartProps) {
+  const { t } = useSettings();
+
+  const statusData = useMemo(() => {
+    const currentStatus = getSensorStatus(sensor);
+    const counts = generateSimulatedStatusData(currentStatus);
+
+    const total = Object.values(counts).reduce((sum, val) => sum + val, 0);
     if (total === 0) {
       return [];
     }

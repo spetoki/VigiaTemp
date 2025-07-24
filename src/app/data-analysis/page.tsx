@@ -10,43 +10,47 @@ import { BarChart, CalendarDays, PieChartIcon, Activity } from 'lucide-react';
 import SensorStatusPieChart from '@/components/charts/SensorStatusPieChart';
 import AlertFrequencyBarChart from '@/components/charts/AlertFrequencyBarChart';
 import AlertsCalendarHeatmap from '@/components/charts/AlertsCalendarHeatmap';
-
-const SENSORS_KEY = 'demo_sensors';
-const ALERTS_KEY = 'demo_alerts';
+import { getSensors } from '@/services/sensor-service';
+import { getAlerts } from '@/services/alert-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DataAnalysisPage() {
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
+  const { toast } = useToast();
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
+    if (!activeKey) {
+        setIsLoading(false);
+        return;
+    }
     setIsLoading(true);
     try {
-      // Load Sensors
-      const storedSensors = localStorage.getItem(SENSORS_KEY);
-      if (storedSensors) {
-        setSensors(JSON.parse(storedSensors));
-      } else {
-        setSensors([]);
-      }
-
-      // Load Alerts
-      const storedAlerts = localStorage.getItem(ALERTS_KEY);
-      if (storedAlerts) {
-        setAlerts(JSON.parse(storedAlerts));
-      } else {
-        setAlerts([]);
-      }
-
+      const [fetchedSensors, fetchedAlerts] = await Promise.all([
+        getSensors(activeKey),
+        getAlerts(activeKey)
+      ]);
+      setSensors(fetchedSensors);
+      setAlerts(fetchedAlerts);
     } catch (error) {
       console.error("Failed to load data for analysis page:", error);
+      toast({
+        title: "Erro ao Carregar Dados",
+        description: "Não foi possível buscar os dados para análise.",
+        variant: "destructive",
+      });
       setSensors([]);
       setAlerts([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeKey, toast]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
   
   const alertsByDay = useMemo(() => {
     return alerts.reduce((acc, alert) => {
@@ -94,7 +98,7 @@ export default function DataAnalysisPage() {
               <PieChartIcon className="h-5 w-5 text-primary" />
               {t('dataAnalysis.pieChart.title', 'Distribuição de Status por Sensor')}
             </CardTitle>
-            <CardDescription>{t('dataAnalysis.pieChart.description', 'Percentual de tempo que cada sensor permaneceu em estado "Normal", "Atenção" ou "Crítico".')}</CardDescription>
+            <CardDescription>{t('dataAnalysis.pieChart.description', 'Percentual de tempo que cada sensor permaneceu em estado "Normal", "Atenção" ou "Crítico". (Baseado em simulação)')}</CardDescription>
           </CardHeader>
           <CardContent>
             {sensors.length > 0 ? (

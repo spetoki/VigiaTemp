@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Sensor } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { getSensors, addSensor } from '@/services/sensor-service';
 
 // Mock data for discovered WiFi devices
 const mockDiscoveredDevices = [
@@ -22,14 +23,27 @@ const mockDiscoveredDevices = [
 
 type DiscoveredDevice = typeof mockDiscoveredDevices[0];
 
-const SENSORS_KEY = 'demo_sensors';
-
 export default function WifiDiscoveryPage() {
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<DiscoveredDevice[]>([]);
   const [addedMacs, setAddedMacs] = useState<Set<string>>(new Set());
+  
+  const fetchExistingSensors = useCallback(async () => {
+    if (!activeKey) return;
+    try {
+        const existingSensors = await getSensors(activeKey);
+        const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => !!mac));
+        setAddedMacs(existingMacs);
+    } catch (error) {
+        console.error("Could not fetch existing sensors:", error);
+    }
+  }, [activeKey]);
+
+  useEffect(() => {
+    fetchExistingSensors();
+  }, [fetchExistingSensors]);
 
   const getSignalStrengthBadge = (signal: number) => {
     if (signal > -60) return 'bg-green-100 text-green-800 border-green-300';
@@ -46,22 +60,26 @@ export default function WifiDiscoveryPage() {
     setIsScanning(true);
     setDiscoveredDevices([]);
 
+    // Fetch latest sensor list before showing results
+    await fetchExistingSensors();
+
     await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate network scan
 
-    const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
-    const existingSensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
-    const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => mac !== undefined));
-    
-    setAddedMacs(existingMacs);
     setDiscoveredDevices(mockDiscoveredDevices);
     setIsScanning(false);
   };
   
-  const handleAddSensor = (device: DiscoveredDevice) => {
-    const storedSensorsRaw = localStorage.getItem(SENSORS_KEY);
-    const sensors: Sensor[] = storedSensorsRaw ? JSON.parse(storedSensorsRaw) : [];
+  const handleAddSensor = async (device: DiscoveredDevice) => {
+    if (!activeKey) {
+        toast({
+            title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
+            description: "Chave de acesso não encontrada. Não é possível adicionar o sensor.",
+            variant: "destructive",
+        });
+        return;
+    }
 
-    if (sensors.some(s => s.macAddress === device.macAddress)) {
+    if (addedMacs.has(device.macAddress)) {
       toast({
           title: t('wifiDiscoveryPage.toast.alreadyExists.title', 'Sensor já Existe'),
           description: t('wifiDiscoveryPage.toast.alreadyExists.description', 'O sensor com o endereço MAC {mac} já está na sua lista.', { mac: device.macAddress }),
@@ -70,27 +88,30 @@ export default function WifiDiscoveryPage() {
       return;
     }
     
-    const newSensor: Sensor = {
-        id: `sensor-wifi-${device.macAddress}`,
+    const newSensorData = {
         name: device.name,
         location: t('wifiDiscoveryPage.defaultLocation', 'Descoberto via WiFi'),
-        currentTemperature: 25, 
         highThreshold: 30,
         lowThreshold: 20,
-        historicalData: [],
         model: 'WiFi Generic',
         ipAddress: device.ipAddress,
         macAddress: device.macAddress,
     };
-    
-    const updatedSensors = [newSensor, ...sensors];
-    localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
-    setAddedMacs(prev => new Set(prev).add(device.macAddress));
 
-    toast({
-        title: t('wifiDiscoveryPage.toast.sensorAdded.title', 'Sensor Adicionado'),
-        description: t('wifiDiscoveryPage.toast.sensorAdded.description', 'O sensor {deviceName} foi adicionado à sua lista.', { deviceName: newSensor.name }),
-    });
+    try {
+        const newSensor = await addSensor(activeKey, newSensorData);
+        setAddedMacs(prev => new Set(prev).add(device.macAddress));
+        toast({
+            title: t('wifiDiscoveryPage.toast.sensorAdded.title', 'Sensor Adicionado'),
+            description: t('wifiDiscoveryPage.toast.sensorAdded.description', 'O sensor {deviceName} foi adicionado à sua lista.', { deviceName: newSensor.name }),
+        });
+    } catch(error) {
+        toast({
+            title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
+            description: t('sensorsPage.toast.addError.description', "Não foi possível adicionar o sensor."),
+            variant: "destructive",
+        });
+    }
   };
 
 

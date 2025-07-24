@@ -9,66 +9,77 @@ import { Button } from '@/components/ui/button';
 import { Bell, CheckCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AlertsTable from '@/components/alerts/AlertsTable';
-
-const ALERTS_KEY = 'demo_alerts';
+import { getAlerts, updateAlert, updateMultipleAlerts } from '@/services/alert-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AlertsPage() {
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
+  const { toast } = useToast();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('unacknowledged');
 
-  const loadAlerts = useCallback(() => {
+  const loadAlerts = useCallback(async () => {
+    if (!activeKey) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
     try {
-      const storedAlerts = localStorage.getItem(ALERTS_KEY);
-      if (storedAlerts) {
-        const parsedAlerts: any[] = JSON.parse(storedAlerts);
-        const cleanedAlerts: Alert[] = parsedAlerts.map(a => ({
-          id: a.id || `alert-${Date.now()}${Math.random()}`,
-          sensorId: a.sensorId || 'unknown-sensor',
-          sensorName: a.sensorName || 'Unknown Sensor',
-          timestamp: a.timestamp || Date.now(),
-          level: a.level === 'critical' || a.level === 'warning' ? a.level : 'warning',
-          message: a.message || 'No message provided.',
-          acknowledged: typeof a.acknowledged === 'boolean' ? a.acknowledged : false,
-          reason: a.reason === 'high' || a.reason === 'low' ? a.reason : undefined,
-        }));
-        setAlerts(cleanedAlerts);
-      } else {
-        setAlerts([]);
-      }
+      const fetchedAlerts = await getAlerts(activeKey);
+      setAlerts(fetchedAlerts);
     } catch (error) {
-      console.error("Failed to parse alerts from localStorage, defaulting to empty.", error);
+      console.error("Failed to fetch alerts from Firestore:", error);
+      toast({
+        title: "Erro ao carregar alertas",
+        description: "Não foi possível buscar os alertas do banco de dados.",
+        variant: "destructive",
+      });
       setAlerts([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeKey, toast]);
 
   useEffect(() => {
     loadAlerts();
-    
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === ALERTS_KEY) {
-        loadAlerts();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, [loadAlerts]);
 
-  const handleAcknowledge = (alertId: string) => {
-    const updatedAlerts = alerts.map(alert =>
-      alert.id === alertId ? { ...alert, acknowledged: true } : alert
-    );
-    setAlerts(updatedAlerts);
-    localStorage.setItem(ALERTS_KEY, JSON.stringify(updatedAlerts));
+  const handleAcknowledge = async (alertId: string) => {
+    if (!activeKey) return;
+    try {
+      await updateAlert(activeKey, alertId, { acknowledged: true });
+      const updatedAlerts = alerts.map(alert =>
+        alert.id === alertId ? { ...alert, acknowledged: true } : alert
+      );
+      setAlerts(updatedAlerts);
+    } catch (error) {
+       toast({
+        title: "Erro ao confirmar alerta",
+        description: "Não foi possível atualizar o status do alerta.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleAcknowledgeAll = () => {
-    const updatedAlerts = alerts.map(alert => ({ ...alert, acknowledged: true }));
-    setAlerts(updatedAlerts);
-    localStorage.setItem(ALERTS_KEY, JSON.stringify(updatedAlerts));
+  const handleAcknowledgeAll = async () => {
+    if (!activeKey || unacknowledgedCount === 0) return;
+    
+    const unacknowledgedIds = alerts
+      .filter(alert => !alert.acknowledged)
+      .map(alert => alert.id);
+
+    try {
+      await updateMultipleAlerts(activeKey, unacknowledgedIds, { acknowledged: true });
+      const updatedAlerts = alerts.map(alert => ({ ...alert, acknowledged: true }));
+      setAlerts(updatedAlerts);
+    } catch (error) {
+        toast({
+            title: "Erro ao confirmar todos os alertas",
+            description: "Não foi possível atualizar o status dos alertas.",
+            variant: "destructive",
+        });
+    }
   };
 
   const filteredAlerts = useMemo(() => {
@@ -122,7 +133,7 @@ export default function AlertsPage() {
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-auto">
           <TabsTrigger value="unacknowledged">{t('alertsPage.tabs.unacknowledged', 'Não Confirmados')}</TabsTrigger>
           <TabsTrigger value="all">{t('alertsPage.tabs.all', 'Todos')}</TabsTrigger>
-          <TabsTrigger value="critical">{t('alertsPage.tabs.critical', 'Críticos')}</TabsTrigger>
+          <TabsTrigger value="critical">{t('alertsPage.tabs.tabs.critical', 'Críticos')}</TabsTrigger>
           <TabsTrigger value="warning">{t('alertsPage.tabs.warning', 'Atenção')}</TabsTrigger>
         </TabsList>
         <TabsContent value={activeTab} className="mt-4">
