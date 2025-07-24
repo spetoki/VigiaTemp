@@ -1,0 +1,13 @@
+Este diretório é para os ícones do PWA.
+
+Por favor, crie os seguintes arquivos de ícone e coloque-os aqui:
+- icon-72x72.png
+- icon-96x96.png
+- icon-128x128.png
+- icon-144x144.png
+- icon-152x152.png
+- icon-192x192.png
+- icon-384x384.png
+- icon-512x512.png
+
+Você pode usar uma ferramenta online como o "Favicon & App Icon Generator" para criar todos os tamanhos a partir de uma única imagem.
