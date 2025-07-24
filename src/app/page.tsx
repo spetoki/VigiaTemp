@@ -127,7 +127,7 @@ export default function DashboardPage() {
             return;
         }
 
-        const updatePromises: Promise<void>[] = [];
+        const updatePromises: Promise<any>[] = [];
         const updatedSensors = currentSensors.map((sensor) => {
             const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
             const updatedSensor = { ...sensor, currentTemperature: newTemperature };
