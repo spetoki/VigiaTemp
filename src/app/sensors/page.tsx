@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Sensor } from '@/types';
 import SensorTable from '@/components/sensors/SensorTable';
 import SensorForm, { SensorFormData } from '@/components/sensors/SensorForm';
@@ -18,8 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-const SENSORS_KEY = 'demo_sensors';
+import { addSensor, deleteSensor, getSensors, updateSensor } from '@/services/sensor-service';
 
 export default function SensorsPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -27,40 +26,33 @@ export default function SensorsPage() {
   const [editingSensor, setEditingSensor] = useState<Sensor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { t } = useSettings();
+  const { t, activeKey } = useSettings();
 
-  useEffect(() => {
+  const fetchSensors = useCallback(async () => {
+    if (!activeKey) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
-      const storedSensors = localStorage.getItem(SENSORS_KEY);
-      if (storedSensors) {
-        const parsedSensors: any[] = JSON.parse(storedSensors);
-         // Data sanitization: ensure all properties exist with fallbacks
-        const cleanedSensors: Sensor[] = parsedSensors.map(s => ({
-            id: s.id || `sensor-${Date.now()}${Math.random()}`,
-            name: s.name || 'Unnamed Sensor',
-            location: s.location || 'Unknown Location',
-            currentTemperature: s.currentTemperature ?? 25,
-            highThreshold: s.highThreshold ?? 30,
-            lowThreshold: s.lowThreshold ?? 20,
-            historicalData: Array.isArray(s.historicalData) ? s.historicalData : [],
-            model: s.model || 'Unknown Model',
-            ipAddress: s.ipAddress || '',
-            macAddress: s.macAddress || '',
-            criticalAlertSound: s.criticalAlertSound || undefined,
-        }));
-        setSensors(cleanedSensors);
-      } else {
-        // New users start with an empty array
-        setSensors([]);
-      }
+      const fetchedSensors = await getSensors(activeKey);
+      setSensors(fetchedSensors);
     } catch (error) {
-      console.error("Failed to parse sensors from localStorage, defaulting to empty.", error);
-      setSensors([]); // Default to empty array on error
+      console.error("Failed to fetch sensors:", error);
+      toast({
+        title: t('sensorsPage.toast.fetchError.title', "Erro ao Buscar Sensores"),
+        description: t('sensorsPage.toast.fetchError.description', "Não foi possível carregar os sensores do banco de dados."),
+        variant: "destructive",
+      });
+      setSensors([]);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-  }, []);
+  }, [activeKey, t, toast]);
+
+  useEffect(() => {
+    fetchSensors();
+  }, [fetchSensors]);
 
   const handleAddSensor = () => {
     setEditingSensor(null);
@@ -72,86 +64,62 @@ export default function SensorsPage() {
     setIsFormOpen(true);
   };
 
-  const handleDeleteSensor = (sensorId: string) => {
-    setSensors(prevSensors => {
-        const updatedSensors = prevSensors.filter(s => s.id !== sensorId);
-        try {
-            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
-        } catch (e) {
-            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                toast({
-                    title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
-                    description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
-                    variant: "destructive"
-                });
-                return prevSensors;
-            }
-        }
-        return updatedSensors;
-    });
-    toast({
-      title: t('sensorsPage.toast.deleted.title', "Sensor Excluído"),
-      description: t('sensorsPage.toast.deleted.description', "O sensor foi excluído com sucesso."),
-      variant: "destructive"
-    });
+  const handleDeleteSensor = async (sensorId: string) => {
+    if (!activeKey) return;
+    try {
+      await deleteSensor(activeKey, sensorId);
+      setSensors(prevSensors => prevSensors.filter(s => s.id !== sensorId));
+      toast({
+        title: t('sensorsPage.toast.deleted.title', "Sensor Excluído"),
+        description: t('sensorsPage.toast.deleted.description', "O sensor foi excluído com sucesso."),
+        variant: "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: t('sensorsPage.toast.deleteError.title', "Erro ao Excluir"),
+        description: t('sensorsPage.toast.deleteError.description', "Não foi possível excluir o sensor."),
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleFormSubmit = (data: SensorFormData) => {
+  const handleFormSubmit = async (data: SensorFormData) => {
+    if (!activeKey) return;
+
     if (editingSensor) {
-      setSensors(prevSensors => {
-        const updatedSensors = prevSensors.map(s =>
-          s.id === editingSensor.id
-            ? { 
-                ...editingSensor,
-                ...data,
-              }
-            : s
+      // Update existing sensor
+      try {
+        await updateSensor(activeKey, editingSensor.id, data);
+        setSensors(prevSensors => 
+          prevSensors.map(s => s.id === editingSensor.id ? { ...s, ...data } : s)
         );
-        try {
-            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
-        } catch (e) {
-            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                toast({
-                    title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
-                    description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
-                    variant: "destructive"
-                });
-                return prevSensors;
-            }
-        }
-        return updatedSensors;
-      });
-      toast({
-        title: t('sensorsPage.toast.updated.title', "Sensor Atualizado"),
-        description: t('sensorsPage.toast.updated.description', "O sensor \"{sensorName}\" foi atualizado com sucesso.", { sensorName: data.name }),
-      });
+        toast({
+          title: t('sensorsPage.toast.updated.title', "Sensor Atualizado"),
+          description: t('sensorsPage.toast.updated.description', "O sensor \"{sensorName}\" foi atualizado com sucesso.", { sensorName: data.name }),
+        });
+      } catch (error) {
+        toast({
+          title: t('sensorsPage.toast.updateError.title', "Erro ao Atualizar"),
+          description: t('sensorsPage.toast.updateError.description', "Não foi possível atualizar o sensor."),
+          variant: "destructive",
+        });
+      }
     } else {
-      const newSensor: Sensor = {
-        id: `sensor-${Date.now()}`,
-        ...data,
-        currentTemperature: 25, 
-        historicalData: [],
-      };
-      setSensors(prevSensors => {
-          const updatedSensors = [newSensor, ...prevSensors];
-          try {
-            localStorage.setItem(SENSORS_KEY, JSON.stringify(updatedSensors));
-          } catch (e) {
-             if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                toast({
-                    title: t('sensorsPage.toast.quotaError.title', "Erro de Armazenamento"),
-                    description: t('sensorsPage.toast.quotaError.description', "Não foi possível salvar. O armazenamento está cheio. Os dados históricos antigos podem ter sido a causa."),
-                    variant: "destructive"
-                });
-                return prevSensors;
-            }
-          }
-          return updatedSensors;
-      });
-      toast({
-        title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),
-        description: t('sensorsPage.toast.added.description', "O sensor \"{sensorName}\" foi adicionado com sucesso.", { sensorName: data.name }),
-      });
+      // Add new sensor
+      try {
+        const newSensor = await addSensor(activeKey, data);
+        setSensors(prevSensors => [newSensor, ...prevSensors]);
+        toast({
+          title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),
+          description: t('sensorsPage.toast.added.description', "O sensor \"{sensorName}\" foi adicionado com sucesso.", { sensorName: data.name }),
+        });
+      } catch (error) {
+        toast({
+          title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
+          description: t('sensorsPage.toast.addError.description', "Não foi possível adicionar o sensor."),
+          variant: "destructive",
+        });
+      }
     }
     setIsFormOpen(false);
     setEditingSensor(null);
