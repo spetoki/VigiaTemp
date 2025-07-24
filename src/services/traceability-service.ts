@@ -64,7 +64,9 @@ export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
 }
 
 export async function addLot(accessKey: string, lotData: Omit<TraceabilityData, 'id' | 'createdAt'>): Promise<TraceabilityData> {
-    if (!db) throw new Error("Firestore not configured.");
+    if (!db) {
+        throw new Error("Firestore not configured.");
+    }
 
     const lotsCol = collection(db, `users/${accessKey}/lots`);
     const newLotData = {

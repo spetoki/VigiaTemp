@@ -78,15 +78,12 @@ export async function updateSensor(
     accessKey: string,
     sensorId: string,
     sensorData: Partial<Sensor>
-): Promise<Sensor> {
+): Promise<void> {
     if (!db) {
       throw new Error("Firestore not configured.");
     }
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
     await updateDoc(sensorDoc, sensorData as DocumentData);
-    
-    // This return is optimistic; it doesn't re-fetch the data
-    return { id: sensorId, ...sensorData } as Sensor;
 }
 
 export async function deleteSensor(accessKey: string, sensorId: string): Promise<void> {

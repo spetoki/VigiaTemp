@@ -14,16 +14,14 @@ const isConfigValid = (config: FirebaseOptions): boolean => {
     return Object.values(config).every(value => typeof value === 'string' && value.length > 0);
 };
 
-let app: FirebaseApp | undefined;
-let db: Firestore | undefined;
+let app: FirebaseApp;
+let db: Firestore;
 
 if (isConfigValid(firebaseConfig)) {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app);
 } else {
     console.warn("Firebase config is invalid or missing from environment variables. The application will not use Firebase services.");
-    app = undefined;
-    db = undefined;
 }
 
 

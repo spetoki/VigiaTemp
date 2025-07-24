@@ -52,7 +52,9 @@ export async function getAlerts(accessKey: string): Promise<Alert[]> {
 
 
 export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-    if (!db) throw new Error("Firestore not configured.");
+    if (!db) {
+        throw new Error("Firestore not configured.");
+    }
     
     const alertsCol = collection(db, `users/${accessKey}/alerts`);
     const newAlertData = {

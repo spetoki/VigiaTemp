@@ -139,7 +139,10 @@ export default function TraceabilityPage() {
     setIsSubmitting(true);
 
     try {
-        const newLot = await addLot(activeKey, formData);
+        const newLotData: Omit<TraceabilityData, 'id' | 'createdAt'> = {
+            ...formData
+        };
+        const newLot = await addLot(activeKey, newLotData);
         
         setLots(prevLots => [newLot, ...prevLots]);
         setSelectedLot(newLot);
