@@ -1,60 +1,89 @@
 
 'use server';
 
+import { db } from '@/lib/firebase';
 import type { Alert } from '@/types';
+import {
+  collection,
+  doc,
+  getDocs,
+  addDoc,
+  writeBatch,
+  DocumentData,
+  QueryDocumentSnapshot,
+  Timestamp,
+  query,
+  orderBy,
+  limit,
+  updateDoc
+} from 'firebase/firestore';
 
-// Helper to get alerts from localStorage
-const getStoredAlerts = (key: string): Alert[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Failed to parse alerts from localStorage", error);
-    return [];
-  }
+
+const alertFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Alert => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        sensorId: data.sensorId,
+        sensorName: data.sensorName,
+        timestamp: (data.timestamp as Timestamp).toMillis(),
+        level: data.level,
+        message: data.message,
+        acknowledged: data.acknowledged,
+        reason: data.reason,
+    };
 };
-
-// Helper to save alerts to localStorage
-const setStoredAlerts = (key: string, alerts: Alert[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(alerts));
-};
-
 
 export async function getAlerts(accessKey: string): Promise<Alert[]> {
-  const storageKey = `${accessKey}_demo_alerts`;
-  return getStoredAlerts(storageKey).sort((a, b) => b.timestamp - a.timestamp);
+    if (!db) {
+        console.warn("Firestore is not configured. Returning empty alerts list.");
+        return [];
+    }
+    try {
+        const alertsCol = collection(db, `users/${accessKey}/alerts`);
+        // Order by most recent and limit to the last 100 to avoid performance issues
+        const q = query(alertsCol, orderBy("timestamp", "desc"), limit(100));
+        const alertSnapshot = await getDocs(q);
+        return alertSnapshot.docs.map(alertFromDoc);
+    } catch (error) {
+        console.error("Error fetching alerts from Firestore:", error);
+        throw new Error("Não foi possível carregar os alertas do banco de dados.");
+    }
 }
+
 
 export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-  const storageKey = `${accessKey}_demo_alerts`;
-  const alerts = getStoredAlerts(storageKey);
-  const newAlert: Alert = {
-    ...alertData,
-    id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-  };
-  // Keep only the latest 100 alerts to prevent localStorage from filling up
-  const updatedAlerts = [newAlert, ...alerts].slice(0, 100);
-  setStoredAlerts(storageKey, updatedAlerts);
-  return newAlert;
+    if (!db) throw new Error("Firestore not configured.");
+    
+    const alertsCol = collection(db, `users/${accessKey}/alerts`);
+    const newAlertData = {
+      ...alertData,
+      timestamp: Timestamp.fromMillis(alertData.timestamp)
+    };
+    
+    const docRef = await addDoc(alertsCol, newAlertData);
+    
+    return {
+        ...alertData,
+        id: docRef.id,
+    };
 }
 
+
 export async function updateAlert(accessKey: string, alertId: string, updateData: Partial<Alert>) {
-  const storageKey = `${accessKey}_demo_alerts`;
-  let alerts = getStoredAlerts(storageKey);
-  alerts = alerts.map(alert =>
-    alert.id === alertId ? { ...alert, ...updateData } : alert
-  );
-  setStoredAlerts(storageKey, alerts);
+    if (!db) throw new Error("Firestore not configured.");
+
+    const alertDoc = doc(db, `users/${accessKey}/alerts`, alertId);
+    await updateDoc(alertDoc, updateData);
 }
 
 export async function updateMultipleAlerts(accessKey: string, alertIds: string[], updateData: Partial<Alert>) {
-  const storageKey = `${accessKey}_demo_alerts`;
-  let alerts = getStoredAlerts(storageKey);
-  const idsToUpdate = new Set(alertIds);
-  alerts = alerts.map(alert =>
-    idsToUpdate.has(alert.id) ? { ...alert, ...updateData } : alert
-  );
-  setStoredAlerts(storageKey, alerts);
+    if (!db || alertIds.length === 0) return;
+
+    const batch = writeBatch(db);
+    alertIds.forEach(id => {
+        const alertDoc = doc(db, `users/${accessKey}/alerts`, id);
+        batch.update(alertDoc, updateData);
+    });
+
+    await batch.commit();
 }

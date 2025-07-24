@@ -1,5 +1,4 @@
 
-
 export type TemperatureUnit = 'C' | 'F';
 export type LanguageCode = 'pt-BR' | 'en-US' | 'es-ES';
 
@@ -17,7 +16,7 @@ export interface Sensor {
   currentTemperature: number; // Always in Celsius for storage
   highThreshold: number; // Always in Celsius
   lowThreshold: number; // Always in Celsius
-  historicalData: HistoricalDataPoint[];
+  historicalData: HistoricalDataPoint[]; // Note: This is not persisted in the main sensor document in Firestore
   model?: string;
   ipAddress?: string;
   macAddress?: string;

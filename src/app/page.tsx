@@ -15,6 +15,7 @@ import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 import { getSensors, updateSensor } from '@/services/sensor-service';
 import { getAlerts, addAlert } from '@/services/alert-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingAmbientTemp, setIsLoadingAmbientTemp] = useState(true);
   const { t, temperatureUnit, activeKey } = useSettings();
+  const { toast } = useToast();
   const [isMuted, setIsMuted] = useState(false);
   
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
@@ -86,26 +88,32 @@ export default function DashboardPage() {
   }, []);
 
   const fetchInitialData = useCallback(async () => {
-      if (!activeKey) return;
+      if (!activeKey) {
+        setIsLoading(false);
+        return;
+      };
       setIsLoading(true);
       try {
           const fetchedSensors = await getSensors(activeKey);
           setSensors(fetchedSensors);
       } catch (error) {
           console.error("Failed to load initial sensor data from Firestore:", error);
+          toast({
+            title: "Erro ao Carregar Sensores",
+            description: "Não foi possível buscar os sensores. Verifique sua conexão e configuração do Firebase.",
+            variant: "destructive",
+          });
           setSensors([]);
       } finally {
           setIsLoading(false);
       }
-  }, [activeKey]);
+  }, [activeKey, toast]);
 
-  // Effect to load initial sensor data
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
 
 
-  // Effect for the main update interval
   useEffect(() => {
     if (!activeKey) return;
 
@@ -113,7 +121,6 @@ export default function DashboardPage() {
         
         let currentSensors: Sensor[] = [];
         try {
-            // Fetch the latest sensor state to work with
             currentSensors = await getSensors(activeKey);
         } catch (e) {
             console.error("Failed to fetch sensors during update.", e);
@@ -123,16 +130,13 @@ export default function DashboardPage() {
         const updatePromises: Promise<void>[] = [];
         const updatedSensors = currentSensors.map((sensor) => {
             const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
-            // Firestore doesn't store historicalData in the main doc, so we don't update it here.
             const updatedSensor = { ...sensor, currentTemperature: newTemperature };
             updatePromises.push(updateSensor(activeKey, sensor.id, { currentTemperature: newTemperature }));
             return updatedSensor;
         });
         
-        // Wait for all sensor temperature updates to be sent to Firestore
         await Promise.all(updatePromises);
         
-        // Update local state to reflect new temperatures immediately
         setSensors(updatedSensors);
 
         let currentAlerts: Alert[] = [];
@@ -180,7 +184,6 @@ export default function DashboardPage() {
             }
         });
         
-        // Add new alerts to Firestore
         if (newAlertPromises.length > 0) {
             await Promise.all(newAlertPromises);
         }

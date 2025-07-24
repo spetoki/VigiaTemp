@@ -1,6 +1,22 @@
 
 'use server';
 
+import { db } from '@/lib/firebase';
+import {
+  collection,
+  doc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  DocumentData,
+  QueryDocumentSnapshot,
+  Timestamp,
+  query,
+  orderBy,
+} from 'firebase/firestore';
+
+
 // The data structure used within the application
 export interface TraceabilityData {
   id: string;
@@ -15,47 +31,52 @@ export interface TraceabilityData {
   classificationBoardImageBase64: string | null;
 }
 
-// Helper to get lots from localStorage
-const getStoredLots = (key: string): TraceabilityData[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Failed to parse lots from localStorage", error);
-    return [];
-  }
+const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+        lotDescription: data.lotDescription,
+        name: data.name,
+        wetCocoaWeight: data.wetCocoaWeight,
+        dryCocoaWeight: data.dryCocoaWeight,
+        fermentationTime: data.fermentationTime,
+        dryingTime: data.dryingTime,
+        isoClassification: data.isoClassification,
+        classificationBoardImageBase64: data.classificationBoardImageBase64,
+    };
 };
-
-// Helper to save lots to localStorage
-const setStoredLots = (key: string, lots: TraceabilityData[]) => {
-  if (typeof window === 'undefined') return;
-  // This can fail if storage is full (e.g., too many large images)
-  try {
-    localStorage.setItem(key, JSON.stringify(lots));
-  } catch (error) {
-     console.error("Failed to save lots to localStorage. Storage may be full.", error);
-     throw new Error("Failed to save lot. Local storage quota may be exceeded.");
-  }
-};
-
 
 export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
-    const storageKey = `${accessKey}_demo_traceability_lots`;
-    const lots = getStoredLots(storageKey);
-    // Sort by creation date descending
-    return lots.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    if (!db) {
+        console.warn("Firestore is not configured. Returning empty lots list.");
+        return [];
+    }
+    try {
+        const lotsCol = collection(db, `users/${accessKey}/lots`);
+        const q = query(lotsCol, orderBy("createdAt", "desc"));
+        const lotSnapshot = await getDocs(q);
+        return lotSnapshot.docs.map(lotFromDoc);
+    } catch (error) {
+        console.error("Error fetching lots from Firestore:", error);
+        throw new Error("Não foi possível carregar os lotes do banco de dados.");
+    }
 }
 
 export async function addLot(accessKey: string, lotData: Omit<TraceabilityData, 'id' | 'createdAt'>): Promise<TraceabilityData> {
-    const storageKey = `${accessKey}_demo_traceability_lots`;
-    const lots = getStoredLots(storageKey);
-    const newLot: TraceabilityData = {
+    if (!db) throw new Error("Firestore not configured.");
+
+    const lotsCol = collection(db, `users/${accessKey}/lots`);
+    const newLotData = {
         ...lotData,
-        id: `lot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date().toISOString(),
+        createdAt: Timestamp.now(),
     };
-    const updatedLots = [newLot, ...lots];
-    setStoredLots(storageKey, updatedLots);
-    return newLot;
+    
+    const docRef = await addDoc(lotsCol, newLotData);
+    
+    return {
+        ...lotData,
+        id: docRef.id,
+        createdAt: newLotData.createdAt.toDate().toISOString(),
+    };
 }

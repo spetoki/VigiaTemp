@@ -1,70 +1,94 @@
 
 'use server';
 
-import { demoSensors } from '@/lib/mockData';
+import { db } from '@/lib/firebase';
 import type { Sensor } from '@/types';
+import {
+  collection,
+  doc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  DocumentData,
+  QueryDocumentSnapshot,
+  Timestamp,
+  query,
+  orderBy,
+} from 'firebase/firestore';
 
-const getStoredSensors = (key: string): Sensor[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    // If nothing is stored, initialize with demo data
-    setStoredSensors(key, demoSensors);
-    return demoSensors;
-  } catch (error) {
-    console.error("Failed to parse sensors from localStorage", error);
-    return demoSensors; // Fallback to demo data
-  }
-};
-
-const setStoredSensors = (key: string, sensors: Sensor[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(sensors));
+// Helper function to convert a Firestore document to a Sensor object
+const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        name: data.name,
+        location: data.location,
+        currentTemperature: data.currentTemperature,
+        highThreshold: data.highThreshold,
+        lowThreshold: data.lowThreshold,
+        model: data.model,
+        ipAddress: data.ipAddress,
+        macAddress: data.macAddress,
+        criticalAlertSound: data.criticalAlertSound,
+        // historicalData is not stored in the main document
+        historicalData: [], 
+    };
 };
 
 export async function getSensors(accessKey: string): Promise<Sensor[]> {
-  const storageKey = `${accessKey}_demo_sensors`;
-  return getStoredSensors(storageKey);
-}
-
-export async function addSensor(accessKey: string, sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>): Promise<Sensor> {
-  const storageKey = `${accessKey}_demo_sensors`;
-  const sensors = getStoredSensors(storageKey);
-  const newSensor: Sensor = {
-    ...sensorData,
-    id: `sensor_${Date.now()}`,
-    currentTemperature: 25, // Default starting temp
-    historicalData: [], // This will be populated by simulation
-  };
-  const updatedSensors = [newSensor, ...sensors];
-  setStoredSensors(storageKey, updatedSensors);
-  return newSensor;
-}
-
-export async function updateSensor(accessKey: string, sensorId: string, sensorData: Partial<Sensor>): Promise<Sensor> {
-  const storageKey = `${accessKey}_demo_sensors`;
-  let sensors = getStoredSensors(storageKey);
-  let updatedSensor: Sensor | undefined;
-  const updatedSensors = sensors.map(s => {
-    if (s.id === sensorId) {
-      updatedSensor = { ...s, ...sensorData };
-      return updatedSensor;
+    if (!db) {
+        console.warn("Firestore is not configured. Returning empty sensor list.");
+        return [];
     }
-    return s;
-  });
-  setStoredSensors(storageKey, updatedSensors);
-  if (!updatedSensor) {
-    throw new Error("Sensor not found");
-  }
-  return updatedSensor;
+    try {
+        const sensorsCol = collection(db, `users/${accessKey}/sensors`);
+        const q = query(sensorsCol, orderBy("name", "asc"));
+        const sensorSnapshot = await getDocs(q);
+        return sensorSnapshot.docs.map(sensorFromDoc);
+    } catch (error) {
+        console.error("Error fetching sensors from Firestore:", error);
+        throw new Error("Não foi possível carregar os sensores do banco de dados.");
+    }
+}
+
+export async function addSensor(
+    accessKey: string, 
+    sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
+): Promise<Sensor> {
+    if (!db) throw new Error("Firestore not configured.");
+
+    const sensorsCol = collection(db, `users/${accessKey}/sensors`);
+    const docRef = await addDoc(sensorsCol, {
+        ...sensorData,
+        currentTemperature: 25, // Default starting temperature
+    });
+
+    return {
+        ...sensorData,
+        id: docRef.id,
+        currentTemperature: 25,
+        historicalData: [],
+    };
+}
+
+export async function updateSensor(
+    accessKey: string,
+    sensorId: string,
+    sensorData: Partial<Sensor>
+): Promise<Sensor> {
+    if (!db) throw new Error("Firestore not configured.");
+
+    const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
+    await updateDoc(sensorDoc, sensorData);
+    
+    // This return is optimistic; it doesn't re-fetch the data
+    return { id: sensorId, ...sensorData } as Sensor;
 }
 
 export async function deleteSensor(accessKey: string, sensorId: string): Promise<void> {
-  const storageKey = `${accessKey}_demo_sensors`;
-  let sensors = getStoredSensors(storageKey);
-  const updatedSensors = sensors.filter(s => s.id !== sensorId);
-  setStoredSensors(storageKey, updatedSensors);
+    if (!db) throw new Error("Firestore not configured.");
+
+    const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
+    await deleteDoc(sensorDoc);
 }
