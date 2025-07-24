@@ -55,8 +55,8 @@ const lotFromDoc = (doc: DocumentData): TraceabilityData => {
  * @returns A promise that resolves to an array of lots.
  */
 export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
-  if (!accessKey) {
-    console.error("getLots failed: accessKey is required.");
+  if (!db || !accessKey) {
+    console.error("getLots failed: Firestore not initialized or accessKey is missing.");
     return [];
   }
   try {
@@ -78,8 +78,8 @@ export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
  * @returns A promise that resolves to the newly created lot with its ID and timestamp.
  */
 export async function addLot(accessKey: string, lotData: Omit<TraceabilityData, 'id' | 'createdAt'>): Promise<TraceabilityData> {
-  if (!accessKey) {
-    throw new Error("addLot failed: accessKey is required.");
+  if (!db || !accessKey) {
+    throw new Error("addLot failed: Firestore not initialized or accessKey is missing.");
   }
   try {
     const lotsCol = collection(db, 'users', accessKey, 'traceabilityLots');

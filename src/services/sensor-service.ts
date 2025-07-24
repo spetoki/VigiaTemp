@@ -40,8 +40,8 @@ const sensorFromDoc = (doc: DocumentData): Sensor => {
  * @returns A promise that resolves to an array of sensors.
  */
 export async function getSensors(accessKey: string): Promise<Sensor[]> {
-  if (!accessKey) {
-    console.error("getSensors failed: accessKey is required.");
+  if (!db || !accessKey) {
+    console.error("getSensors failed: Firestore not initialized or accessKey is missing.");
     return [];
   }
   try {
@@ -62,8 +62,8 @@ export async function getSensors(accessKey: string): Promise<Sensor[]> {
  * @returns A promise that resolves to the newly created sensor with its ID.
  */
 export async function addSensor(accessKey: string, sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>): Promise<Sensor> {
-  if (!accessKey) {
-    throw new Error("addSensor failed: accessKey is required.");
+  if (!db || !accessKey) {
+    throw new Error("addSensor failed: Firestore not initialized or accessKey is missing.");
   }
   try {
     const sensorsCol = collection(db, 'users', accessKey, 'sensors');
@@ -93,8 +93,8 @@ export async function addSensor(accessKey: string, sensorData: Omit<Sensor, 'id'
  * @returns A promise that resolves when the update is complete.
  */
 export async function updateSensor(accessKey: string, sensorId: string, sensorData: Partial<Omit<Sensor, 'id' | 'historicalData'>>) {
-   if (!accessKey) {
-    throw new Error("updateSensor failed: accessKey is required.");
+   if (!db || !accessKey) {
+    throw new Error("updateSensor failed: Firestore not initialized or accessKey is missing.");
   }
   try {
     const sensorDoc = doc(db, 'users', accessKey, 'sensors', sensorId);
@@ -112,8 +112,8 @@ export async function updateSensor(accessKey: string, sensorId: string, sensorDa
  * @returns A promise that resolves when the deletion is complete.
  */
 export async function deleteSensor(accessKey: string, sensorId: string) {
-   if (!accessKey) {
-    throw new Error("deleteSensor failed: accessKey is required.");
+   if (!db || !accessKey) {
+    throw new Error("deleteSensor failed: Firestore not initialized or accessKey is missing.");
   }
   try {
     const sensorDoc = doc(db, 'users', accessKey, 'sensors', sensorId);

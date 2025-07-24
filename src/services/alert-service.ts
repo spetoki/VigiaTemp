@@ -12,7 +12,8 @@ import {
   query,
   orderBy,
   limit,
-  DocumentData
+  DocumentData,
+  writeBatch,
 } from 'firebase/firestore';
 
 // Helper to convert Firestore doc to Alert type
@@ -36,8 +37,8 @@ const alertFromDoc = (doc: DocumentData): Alert => {
  * @returns A promise that resolves to an array of alerts.
  */
 export async function getAlerts(accessKey: string): Promise<Alert[]> {
-  if (!accessKey) {
-    console.error("getAlerts failed: accessKey is required.");
+  if (!db || !accessKey) {
+    console.error("getAlerts failed: Firestore not initialized or accessKey is missing.");
     return [];
   }
   try {
@@ -60,8 +61,8 @@ export async function getAlerts(accessKey: string): Promise<Alert[]> {
  * @returns A promise that resolves to the newly created alert.
  */
 export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-  if (!accessKey) {
-    throw new Error("addAlert failed: accessKey is required.");
+  if (!db || !accessKey) {
+    throw new Error("addAlert failed: Firestore not initialized or accessKey is missing.");
   }
   try {
     const alertsCol = collection(db, 'users', accessKey, 'alerts');
@@ -84,8 +85,8 @@ export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>):
  * @param updateData The data to update.
  */
 export async function updateAlert(accessKey: string, alertId: string, updateData: Partial<Alert>) {
-   if (!accessKey) {
-    throw new Error("updateAlert failed: accessKey is required.");
+   if (!db || !accessKey) {
+    throw new Error("updateAlert failed: Firestore not initialized or accessKey is missing.");
   }
   try {
     const alertDoc = doc(db, 'users', accessKey, 'alerts', alertId);
@@ -103,12 +104,10 @@ export async function updateAlert(accessKey: string, alertId: string, updateData
  * @param updateData The data to update on all specified alerts.
  */
 export async function updateMultipleAlerts(accessKey: string, alertIds: string[], updateData: Partial<Alert>) {
-    if (!accessKey || alertIds.length === 0) {
+    if (!db || !accessKey || alertIds.length === 0) {
         return;
     }
     try {
-        // Firestore batch writes are more efficient for multiple updates.
-        const { writeBatch } = await import('firebase/firestore');
         const batch = writeBatch(db);
 
         alertIds.forEach(alertId => {
