@@ -69,16 +69,22 @@ export async function addLot(accessKey: string, lotData: Omit<TraceabilityData, 
     }
 
     const lotsCol = collection(db, `users/${accessKey}/lots`);
-    const newLotData = {
-        ...lotData,
+    
+    // Create a clean data object, excluding any undefined fields
+    const dataToSave: DocumentData = {
         createdAt: Timestamp.now(),
     };
-    
-    const docRef = await addDoc(lotsCol, newLotData);
+    Object.entries(lotData).forEach(([key, value]) => {
+        if (value !== undefined) {
+            dataToSave[key] = value;
+        }
+    });
+
+    const docRef = await addDoc(lotsCol, dataToSave);
     
     return {
         ...lotData,
         id: docRef.id,
-        createdAt: newLotData.createdAt.toDate().toISOString(),
+        createdAt: (dataToSave.createdAt as Timestamp).toDate().toISOString(),
     };
 }
