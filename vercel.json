@@ -3,5 +3,8 @@
     "env": {
       "GENKIT_ENV": "production"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
+  ]
 }
