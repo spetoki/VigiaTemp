@@ -30,7 +30,6 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
         model: data.model,
         ipAddress: data.ipAddress,
         macAddress: data.macAddress,
-        criticalAlertSound: data.criticalAlertSound,
         // historicalData is not stored in the main document
         historicalData: [], 
     };

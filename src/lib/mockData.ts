@@ -28,7 +28,6 @@ export const demoSensors: Sensor[] = [
     model: 'TermoX 5000',
     ipAddress: '192.168.1.101',
     macAddress: '0A:1B:2C:3D:4E:5F',
-    criticalAlertSound: undefined,
   },
   {
     id: 'sensor-2',
@@ -41,7 +40,6 @@ export const demoSensors: Sensor[] = [
     model: 'AmbientePro II',
     ipAddress: '192.168.1.102',
     macAddress: '1A:2B:3C:4D:5E:6F',
-    criticalAlertSound: undefined,
   },
   {
     id: 'sensor-3',
@@ -54,7 +52,6 @@ export const demoSensors: Sensor[] = [
     model: 'AgriSense X1',
     ipAddress: '192.168.1.103',
     macAddress: '2A:3B:4C:5D:6E:7F',
-    criticalAlertSound: undefined,
   },
 ];
 

@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSettings } from '@/context/SettingsContext';
 import { convertTemperature } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { Wifi, WifiOff, Music, Trash } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 import React from 'react';
 import { Separator } from '../ui/separator';
 
@@ -34,9 +34,6 @@ const supportedSensorModels = [
   'Bluetooth Generic',
 ];
 
-const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
-const ACCEPTED_AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a"];
-
 const formSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório"),
   location: z.string().min(1, "A localização é obrigatória"),
@@ -49,10 +46,6 @@ const formSchema = z.object({
   }),
   lowThreshold: z.number({ coerce: true }).min(-100, "Valor muito baixo").max(200, "Valor muito alto"),
   highThreshold: z.number({ coerce: true }).min(-100, "Valor muito baixo").max(200, "Valor muito alto"),
-  criticalAlertSound: z.any()
-    .refine((file) => !file || (file instanceof File && file.size <= MAX_FILE_SIZE), `O tamanho máximo do arquivo é de 1GB.`)
-    .refine((file) => !file || (file instanceof File && ACCEPTED_AUDIO_TYPES.includes(file.type)), "Apenas formatos .mp3, .wav, .ogg e .m4a são suportados.")
-    .optional(),
 }).refine(data => data.highThreshold > data.lowThreshold, {
   message: "O limite superior deve ser maior que o limite inferior",
   path: ["highThreshold"],
@@ -68,26 +61,13 @@ const formSchema = z.object({
 });
 
 
-export type SensorFormData = Omit<z.infer<typeof formSchema>, 'criticalAlertSound'> & {
-    criticalAlertSound?: string; // Store as base64 string
-};
+export type SensorFormData = z.infer<typeof formSchema>;
 
 interface SensorFormProps {
   sensor?: Sensor | null; // For editing
   onSubmit: (data: SensorFormData) => void;
   onCancel: () => void;
 }
-
-// Helper function to convert file to Base64
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
-};
-
 
 export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormProps) {
   const { temperatureUnit, t } = useSettings();
@@ -105,7 +85,6 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
         macAddress: sensor.macAddress || '',
         lowThreshold: parseFloat(convertTemperature(sensor.lowThreshold, temperatureUnit).toFixed(1)),
         highThreshold: parseFloat(convertTemperature(sensor.highThreshold, temperatureUnit).toFixed(1)),
-        criticalAlertSound: undefined, // Don't pre-fill file input
       }
     : {
         name: '',
@@ -115,7 +94,6 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
         macAddress: '',
         lowThreshold: temperatureUnit === 'C' ? 20 : 68,
         highThreshold: temperatureUnit === 'C' ? 30 : 86,
-        criticalAlertSound: undefined,
       };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -124,27 +102,11 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
     mode: "onChange",
   });
 
-  const [soundPreview, setSoundPreview] = React.useState<string | undefined>(sensor?.criticalAlertSound);
-
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    let soundAsBase64: string | undefined = soundPreview; // Keep existing sound if not changed
-
-    if (data.criticalAlertSound instanceof File) {
-        soundAsBase64 = await fileToBase64(data.criticalAlertSound);
-    } else if (data.criticalAlertSound === undefined) {
-        // This means the "Clear" button was pressed
-        soundAsBase64 = undefined;
-    }
-
     const finalData = {
-      name: data.name,
-      location: data.location,
-      model: data.model,
-      ipAddress: data.ipAddress,
-      macAddress: data.macAddress,
+      ...data,
       lowThreshold: parseFloat(convertTemperature(data.lowThreshold, 'C', temperatureUnit).toFixed(1)),
       highThreshold: parseFloat(convertTemperature(data.highThreshold, 'C', temperatureUnit).toFixed(1)),
-      criticalAlertSound: soundAsBase64,
     };
     onSubmit(finalData);
   };
@@ -291,53 +253,6 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                   )}
                 />
               </div>
-            </div>
-
-            <Separator />
-            
-            <div className="space-y-2">
-              <Label className="text-base font-semibold">{t('sensorForm.alertSoundsTitle', 'Sons de Alerta')}</Label>
-              <FormField
-                control={form.control}
-                name="criticalAlertSound"
-                render={({ field: { onChange, ...fieldRest } }) => (
-                  <FormItem>
-                    <FormLabel>{t('sensorForm.criticalAlertSoundLabel', 'Som de Alerta Crítico (Opcional)')}</FormLabel>
-                     <FormControl>
-                        <Input
-                          type="file"
-                          accept={ACCEPTED_AUDIO_TYPES.join(',')}
-                          className="text-sm"
-                          {...fieldRest}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            onChange(file); // Update react-hook-form state
-                            setSoundPreview(file ? URL.createObjectURL(file) : undefined);
-                          }}
-                        />
-                    </FormControl>
-                    {soundPreview && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                            <Music className="h-4 w-4 text-green-600" />
-                            <span>{t('sensorForm.customSoundLoaded', 'Som customizado carregado.')}</span>
-                            <Button variant="ghost" size="sm" type="button" onClick={() => {
-                                form.setValue('criticalAlertSound', undefined, { shouldValidate: true });
-                                setSoundPreview(undefined);
-                                const fileInput = document.getElementById('criticalAlertSound') as HTMLInputElement;
-                                if(fileInput) fileInput.value = "";
-                            }} className="text-destructive hover:text-destructive">
-                              <Trash className="mr-1 h-4 w-4" />
-                              {t('sensorForm.clearButton', 'Limpar')}
-                            </Button>
-                        </div>
-                    )}
-                    <FormDescription>
-                      {t('sensorForm.criticalAlertSoundDescription', 'Carregue um arquivo de áudio (MP3, WAV, OGG, M4A) de até 1GB.')}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
             
             <Separator />

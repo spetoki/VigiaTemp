@@ -180,7 +180,7 @@ export default function DashboardPage() {
             }
 
             if (status === 'critical') {
-                soundsToQueueForThisInterval.push(sensor.criticalAlertSound || defaultCriticalSound);
+                soundsToQueueForThisInterval.push(defaultCriticalSound);
             }
         });
         

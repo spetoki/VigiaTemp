@@ -20,7 +20,6 @@ export interface Sensor {
   model?: string;
   ipAddress?: string;
   macAddress?: string;
-  criticalAlertSound?: string; // Data URI for the sound
 }
 
 export interface Alert {
