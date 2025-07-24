@@ -7,7 +7,6 @@ import {
   getDocs,
   doc,
   addDoc,
-  serverTimestamp,
   query,
   orderBy,
   Timestamp,
@@ -103,7 +102,7 @@ export async function addLot(accessKey: string, lotData: TraceabilityFormData): 
       dryCocoaWeight: lotData.dryCocoaWeight !== '' ? Number(lotData.dryCocoaWeight) : null,
       fermentationTime: lotData.fermentationTime !== '' ? Number(lotData.fermentationTime) : null,
       dryingTime: lotData.dryingTime !== '' ? Number(lotData.dryingTime) : null,
-      createdAt: serverTimestamp(), // Use server timestamp for accuracy
+      createdAt: Timestamp.now(), // Use server timestamp for accuracy
     };
 
     const docRef = await addDoc(lotsCol, dataToSave);
