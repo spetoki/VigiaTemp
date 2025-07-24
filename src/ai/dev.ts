@@ -1,3 +1,2 @@
-// Este arquivo é usado para o desenvolvimento local do Genkit e seu conteúdo foi removido
-// intencionalmente para evitar problemas de dependência no build de produção do Vercel.
-// Os fluxos do Genkit são importados diretamente pelas Server Actions que os utilizam.
+// This file is used for local Genkit development and can be safely removed from production builds.
+// Removing its content prevents optional peer dependency issues (e.g., @opentelemetry/exporter-jaeger) on Vercel.
