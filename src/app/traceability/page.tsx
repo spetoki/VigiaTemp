@@ -29,7 +29,18 @@ interface TraceabilityData {
   classificationBoardImageBase64: string | null;
 }
 
-const initialFormData = {
+interface FormData {
+  lotDescription: string;
+  name: string;
+  wetCocoaWeight: string;
+  dryCocoaWeight: string;
+  fermentationTime: string;
+  dryingTime: string;
+  isoClassification: string;
+  classificationBoardImageBase64: string | null;
+}
+
+const initialFormData: FormData = {
     lotDescription: '',
     name: '',
     wetCocoaWeight: '',
@@ -74,7 +85,7 @@ export default function TraceabilityPage() {
   const [view, setView] = useState<View>('form');
   const [lots, setLots] = useState<TraceabilityData[]>([]);
   const [selectedLot, setSelectedLot] = useState<TraceabilityData | null>(null);
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
