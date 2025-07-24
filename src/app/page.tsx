@@ -263,7 +263,7 @@ export default function DashboardPage() {
       <section aria-labelledby="real-time-monitoring">
         <h2 id="real-time-monitoring" className="text-2xl font-semibold mb-4 font-headline">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h2>
         {sensors.length > 0 ? (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sensors.map(sensor => (
               <SensorCard key={sensor.id} sensor={sensor} />
             ))}
@@ -290,3 +290,5 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
+
+    
