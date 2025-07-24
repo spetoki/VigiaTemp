@@ -24,7 +24,6 @@ interface FormData {
   fermentationTime: string;
   dryingTime: string;
   isoClassification: string;
-  classificationBoardImageBase64: string | null;
 }
 
 const initialFormData: FormData = {
@@ -35,16 +34,6 @@ const initialFormData: FormData = {
     fermentationTime: '',
     dryingTime: '',
     isoClassification: '',
-    classificationBoardImageBase64: null,
-};
-
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
 };
 
 export default function TraceabilityPage() {
@@ -114,16 +103,6 @@ export default function TraceabilityPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      const base64 = await fileToBase64(file);
-      setFormData((prev) => ({ ...prev, classificationBoardImageBase64: base64 }));
-    } else {
-       setFormData((prev) => ({ ...prev, classificationBoardImageBase64: null }));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -246,15 +225,7 @@ export default function TraceabilityPage() {
                             <Label htmlFor="isoClassification">{t('traceability.isoClassificationLabel', 'Classificação Física (ISO-2451)')}</Label>
                             <Input type="text" id="isoClassification" value={formData.isoClassification} onChange={handleChange} required placeholder={t('traceability.isoClassificationPlaceholder', 'Ex: Grau I, Tipo A')} />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="classificationBoardImage">{t('traceability.boardImageLabel', 'Imagem da Tábua de Classificação')}</Label>
-                            <Input type="file" id="classificationBoardImage" accept="image/*" onChange={handleFileChange} required className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                            {formData.classificationBoardImageBase64 && (
-                                <div className="mt-4">
-                                <Image src={formData.classificationBoardImageBase64} alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')} width={200} height={200} className="rounded-md border object-cover" />
-                                </div>
-                            )}
-                        </div>
+                        
                         <div className="flex justify-end pt-4">
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? (
@@ -352,12 +323,6 @@ export default function TraceabilityPage() {
                             <p><strong>{t('traceability.fermentationTimeLabel', 'Tempo de Fermentação (dias)')}:</strong> {selectedLot.fermentationTime}</p>
                             <p><strong>{t('traceability.dryingTimeLabel', 'Tempo de Secagem (dias)')}:</strong> {selectedLot.dryingTime}</p>
                             <p><strong>{t('traceability.isoClassificationLabel', 'Classificação Física (ISO-2451)')}:</strong> {selectedLot.isoClassification}</p>
-                            {selectedLot.classificationBoardImageBase64 && (
-                                <div>
-                                <strong>{t('traceability.boardImageLabel', 'Imagem da Tábua de Classificação')}:</strong>
-                                <Image src={selectedLot.classificationBoardImageBase64} alt={t('traceability.boardImagePreviewAlt', 'Prévia da imagem da tábua')} width={100} height={100} className="rounded-md border object-cover mt-2" />
-                                </div>
-                            )}
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2 no-print">

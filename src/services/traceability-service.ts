@@ -28,7 +28,6 @@ export interface TraceabilityData {
   fermentationTime: string;
   dryingTime: string;
   isoClassification: string;
-  classificationBoardImageBase64: string | null;
 }
 
 const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData => {
@@ -43,7 +42,6 @@ const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData 
         fermentationTime: data.fermentationTime,
         dryingTime: data.dryingTime,
         isoClassification: data.isoClassification,
-        classificationBoardImageBase64: data.classificationBoardImageBase64,
     };
 };
 
