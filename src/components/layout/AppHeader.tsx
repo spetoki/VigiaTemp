@@ -159,3 +159,9 @@ export default function AppHeader() {
               <LogoutButton />
             </div>
           
+            <MobileNavMenu />
+        </div>
+      </div>
+    </header>
+  );
+}
