@@ -16,6 +16,7 @@ import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 import { getSensors, updateSensor } from '@/services/sensor-service';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
+import QuickAccessCard from '@/components/dashboard/QuickAccessCard';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -232,11 +233,14 @@ export default function DashboardPage() {
       </div>
       
       <section aria-labelledby="external-conditions">
-         <h2 id="external-conditions" className="sr-only">Condições Externas</h2>
-         <AmbientWeatherCard
-            temperature={ambientTemp}
-            isLoading={isLoadingAmbientTemp}
-          />
+         <h2 id="external-conditions" className="sr-only">Condições Externas e Acesso Rápido</h2>
+         <div className="flex flex-col sm:flex-row gap-6">
+            <AmbientWeatherCard
+              temperature={ambientTemp}
+              isLoading={isLoadingAmbientTemp}
+            />
+            <QuickAccessCard />
+         </div>
       </section>
 
       <section aria-labelledby="real-time-monitoring">
