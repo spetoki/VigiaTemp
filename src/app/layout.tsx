@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'VigiaTemp',
@@ -23,7 +24,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#14864A" />
       </head>
-      <body className="font-body antialiased">
+      <body className={cn("font-body antialiased bg-background text-foreground")}>
         <MainLayout>{children}</MainLayout>
       </body>
     </html>
