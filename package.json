@@ -41,6 +41,7 @@
     "clsx": "2.1.1",
     "date-fns": "3.6.0",
     "dotenv": "16.4.5",
+    "esp-web-tools": "^9.4.3",
     "firebase": "^10.12.3",
     "genkit": "1.13.0",
     "lucide-react": "0.400.0",

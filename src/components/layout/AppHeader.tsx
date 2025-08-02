@@ -3,7 +3,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Cog, Activity, LogOut } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Cog, Activity, LogOut, Chip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -39,7 +39,7 @@ export default function AppHeader() {
     { href: '/traceability', labelKey: 'nav.traceability', icon: ClipboardList, defaultLabel: 'Rastreabilidade' },
     { href: '/optimize-alarms', labelKey: 'nav.optimizeAlarms', icon: BrainCircuit, defaultLabel: 'Otimizar Alarmes' },
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
-    { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: Cog, defaultLabel: 'Configurar Dispositivo' },
+    { href: '/web-flasher', labelKey: 'nav.webFlasher', icon: Chip, defaultLabel: 'Gravador Web' },
     { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
   ];
   
@@ -159,9 +159,3 @@ export default function AppHeader() {
               <LogoutButton />
             </div>
           
-          <MobileNavMenu />
-        </div>
-      </div>
-    </header>
-  );
-}
