@@ -288,7 +288,7 @@ export default function HardwareAssemblyPage() {
        <Card className="shadow-lg border-primary/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Cog className="h-5 w-5 text-primary"/>
+            <Cpu className="h-5 w-5 text-primary"/>
             {t('hardwareAssembly.configuratorCard.title', 'Gere seu Código Personalizado')}
           </CardTitle>
           <CardDescription>
@@ -297,7 +297,7 @@ export default function HardwareAssemblyPage() {
         </CardHeader>
         <CardContent>
             <Button asChild>
-                <Link href="/device-configurator">
+                <Link href="/web-flasher">
                     {t('hardwareAssembly.configuratorCard.button', 'Abrir Configurador de Dispositivo')}
                 </Link>
             </Button>
