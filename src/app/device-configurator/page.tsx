@@ -14,8 +14,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const arduinoCodeTemplate = `
 /*
-  VigiaTemp - Universal Code with WiFi Manager
-  ===========================================
+  VigiaTemp - Universal Code with WiFi Manager (Upload-Friendly)
+  ==============================================================
   
   REQUIRED LIBRARY: For this code to work, you MUST install the "WiFiManager" 
   library in your Arduino IDE.
@@ -33,14 +33,13 @@ const arduinoCodeTemplate = `
   6. The ESP32 will save the information and connect to your network.
 */
 #include <WiFi.h>
-#include <WiFiManager.h> // Library for the configuration portal
+#include <WiFiManager.h>
 #include <HTTPClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
 // --- Hardware Settings ---
-// GPIO pin where the DS18B20 data pin is connected
-const int oneWireBus = 4; // GPIO 4
+const int oneWireBus = 4; // GPIO 4 where the DS18B20 data pin is connected
 
 // --- Global Variables ---
 OneWire oneWire(oneWireBus);
@@ -48,45 +47,52 @@ DallasTemperature sensors(&oneWire);
 unsigned long lastTime = 0;
 unsigned long timerDelay = 30000; // Send data every 30 seconds
 
-// Variables to store WiFiManager settings
-char server_url[100]; // Stores the server URL
+// Variable to store the server URL
+char server_url[100];
 
-void setup() {
-  Serial.begin(115200);
-  delay(1000); // Important delay to allow for easier flashing
-  sensors.begin();
-
-  // Start WiFiManager
+// Encapsulated function to handle WiFi configuration
+void setupWiFi() {
   WiFiManager wm;
   
   // Create a custom field in the portal for the server URL
   WiFiManagerParameter custom_server_url("server", "Server URL", "{serverName}", 100);
   wm.addParameter(&custom_server_url);
 
-  // Try to connect to WiFi. If it fails, start the configuration portal.
-  // The Access Point name will be "VigiaTemp-Config"
+  // Set a timeout for the configuration portal
+  wm.setConfigPortalTimeout(180); // 3 minutes
+
+  // Try to connect. If it fails, start the configuration portal.
   if (!wm.autoConnect("VigiaTemp-Config")) {
-    Serial.println("Failed to connect and timeout expired. Restarting...");
-    delay(3000);
-    ESP.restart(); // Restart ESP if configuration is not completed
+    Serial.println("Failed to connect and timeout expired. The device will continue to operate without WiFi connection.");
+  } else {
+    // If connection is successful
+    Serial.println("\\nConnected to your WiFi network!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("MAC Address: ");
+    Serial.println(WiFi.macAddress());
+    
+    // Save the value from the custom field to our variable
+    strcpy(server_url, custom_server_url.getValue());
+    Serial.print("Server URL configured to: ");
+    Serial.println(server_url);
   }
+}
 
-  // If the connection is successful
-  Serial.println("\\nConnected to your WiFi network!");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("MAC Address: ");
-  Serial.println(WiFi.macAddress());
+void setup() {
+  Serial.begin(115200);
+  delay(2000); // Increased delay for stability during flashing
 
-  // Save the value from the custom field to our variable
-  strcpy(server_url, custom_server_url.getValue());
-  Serial.print("Server URL configured to: ");
-  Serial.println(server_url);
+  sensors.begin();
+  Serial.println("Sensor system initialized.");
+
+  // Run WiFi setup
+  setupWiFi();
 }
 
 void loop() {
-  if ((millis() - lastTime) > timerDelay) {
-    sensors.requestTemperatures(); 
+  if (WiFi.status() == WL_CONNECTED && (millis() - lastTime) > timerDelay) {
+    sensors.requestTemperatures();
     float temperatureC = sensors.getTempCByIndex(0);
 
     if (temperatureC == DEVICE_DISCONNECTED_C) {
@@ -98,31 +104,30 @@ void loop() {
     Serial.print(temperatureC);
     Serial.println(" °C");
 
-    if (WiFi.status() == WL_CONNECTED) {
-      HTTPClient http;
-      
-      http.begin(server_url);
-      http.addHeader("Content-Type", "application/json");
+    HTTPClient http;
+    http.begin(server_url);
+    http.addHeader("Content-Type", "application/json");
 
-      String jsonPayload = "{\\"macAddress\\":\\"" + String(WiFi.macAddress()) + "\\",\\"temperature\\":" + String(temperatureC) + "}";
-
-      int httpResponseCode = http.POST(jsonPayload);
+    String jsonPayload = "{\\"macAddress\\":\\"" + String(WiFi.macAddress()) + "\\",\\"temperature\\":" + String(temperatureC) + "}";
+    
+    int httpResponseCode = http.POST(jsonPayload);
+    
+    Serial.print("HTTP Response Code: ");
+    Serial.println(httpResponseCode);
       
-      Serial.print("HTTP Response Code: ");
-      Serial.println(httpResponseCode);
-        
-      if (httpResponseCode > 0) {
-        String response = http.getString();
-        Serial.println("Server Response:");
-        Serial.println(response);
-      }
-      
-      http.end();
-    } else {
-      Serial.println("WiFi Disconnected");
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println("Server Response:");
+      Serial.println(response);
     }
     
+    http.end();
+    
     lastTime = millis();
+  } else if (WiFi.status() != WL_CONNECTED) {
+    // Optional: Log a message if WiFi is disconnected, but don't halt the loop
+    // Serial.println("WiFi Disconnected. Waiting for reconnection...");
+    delay(5000);
   }
 }
 `;
