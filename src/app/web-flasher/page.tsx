@@ -8,17 +8,15 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Chip, Usb, Info, UploadCloud, Rocket } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+
 // A interface ESP-Web-Tools não tem tipos TypeScript oficiais, então usaremos 'any'.
-declare global {
-    interface Window {
-        Improvado: any;
-    }
-}
+// Mover a declaração de tipos e a variável para dentro do componente evita conflitos globais.
 let espWebTool: any;
+
 export default function WebFlasherPage() {
   const { t } = useSettings();
   const [isFlashing, setIsFlashing] = useState(false);
-  const [status, setStatus] = useState('Aguardando...');
+  const [status, setStatus] = useState(t('webFlasher.status.awaiting', 'Aguardando...'));
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -27,20 +25,28 @@ export default function WebFlasherPage() {
 
   const handleConnect = async () => {
     setError(null);
-    if (!window.navigator.serial) {
+    if (typeof window === 'undefined' || !window.navigator.serial) {
       setError(t('webFlasher.error.noWebSerial', 'Seu navegador não suporta a Web Serial API. Use o Google Chrome ou Microsoft Edge em um computador.'));
       return;
     }
     
     // Importa dinamicamente a biblioteca quando o usuário clica em conectar
     if (!espWebTool) {
-      const espWebToolsModule = await import('esp-web-tools');
-      espWebTool = new espWebToolsModule.ESPLoader(window.navigator.serial, {
-          log: (...args) => console.log(...args),
-          debug: (...args) => console.debug(...args),
-          error: (...args) => console.error(...args),
-      });
+      try {
+        const espWebToolsModule = await import('esp-web-tools');
+        // @ts-ignore
+        espWebTool = new espWebToolsModule.ESPLoader(window.navigator.serial, {
+            log: (...args: any[]) => console.log(...args),
+            debug: (...args: any[]) => console.debug(...args),
+            error: (...args: any[]) => console.error(...args),
+        });
+      } catch (e) {
+          console.error("Failed to load esp-web-tools", e);
+          setError("Could not load the ESP Web Tools library.");
+          return;
+      }
     }
+
     try {
       await espWebTool.connect();
       setIsConnected(true);
@@ -135,4 +141,7 @@ export default function WebFlasherPage() {
           </div>
           <Progress value={progress} className={cn(isFlashing && "animate-pulse")} />
         </CardFooter>
-      
+      </Card>
+    </div>
+  );
+}
