@@ -2,13 +2,15 @@
 "use client";
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useSettings } from '@/context/SettingsContext';
 import { formatTemperature } from '@/lib/utils';
 import type { DailyForecast } from '@/ai/flows/get-weather-forecast';
 import { Sun, Cloud, Cloudy, Umbrella, Zap, Snowflake, Droplets, Wind, Sunrise, Sunset } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import HourlyForecastTimeline from './HourlyForecastTimeline';
+import { Separator } from '../ui/separator';
 
 interface ForecastCardProps {
   forecast: DailyForecast;
@@ -79,6 +81,11 @@ export default function ForecastCard({ forecast, location }: ForecastCardProps) 
           </div>
         </div>
       </CardContent>
+      <Separator />
+      <CardFooter className="flex-col items-start p-4">
+        <h3 className="text-sm font-medium text-muted-foreground mb-2">{t('weatherForecast.hourly.timelineTitle', 'Previsão Hora a Hora')}</h3>
+        <HourlyForecastTimeline hourlyData={forecast.hourly} />
+      </CardFooter>
     </Card>
   );
 }

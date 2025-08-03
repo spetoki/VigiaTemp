@@ -428,6 +428,7 @@
   "weatherForecast.hourly.description": "Detalhes das condições climáticas para {location}.",
   "weatherForecast.hourly.time": "Hora",
   "weatherForecast.hourly.temperature": "Temp.",
+  "weatherForecast.hourly.timelineTitle": "Previsão Hora a Hora",
   
   "lockScreen.title": "VigiaTemp",
   "lockScreen.description": "Por favor, insira a chave de acesso para continuar.",
