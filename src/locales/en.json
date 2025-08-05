@@ -289,7 +289,7 @@
 
   "localeCode": "en-US",
 
-  "footer.copyright": "© {year} VigiaTemp. All rights reserved to Irineu Marcos Bartnik",
+  "footer.copyright": "© {year} VigiaTemp. All rights reserved to Irineu Marcos",
   
   "hardwareAssembly.title": "Hardware Assembly Guide",
   "hardwareAssembly.description": "Follow this step-by-step guide to assemble your first temperature sensor prototype with ESP32 and DS18B20.",
