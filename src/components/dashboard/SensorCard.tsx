@@ -67,5 +67,3 @@ export default function SensorCard({ sensor }: SensorCardProps) {
     </Card>
   );
 }
-
-    
