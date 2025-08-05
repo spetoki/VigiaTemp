@@ -1,36 +1,38 @@
+
 "use client";
 
 import React, { useEffect, useRef } from 'react';
+import { Button } from '../ui/button';
+import { Usb, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 // This component uses the <esp-web-flasher> web component.
 // We need to declare its type for TypeScript to recognize it in JSX.
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'esp-web-flasher': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'esp-web-flasher': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+          manifest: string;
+      };
     }
   }
 }
 
 export default function WebFlasher() {
   const flasherRef = useRef<HTMLElement>(null);
-  
+  const [isClient, setIsClient] = React.useState(false);
+
   useEffect(() => {
-    // Dynamically import the web component script only on the client side.
-    // This prevents Next.js from trying to render it on the server.
+    // This ensures the component only renders on the client
+    setIsClient(true);
+
     const importAndInitializeFlasher = async () => {
       try {
-        // 1. Dynamically import the library.
         await import('esp-web-tools');
-        
-        // 2. Wait for the custom element to be defined in the browser.
-        // This is the crucial step to fix the race condition.
         await customElements.whenDefined('esp-web-flasher');
         
-        // 3. Now that we are sure the element is ready, we can set its properties.
         if (flasherRef.current) {
-            // Since 'manifest' is a custom property, we cast the element to `any`
-            // to bypass strict TypeScript type checking for this specific case.
+            // Set the manifest path. This tells the component where to find firmware info.
             (flasherRef.current as any).manifest = "/firmware/manifest.json";
         }
       } catch (error) {
@@ -41,15 +43,45 @@ export default function WebFlasher() {
     importAndInitializeFlasher();
   }, []);
 
+  if (!isClient) {
+    // Render nothing on the server
+    return null;
+  }
+
   return (
     // The web component's initial state might not have visible content until the manifest loads.
-    // A wrapper div with a minimum height ensures the area is reserved and visible.
-    // Adding some text to indicate loading state.
-    <div className="min-h-[250px]">
+    // We provide content for its "slots" to define what the UI looks like.
+    <div className="min-h-[250px] flex flex-col items-center justify-center text-center">
       <esp-web-flasher ref={flasherRef}>
-        <div slot="activate"></div>
-        <div slot="unsupported"></div>
-        <div slot="not-allowed"></div>
+        {/* This slot is used for the main action button */}
+        <div slot="activate">
+            <Button size="lg">
+                <Usb />
+                Conectar
+            </Button>
+        </div>
+
+        {/* This slot is shown if the browser doesn't support Web Serial */}
+        <div slot="unsupported">
+             <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Navegador não suportado</AlertTitle>
+                <AlertDescription>
+                    Seu navegador não suporta a Web Serial API. Por favor, use Google Chrome ou Microsoft Edge em um computador.
+                </AlertDescription>
+            </Alert>
+        </div>
+
+        {/* This slot is shown if the user denies access to the serial port */}
+        <div slot="not-allowed">
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Permissão Negada</AlertTitle>
+                <AlertDescription>
+                   Você precisa permitir o acesso à porta serial para continuar. Por favor, recarregue a página e tente novamente.
+                </AlertDescription>
+            </Alert>
+        </div>
       </esp-web-flasher>
     </div>
   );
