@@ -74,11 +74,12 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 262.1 83.3% 57.8%;
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
