@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, CodeXml, Cog } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, CodeXml, Usb } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -272,33 +272,20 @@ export default function HardwareAssemblyPage() {
         </CardContent>
       </Card>
       
-      <Card>
+      <Card className="shadow-lg border-primary/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CodeXml className="h-5 w-5 text-primary"/>
-            {t('hardwareAssembly.nextStepsTitle', 'Próximos Passos: Programando o ESP32')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            <p className="text-muted-foreground">{t('hardwareAssembly.nextStepsDescription', 'Com o hardware montado, o próximo passo é programar o ESP32. Você pode usar o software gratuito **Arduino IDE** para escrever e carregar o código no seu ESP32 (nenhuma placa Arduino é necessária). PlatformIO é outra ótima alternativa.')}</p>
-            <p className="text-muted-foreground">Antes de compilar, você precisará instalar duas bibliotecas usando o "Gerenciador de Bibliotecas" da Arduino IDE: <strong>OneWire</strong> e <strong>DallasTemperature</strong>.</p>
-        </CardContent>
-      </Card>
-
-       <Card className="shadow-lg border-primary/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Cog className="h-5 w-5 text-primary"/>
-            {t('hardwareAssembly.configuratorCard.title', 'Gere seu Código Personalizado')}
+            <Usb className="h-5 w-5 text-primary"/>
+            {t('hardwareAssembly.webFlasherCard.title', 'Instale o Firmware Facilmente')}
           </CardTitle>
           <CardDescription>
-            {t('hardwareAssembly.configuratorCard.description', 'Em vez de editar o código manualmente, use nosso configurador interativo para gerar o código exato para o seu dispositivo com apenas alguns cliques. É mais fácil e menos propenso a erros.')}
+            {t('hardwareAssembly.webFlasherCard.description', 'Use nosso instalador web para programar seu ESP32 diretamente pelo navegador com apenas um clique. É a maneira mais fácil de começar.')}
           </CardDescription>
         </CardHeader>
         <CardContent>
             <Button asChild>
-                <Link href="/device-configurator">
-                    {t('hardwareAssembly.configuratorCard.button', 'Abrir Configurador de Dispositivo')}
+                <Link href="/web-flasher">
+                    {t('hardwareAssembly.webFlasherCard.button', 'Abrir Instalador Web')}
                 </Link>
             </Button>
         </CardContent>

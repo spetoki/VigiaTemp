@@ -20,6 +20,7 @@
   "nav.closeMenu": "Close Menu",
   "nav.adminPanel": "Admin Panel",
   "nav.deviceConfigurator": "Device Configurator",
+  "nav.webFlasher": "Web Flasher",
   "nav.users": "Users",
   "nav.chat": "AI Assistant",
 
@@ -322,6 +323,9 @@
   "hardwareAssembly.configuratorCard.title": "Generate Your Custom Code",
   "hardwareAssembly.configuratorCard.description": "Instead of manually editing code, use our interactive configurator to generate the exact code for your device with just a few clicks. It's easier and less error-prone.",
   "hardwareAssembly.configuratorCard.button": "Open Device Configurator",
+  "hardwareAssembly.webFlasherCard.title": "Install Firmware Easily",
+  "hardwareAssembly.webFlasherCard.description": "Use our web flasher to program your ESP32 directly from the browser with just one click. It's the easiest way to get started.",
+  "hardwareAssembly.webFlasherCard.button": "Open Web Flasher",
 
   "traceability.pageTitle": "Cocoa Lot Traceability",
   "traceability.pageDescription": "Record all important information for each cocoa lot to ensure quality and traceability.",

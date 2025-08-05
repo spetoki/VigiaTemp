@@ -20,6 +20,7 @@
   "nav.closeMenu": "Cerrar Menú",
   "nav.adminPanel": "Panel Admin",
   "nav.deviceConfigurator": "Configurador de Dispositivo",
+  "nav.webFlasher": "Instalador Web",
   "nav.users": "Usuarios",
   "nav.chat": "Asistente de IA",
 
@@ -322,6 +323,9 @@
   "hardwareAssembly.configuratorCard.title": "Genere su Código Personalizado",
   "hardwareAssembly.configuratorCard.description": "En lugar de editar el código manualmente, utilice nuestro configurador interactivo para generar el código exacto para su dispositivo con solo unos clics. Es más fácil y menos propenso a errores.",
   "hardwareAssembly.configuratorCard.button": "Abrir Configurador de Dispositivo",
+  "hardwareAssembly.webFlasherCard.title": "Instale el Firmware Fácilmente",
+  "hardwareAssembly.webFlasherCard.description": "Use nuestro instalador web para programar su ESP32 directamente desde el navegador con un solo clic. Es la forma más fácil de comenzar.",
+  "hardwareAssembly.webFlasherCard.button": "Abrir Instalador Web",
   
   "traceability.pageTitle": "Trazabilidad de Lotes de Cacao",
   "traceability.pageDescription": "Registre toda la información importante de cada lote de cacao para garantizar la calidad y la trazabilidad.",

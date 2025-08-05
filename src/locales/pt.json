@@ -20,6 +20,7 @@
   "nav.closeMenu": "Fechar Menu",
   "nav.adminPanel": "Painel Admin",
   "nav.deviceConfigurator": "Configurar Dispositivo",
+  "nav.webFlasher": "Instalador Web",
   "nav.users": "Usuários",
   "nav.chat": "Assistente IA",
 
@@ -313,6 +314,9 @@
   "hardwareAssembly.configuratorCard.title": "Gere seu Código Personalizado",
   "hardwareAssembly.configuratorCard.description": "Em vez de editar o código manualmente, use nosso configurador interativo para gerar o código exato para o seu dispositivo com apenas alguns cliques. É mais fácil e menos propenso a erros.",
   "hardwareAssembly.configuratorCard.button": "Abrir Configurador de Dispositivo",
+  "hardwareAssembly.webFlasherCard.title": "Instale o Firmware Facilmente",
+  "hardwareAssembly.webFlasherCard.description": "Use nosso instalador web para programar seu ESP32 diretamente pelo navegador com apenas um clique. É a maneira mais fácil de começar.",
+  "hardwareAssembly.webFlasherCard.button": "Abrir Instalador Web",
   
   "traceability.pageTitle": "Rastreabilidade de Lotes de Cacau",
   "traceability.pageDescription": "Registre todas as informações importantes de cada lote de cacau para garantir a qualidade e a rastreabilidade.",
@@ -373,7 +377,7 @@
   "deviceConfigurator.generatedCodeDescription": "Copie, cole na sua Arduino IDE e instale a biblioteca 'WiFiManager' pelo Gerenciador de Bibliotecas.",
   "deviceConfigurator.copyButton": "Copiar Código",
   "deviceConfigurator.copiedButton": "Copiado!",
-  "deviceConfigurator.errorTitle": "Campos Obrigatórios",
+  "deviceConfigGurator.errorTitle": "Campos Obrigatórios",
   "deviceConfigurator.errorDescription": "Por favor, preencha a URL do Aplicativo.",
   "deviceConfigurator.copySuccessTitle": "Copiado!",
   "deviceConfigurator.copySuccessDescription": "O código foi copiado para a sua área de transferência.",
