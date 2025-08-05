@@ -10,11 +10,12 @@ import { useSettings } from '@/context/SettingsContext';
 
 // This component uses the <esp-web-flasher> web component.
 // We need to declare its type for TypeScript to recognize it in JSX.
+// The `manifest` property is now optional to prevent build errors.
 declare global {
   namespace JSX {
     interface IntrinsicElements {
       'esp-web-flasher': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-          manifest: string;
+          manifest?: string;
       };
     }
   }
