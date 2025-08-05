@@ -216,10 +216,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.title', 'Painel de Sensores')}</h1>
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col md:flex-row gap-8">
+
+      {/* Coluna da Esquerda */}
+      <div className="w-full md:w-1/4 lg:w-1/5 space-y-4">
+        <section aria-labelledby="external-conditions">
+          <h2 id="external-conditions" className="text-xl font-bold font-headline text-primary mb-4">{t('dashboard.title', 'Painel de Sensores')}</h2>
+          <AmbientWeatherCard
+            temperature={ambientTemp}
+            isLoading={isLoadingAmbientTemp}
+          />
+        </section>
+      </div>
+
+      {/* Coluna da Direita */}
+      <div className="flex-1 space-y-4">
+        <div className="flex justify-end items-center gap-2">
           <Button onClick={() => setIsMuted(!isMuted)} variant="outline">
             {isMuted ? <Volume2 className="mr-2 h-4 w-4" /> : <VolumeX className="mr-2 h-4 w-4" />}
             {isMuted ? t('dashboard.unmuteButton', 'Ativar Som') : t('dashboard.muteButton', 'Silenciar Alarme')}
@@ -229,30 +241,20 @@ export default function DashboardPage() {
             {isLoading ? t('dashboard.refreshingButton', 'Atualizando...') : t('dashboard.refreshButton', 'Atualizar Dados')}
           </Button>
         </div>
-      </div>
-      
-      <section aria-labelledby="external-conditions">
-         <h2 id="external-conditions" className="sr-only">Condições Externas e Acesso Rápido</h2>
-         <div className="w-full max-w-sm">
-            <AmbientWeatherCard
-              temperature={ambientTemp}
-              isLoading={isLoadingAmbientTemp}
-            />
-         </div>
-      </section>
 
-      <section aria-labelledby="real-time-monitoring">
-        <h2 id="real-time-monitoring" className="text-2xl font-semibold mb-4 font-headline">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h2>
-        {sensors.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sensors.map(sensor => (
-              <SensorCard key={sensor.id} sensor={sensor} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground">{t('dashboard.noSensorsAvailable', 'Nenhum sensor disponível. Adicione sensores na página de Gerenciamento de Sensores.')}</p>
-        )}
-      </section>
+        <section aria-labelledby="real-time-monitoring">
+          <h2 id="real-time-monitoring" className="text-2xl font-semibold mb-4 font-headline">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h2>
+          {sensors.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sensors.map(sensor => (
+                <SensorCard key={sensor.id} sensor={sensor} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">{t('dashboard.noSensorsAvailable', 'Nenhum sensor disponível. Adicione sensores na página de Gerenciamento de Sensores.')}</p>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

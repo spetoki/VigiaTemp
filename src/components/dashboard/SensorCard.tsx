@@ -53,9 +53,9 @@ export default function SensorCard({ sensor }: SensorCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-center my-4">
+        <div className="flex items-center justify-center my-4 gap-2">
           <Thermometer className={cn("h-16 w-16", statusConfig[status].colorClass)} />
-          <p className={cn("text-5xl font-bold ml-4", statusConfig[status].colorClass)}>
+          <p className={cn("text-5xl font-bold", statusConfig[status].colorClass)}>
             {formatTemperature(sensor.currentTemperature, temperatureUnit)}
           </p>
         </div>
