@@ -2,7 +2,6 @@
 
 import WebFlasher from '@/components/web-flasher/WebFlasher';
 import { useSettings } from '@/context/SettingsContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Usb, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -29,17 +28,9 @@ export default function WebFlasherPage() {
         </AlertDescription>
       </Alert>
 
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>{t('webFlasher.cardTitle', 'Instalador de Firmware VigiaTemp')}</CardTitle>
-          <CardDescription>
-            {t('webFlasher.cardDescription', 'Este instalador irá gravar o software necessário no seu ESP32 para se conectar ao VigiaTemp.')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WebFlasher />
-        </CardContent>
-      </Card>
+      <div className="border rounded-lg p-4 md:p-6 shadow-lg">
+        <WebFlasher />
+      </div>
     </div>
   );
 }
