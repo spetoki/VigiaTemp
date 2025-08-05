@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, CodeXml, Usb, BookOpenCheck } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, CodeXml, Usb, BookOpenCheck, FileCode2 } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -298,27 +298,46 @@ export default function HardwareAssemblyPage() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-lg border-primary/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Usb className="h-5 w-5 text-primary"/>
-            {t('hardwareAssembly.webFlasherCard.title', 'Instale o Firmware Facilmente')}
-          </CardTitle>
-          <CardDescription>
-            {t('hardwareAssembly.webFlasherCard.description', 'Use nosso instalador web para programar seu ESP32 diretamente pelo navegador com apenas um clique. É a maneira mais fácil de começar.')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Button asChild>
-                <Link href="/web-flasher">
-                    {t('hardwareAssembly.webFlasherCard.button', 'Abrir Instalador Web')}
-                </Link>
-            </Button>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="shadow-lg border-primary/50">
+            <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <FileCode2 className="h-5 w-5 text-primary"/>
+                {t('hardwareAssembly.configuratorCard.title', 'Gere seu Código Personalizado')}
+            </CardTitle>
+            <CardDescription>
+                {t('hardwareAssembly.configuratorCard.description', 'Em vez de editar o código manualmente, use nosso configurador interativo para gerar o código exato para o seu dispositivo com apenas alguns cliques. É mais fácil e menos propenso a erros.')}
+            </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild>
+                    <Link href="/device-configurator">
+                        {t('hardwareAssembly.configuratorCard.button', 'Abrir Configurador de Dispositivo')}
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+
+        <Card className="shadow-lg border-primary/50">
+            <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <Usb className="h-5 w-5 text-primary"/>
+                {t('hardwareAssembly.webFlasherCard.title', 'Instale o Firmware Facilmente')}
+            </CardTitle>
+            <CardDescription>
+                {t('hardwareAssembly.webFlasherCard.description', 'Use nosso instalador web para programar seu ESP32 diretamente pelo navegador com apenas um clique. É a maneira mais fácil de começar.')}
+            </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild>
+                    <Link href="/web-flasher">
+                        {t('hardwareAssembly.webFlasherCard.button', 'Abrir Instalador Web')}
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+      </div>
 
     </div>
   );
 }
-
-    

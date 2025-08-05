@@ -381,7 +381,7 @@
   "deviceConfigurator.generatedCodeDescription": "Copie, cole na sua Arduino IDE e instale a biblioteca 'WiFiManager' pelo Gerenciador de Bibliotecas.",
   "deviceConfigurator.copyButton": "Copiar Código",
   "deviceConfigurator.copiedButton": "Copiado!",
-  "deviceConfigGurator.errorTitle": "Campos Obrigatórios",
+  "deviceConfigurator.errorTitle": "Campos Obrigatórios",
   "deviceConfigurator.errorDescription": "Por favor, preencha a URL do Aplicativo.",
   "deviceConfigurator.copySuccessTitle": "Copiado!",
   "deviceConfigurator.copySuccessDescription": "O código foi copiado para a sua área de transferência.",
@@ -456,5 +456,3 @@
   "lockScreen.toast.lockoutRemovedDescription": "O bloqueio de tempo foi removido. Pode tentar a sua chave de acesso novamente.",
   "lockScreen.masterKeyInfo": "Bloqueado? Use a chave mestra para liberar o tempo de espera."
 }
-
-    

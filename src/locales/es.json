@@ -187,15 +187,6 @@
   "sensorForm.connectionCheckToast.title": "Verificación de Conexión",
   "sensorForm.connectionCheckToast.success": "¡El sensor parece estar en línea!",
   "sensorForm.connectionCheckToast.fail": "No se pudo conectar al sensor.",
-  "sensorForm.alertSoundsTitle": "Sonidos de Alerta",
-  "sensorForm.criticalAlertSoundLabel": "Sonido de Alerta Crítica (Opcional)",
-  "sensorForm.criticalAlertSoundDescription": "Cargue un archivo de audio (MP3, WAV, OGG, M4A) de hasta 1GB.",
-  "sensorForm.customSoundLoaded": "Sonido personalizado cargado.",
-  "sensorForm.clearButton": "Limpiar",
-  "sensorForm.fileConversionError.title": "Error al Cargar Archivo",
-  "sensorForm.fileConversionError.description": "No se pudo procesar el archivo de audio.",
-  "sensorForm.fileTooLarge.title": "Archivo Demasiado Grande",
-  "sensorForm.fileTooLarge.description": "El archivo de audio no puede exceder los {size}GB.",
   "sensorForm.cancelButton": "Cancelar",
   "sensorForm.saveButton": "Guardar Cambios",
   "sensorForm.addButton": "Agregar Sensor",
@@ -287,7 +278,7 @@
   "systemSettings.unitsTitle": "Unidades de Medida",
   "systemSettings.unitsDescription": "Elija las unidades de visualización para las mediciones.",
   "systemSettings.temperatureUnitLabel": "Unidad de Temperatura",
-
+  
   "localeCode": "es-ES",
 
   "footer.copyright": "© {year} VigiaTemp. Todos los derechos reservados a Irineu Marcos.",
@@ -465,5 +456,3 @@
   "lockScreen.toast.lockoutRemovedDescription": "El bloqueo de tiempo ha sido eliminado. Puede intentar su clave de acceso de nuevo.",
   "lockScreen.masterKeyInfo": "¿Bloqueado? Use la clave maestra para eliminar el tiempo de espera."
 }
-
-    
