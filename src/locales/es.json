@@ -454,5 +454,11 @@
   "lockScreen.warning.lockout": "Advertencia: Después de 3 intentos incorrectos, el acceso se bloqueará temporalmente.",
   "lockScreen.toast.lockoutRemovedTitle": "Bloqueo Eliminado",
   "lockScreen.toast.lockoutRemovedDescription": "El bloqueo de tiempo ha sido eliminado. Puede intentar su clave de acceso de nuevo.",
-  "lockScreen.masterKeyInfo": "¿Bloqueado? Use la clave maestra para eliminar el tiempo de espera."
+  "lockScreen.masterKeyInfo": "¿Bloqueado? Use la clave maestra para eliminar el tiempo de espera.",
+
+  "webFlasher.description": "Grabe el firmware en su ESP32 directamente desde su navegador. Conecte el dispositivo, haga clic en 'Conectar' y siga las instrucciones.",
+  "webFlasher.compatibilityTitle": "Navegadores Compatibles",
+  "webFlasher.compatibilityDescription": "Esta herramienta funciona mejor en Google Chrome, Microsoft Edge u otros navegadores basados en Chromium. Firefox y Safari no son compatibles.",
+  "webFlasher.cardTitle": "Instalador de Firmware VigiaTemp",
+  "webFlasher.cardDescription": "Este instalador escribirá el software necesario en su ESP32 para conectarse a VigiaTemp."
 }

@@ -190,8 +190,6 @@
   "sensorForm.alertSoundsTitle": "Alert Sounds",
   "sensorForm.criticalAlertSoundLabel": "Critical Alert Sound (Optional)",
   "sensorForm.criticalAlertSoundDescription": "Upload an audio file (MP3, WAV, OGG, M4A) up to 1GB.",
-  "sensorForm.customSoundLoaded": "Custom sound loaded.",
-  "sensorForm.clearButton": "Clear",
   "sensorForm.fileConversionError.title": "File Upload Error",
   "sensorForm.fileConversionError.description": "Could not process the audio file.",
   "sensorForm.fileTooLarge.title": "File Too Large",
@@ -374,7 +372,7 @@
   "traceability.saveErrorNoUser": "Access key not found. Cannot save lot.",
   "traceability.loadErrorTitle": "Error Loading Lots",
   "traceability.loadErrorDescription": "Could not fetch saved lots.",
-
+  
   "deviceConfigurator.title": "ESP32 Code Configurator",
   "deviceConfigurator.description": "Generate a universal code for your device. This code uses a web portal to allow anyone to configure the WiFi network without needing to edit the source code.",
   "deviceConfigurator.formTitle": "Universal Configuration (WiFiManager)",
@@ -422,7 +420,6 @@
   "weatherForecast.title": "Detailed Weather Forecast",
   "weatherForecast.description": "Analyze weather conditions for the upcoming day, week, and month.",
   "weatherForecast.pageDescription": "Enter a location and analyze weather conditions for the upcoming day, week, and month.",
-  "weatherForecast.location": "Cocoa Farm, Bahia",
   "weatherForecast.locationPlaceholder": "E.g., Salvador, Bahia",
   "weatherForecast.searchButton": "Search Forecast",
   "weatherForecast.tabs.day": "Today",
@@ -465,5 +462,11 @@
   "lockScreen.warning.lockout": "Warning: After 3 incorrect attempts, access will be temporarily blocked.",
   "lockScreen.toast.lockoutRemovedTitle": "Lockout Removed",
   "lockScreen.toast.lockoutRemovedDescription": "The time lock has been removed. You can try your access key again.",
-  "lockScreen.masterKeyInfo": "Locked out? Use the master key to clear the waiting time."
+  "lockScreen.masterKeyInfo": "Locked out? Use the master key to clear the waiting time.",
+
+  "webFlasher.description": "Flash the firmware to your ESP32 directly from your browser. Connect the device, click 'Connect', and follow the instructions.",
+  "webFlasher.compatibilityTitle": "Compatible Browsers",
+  "webFlasher.compatibilityDescription": "This tool works best on Google Chrome, Microsoft Edge, or other Chromium-based browsers. Firefox and Safari are not supported.",
+  "webFlasher.cardTitle": "VigiaTemp Firmware Flasher",
+  "webFlasher.cardDescription": "This flasher will write the necessary software to your ESP32 to connect to VigiaTemp."
 }
