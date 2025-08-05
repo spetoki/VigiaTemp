@@ -5,6 +5,8 @@ import React, { useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import { Usb, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { useSettings } from '@/context/SettingsContext';
+
 
 // This component uses the <esp-web-flasher> web component.
 // We need to declare its type for TypeScript to recognize it in JSX.
@@ -21,6 +23,7 @@ declare global {
 export default function WebFlasher() {
   const flasherRef = useRef<HTMLElement>(null);
   const [isClient, setIsClient] = React.useState(false);
+  const { t } = useSettings();
 
   useEffect(() => {
     // This ensures the component only renders on the client
@@ -28,7 +31,10 @@ export default function WebFlasher() {
 
     const importAndInitializeFlasher = async () => {
       try {
+        // Dynamically import the library on the client side
         await import('esp-web-tools');
+        
+        // Wait until the custom element is defined
         await customElements.whenDefined('esp-web-flasher');
         
         if (flasherRef.current) {
@@ -44,20 +50,20 @@ export default function WebFlasher() {
   }, []);
 
   if (!isClient) {
-    // Render nothing on the server
+    // Render nothing on the server, return a placeholder if needed
     return null;
   }
 
   return (
     // The web component's initial state might not have visible content until the manifest loads.
     // We provide content for its "slots" to define what the UI looks like.
-    <div className="min-h-[250px] flex flex-col items-center justify-center text-center">
+    <div className="min-h-[200px] flex flex-col items-center justify-center text-center">
       <esp-web-flasher ref={flasherRef}>
         {/* This slot is used for the main action button */}
         <div slot="activate">
             <Button size="lg">
-                <Usb />
-                Conectar
+                <Usb className="mr-2 h-4 w-4" />
+                {t('deviceConfigurator.copyButton', 'Conectar')}
             </Button>
         </div>
 
@@ -65,9 +71,9 @@ export default function WebFlasher() {
         <div slot="unsupported">
              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Navegador não suportado</AlertTitle>
+                <AlertTitle>{t('webFlasher.compatibilityTitle', 'Navegador não suportado')}</AlertTitle>
                 <AlertDescription>
-                    Seu navegador não suporta a Web Serial API. Por favor, use Google Chrome ou Microsoft Edge em um computador.
+                   {t('webFlasher.compatibilityDescription', 'Seu navegador não suporta a Web Serial API. Por favor, use Google Chrome ou Microsoft Edge em um computador.')}
                 </AlertDescription>
             </Alert>
         </div>
@@ -76,9 +82,9 @@ export default function WebFlasher() {
         <div slot="not-allowed">
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Permissão Negada</AlertTitle>
+                <AlertTitle>{t('lockScreen.error.incorrectKey', 'Permissão Negada')}</AlertTitle>
                 <AlertDescription>
-                   Você precisa permitir o acesso à porta serial para continuar. Por favor, recarregue a página e tente novamente.
+                   {t('traceability.qrCodeErrorDescription', 'Você precisa permitir o acesso à porta serial para continuar. Por favor, recarregue a página e tente novamente.')}
                 </AlertDescription>
             </Alert>
         </div>
