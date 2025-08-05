@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, CodeXml, Usb } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, CodeXml, Usb, BookOpenCheck } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -272,6 +272,32 @@ export default function HardwareAssemblyPage() {
         </CardContent>
       </Card>
       
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpenCheck className="h-5 w-5 text-primary"/>
+            {t('hardwareAssembly.alternatives.title', 'Alternativas ao ESP32 para Iniciantes')}
+          </CardTitle>
+          <CardDescription>
+            {t('hardwareAssembly.alternatives.description', 'O ESP32 é poderoso, mas se você está começando, existem opções mais simples que também funcionam perfeitamente para este projeto.')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div>
+                <h4 className="font-semibold text-md">1. Raspberry Pi Pico W</h4>
+                <p className="text-muted-foreground text-sm">
+                    {t('hardwareAssembly.alternatives.picoW', 'A melhor alternativa. É barato, poderoso e tem Wi-Fi integrado. É programado em MicroPython, que é muito amigável para iniciantes. A documentação oficial é excelente.')}
+                </p>
+            </div>
+            <div>
+                <h4 className="font-semibold text-md">2. Arduino Uno R4 WiFi / Nano ESP32</h4>
+                <p className="text-muted-foreground text-sm">
+                    {t('hardwareAssembly.alternatives.arduino', 'As versões modernas das placas Arduino clássicas agora vêm com Wi-Fi. Você obtém a enorme comunidade e a simplicidade do ecossistema Arduino sem precisar de módulos extras.')}
+                </p>
+            </div>
+        </CardContent>
+      </Card>
+
       <Card className="shadow-lg border-primary/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -294,3 +320,5 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    

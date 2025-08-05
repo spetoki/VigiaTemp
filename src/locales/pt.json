@@ -317,7 +317,11 @@
   "hardwareAssembly.webFlasherCard.title": "Instale o Firmware Facilmente",
   "hardwareAssembly.webFlasherCard.description": "Use nosso instalador web para programar seu ESP32 diretamente pelo navegador com apenas um clique. É a maneira mais fácil de começar.",
   "hardwareAssembly.webFlasherCard.button": "Abrir Instalador Web",
-  
+  "hardwareAssembly.alternatives.title": "Alternativas ao ESP32 para Iniciantes",
+  "hardwareAssembly.alternatives.description": "O ESP32 é poderoso, mas se você está começando, existem opções mais simples que também funcionam perfeitamente para este projeto.",
+  "hardwareAssembly.alternatives.picoW": "A melhor alternativa. É barato, poderoso e tem Wi-Fi integrado. É programado em MicroPython, que é muito amigável para iniciantes. A documentação oficial é excelente.",
+  "hardwareAssembly.alternatives.arduino": "As versões modernas das placas Arduino clássicas agora vêm com Wi-Fi. Você obtém a enorme comunidade e a simplicidade do ecossistema Arduino sem precisar de módulos extras.",
+
   "traceability.pageTitle": "Rastreabilidade de Lotes de Cacau",
   "traceability.pageDescription": "Registre todas as informações importantes de cada lote de cacau para garantir a qualidade e a rastreabilidade.",
   "traceability.formTitle": "Formulário de Rastreabilidade do Lote",
@@ -452,3 +456,5 @@
   "lockScreen.toast.lockoutRemovedDescription": "O bloqueio de tempo foi removido. Pode tentar a sua chave de acesso novamente.",
   "lockScreen.masterKeyInfo": "Bloqueado? Use a chave mestra para liberar o tempo de espera."
 }
+
+    

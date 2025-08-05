@@ -326,6 +326,10 @@
   "hardwareAssembly.webFlasherCard.title": "Install Firmware Easily",
   "hardwareAssembly.webFlasherCard.description": "Use our web flasher to program your ESP32 directly from the browser with just one click. It's the easiest way to get started.",
   "hardwareAssembly.webFlasherCard.button": "Open Web Flasher",
+  "hardwareAssembly.alternatives.title": "Alternatives to ESP32 for Beginners",
+  "hardwareAssembly.alternatives.description": "The ESP32 is powerful, but if you're just starting out, there are simpler options that also work perfectly for this project.",
+  "hardwareAssembly.alternatives.picoW": "The best alternative. It's cheap, powerful, and has built-in Wi-Fi. It's programmed in MicroPython, which is very beginner-friendly. The official documentation is excellent.",
+  "hardwareAssembly.alternatives.arduino": "Modern versions of the classic Arduino boards now come with Wi-Fi. You get the huge community and simplicity of the Arduino ecosystem without needing extra modules.",
 
   "traceability.pageTitle": "Cocoa Lot Traceability",
   "traceability.pageDescription": "Record all important information for each cocoa lot to ensure quality and traceability.",
@@ -463,3 +467,5 @@
   "lockScreen.toast.lockoutRemovedDescription": "The time lock has been removed. You can try your access key again.",
   "lockScreen.masterKeyInfo": "Locked out? Use the master key to clear the waiting time."
 }
+
+    

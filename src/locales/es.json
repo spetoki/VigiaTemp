@@ -321,11 +321,15 @@
   "hardwareAssembly.enterEditMode": "Editar Página",
   "hardwareAssembly.exitEditMode": "Salir de Edición",
   "hardwareAssembly.configuratorCard.title": "Genere su Código Personalizado",
-  "hardwareAssembly.configuratorCard.description": "En lugar de editar el código manualmente, utilice nuestro configurador interactivo para generar el código exacto para su dispositivo con solo unos clics. Es más fácil y menos propenso a errores.",
+  "hardwareAssembly.configuratorCard.description": "En lugar de editar el código manually, utilice nuestro configurador interactivo para generar el código exacto para su dispositivo con solo unos clics. Es más fácil y menos propenso a errores.",
   "hardwareAssembly.configuratorCard.button": "Abrir Configurador de Dispositivo",
   "hardwareAssembly.webFlasherCard.title": "Instale el Firmware Fácilmente",
   "hardwareAssembly.webFlasherCard.description": "Use nuestro instalador web para programar su ESP32 directamente desde el navegador con un solo clic. Es la forma más fácil de comenzar.",
   "hardwareAssembly.webFlasherCard.button": "Abrir Instalador Web",
+  "hardwareAssembly.alternatives.title": "Alternativas al ESP32 para Principiantes",
+  "hardwareAssembly.alternatives.description": "El ESP32 es potente, pero si estás empezando, existen opciones más sencillas que también funcionan perfectamente para este proyecto.",
+  "hardwareAssembly.alternatives.picoW": "La mejor alternativa. Es barato, potente y tiene Wi-Fi incorporado. Se programa en MicroPython, que es muy amigable para principiantes. La documentación oficial es excelente.",
+  "hardwareAssembly.alternatives.arduino": "Las versiones modernas de las placas Arduino clásicas ahora vienen con Wi-Fi. Obtienes la enorme comunidad y la simplicidad del ecosistema Arduino sin necesidad de módulos adicionales.",
   
   "traceability.pageTitle": "Trazabilidad de Lotes de Cacao",
   "traceability.pageDescription": "Registre toda la información importante de cada lote de cacao para garantizar la calidad y la trazabilidad.",
@@ -461,3 +465,5 @@
   "lockScreen.toast.lockoutRemovedDescription": "El bloqueo de tiempo ha sido eliminado. Puede intentar su clave de acceso de nuevo.",
   "lockScreen.masterKeyInfo": "¿Bloqueado? Use la clave maestra para eliminar el tiempo de espera."
 }
+
+    
