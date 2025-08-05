@@ -231,31 +231,26 @@ export default function DashboardPage() {
         </div>
       </div>
       
-      <section aria-labelledby="real-time-monitoring" className="space-y-6">
-        <h2 id="real-time-monitoring" className="text-2xl font-semibold font-headline sr-only">
-            {t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}
-        </h2>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="col-span-1 sm:col-span-2 md:col-span-1">
-                <AmbientWeatherCard
-                    temperature={ambientTemp}
-                    isLoading={isLoadingAmbientTemp}
-                />
-            </div>
-            <div className="col-span-1 sm:col-span-2 md:col-span-3">
-                 {sensors.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sensors.map(sensor => (
-                        <SensorCard key={sensor.id} sensor={sensor} />
-                    ))}
-                    </div>
-                ) : (
-                    <p className="text-muted-foreground">{t('dashboard.noSensorsAvailable', 'Nenhum sensor disponível. Adicione sensores na página de Gerenciamento de Sensores.')}</p>
-                )}
-            </div>
-        </div>
-      </section>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="sm:col-span-2 md:col-span-1">
+              <AmbientWeatherCard
+                  temperature={ambientTemp}
+                  isLoading={isLoadingAmbientTemp}
+              />
+          </div>
+          <div className="sm:col-span-2 md:col-span-3">
+               {sensors.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {sensors.map(sensor => (
+                      <SensorCard key={sensor.id} sensor={sensor} />
+                  ))}
+                  </div>
+              ) : (
+                  <p className="text-muted-foreground">{t('dashboard.noSensorsAvailable', 'Nenhum sensor disponível. Adicione sensores na página de Gerenciamento de Sensores.')}</p>
+              )}
+          </div>
+      </div>
+
     </div>
   );
 }
