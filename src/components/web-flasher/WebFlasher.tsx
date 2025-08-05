@@ -18,31 +18,39 @@ export default function WebFlasher() {
   useEffect(() => {
     // Dynamically import the web component script only on the client side.
     // This prevents Next.js from trying to render it on the server.
-    const importFlasher = async () => {
+    const importAndInitializeFlasher = async () => {
       try {
-        // This line loads the library that defines the <esp-web-flasher> custom element.
+        // 1. Dynamically import the library.
         await import('esp-web-tools');
         
-        // After the script is loaded, set the manifest property on the component.
-        // This manifest points to the firmware files hosted in the /public folder.
+        // 2. Wait for the custom element to be defined in the browser.
+        // This is the crucial step to fix the race condition.
+        await customElements.whenDefined('esp-web-flasher');
+        
+        // 3. Now that we are sure the element is ready, we can set its properties.
         if (flasherRef.current) {
             // Since 'manifest' is a custom property, we cast the element to `any`
-            // to bypass strict TypeScript type checking.
+            // to bypass strict TypeScript type checking for this specific case.
             (flasherRef.current as any).manifest = "/firmware/manifest.json";
         }
       } catch (error) {
-        console.error("Failed to load esp-web-tools:", error);
+        console.error("Failed to load or initialize esp-web-tools:", error);
       }
     };
     
-    importFlasher();
+    importAndInitializeFlasher();
   }, []);
 
   return (
     // The web component's initial state might not have visible content until the manifest loads.
     // A wrapper div with a minimum height ensures the area is reserved and visible.
+    // Adding some text to indicate loading state.
     <div className="min-h-[250px]">
-      <esp-web-flasher ref={flasherRef}></esp-web-flasher>
+      <esp-web-flasher ref={flasherRef}>
+        <div slot="activate"></div>
+        <div slot="unsupported"></div>
+        <div slot="not-allowed"></div>
+      </esp-web-flasher>
     </div>
   );
 }
