@@ -460,5 +460,6 @@
   "webFlasher.compatibilityTitle": "Navegadores Compatibles",
   "webFlasher.compatibilityDescription": "Esta herramienta funciona mejor en Google Chrome, Microsoft Edge u otros navegadores basados en Chromium. Firefox y Safari no son compatibles.",
   "webFlasher.cardTitle": "Instalador de Firmware VigiaTemp",
-  "webFlasher.cardDescription": "Este instalador escribirá el software necesario en su ESP32 para conectarse a VigiaTemp."
+  "webFlasher.cardDescription": "Este instalador escribirá el software necesario en su ESP32 para conectarse a VigiaTemp.",
+  "webFlasher.connectButton": "Conectar"
 }

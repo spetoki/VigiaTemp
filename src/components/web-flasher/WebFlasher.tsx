@@ -38,7 +38,7 @@ export default function WebFlasher() {
         // Once defined, set the component as ready to be rendered
         setFlasherState('ready');
 
-      } catch (error) {
+      } catch (error) => {
         console.error("Failed to load or initialize esp-web-tools:", error);
         setFlasherState('error');
       }
@@ -86,7 +86,7 @@ export default function WebFlasher() {
         <div slot="activate">
             <Button size="lg">
                 <Usb className="mr-2 h-4 w-4" />
-                {t('deviceConfigurator.copyButton', 'Conectar')}
+                {t('webFlasher.connectButton', 'Conectar')}
             </Button>
         </div>
         <div slot="unsupported">
