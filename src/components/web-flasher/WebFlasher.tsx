@@ -1,16 +1,13 @@
 
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/button';
-import { Usb, AlertCircle } from 'lucide-react';
+import { Usb, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useSettings } from '@/context/SettingsContext';
 
-
-// This component uses the <esp-web-flasher> web component.
-// We need to declare its type for TypeScript to recognize it in JSX.
-// The `manifest` property is now optional to prevent build errors.
+// Declare the type for the web component for TypeScript
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -23,52 +20,75 @@ declare global {
 
 export default function WebFlasher() {
   const flasherRef = useRef<HTMLElement>(null);
-  const [isClient, setIsClient] = React.useState(false);
   const { t } = useSettings();
+  
+  // State to manage the loading and initialization of the web component
+  const [flasherState, setFlasherState] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
-    // This ensures the component only renders on the client
-    setIsClient(true);
-
-    const importAndInitializeFlasher = async () => {
+    // This function will handle the dynamic import and initialization
+    const initializeFlasher = async () => {
       try {
-        // Dynamically import the library on the client side
+        // Dynamically import the library only on the client side
         await import('esp-web-tools');
         
-        // Wait until the custom element is defined
+        // Wait until the custom element is actually defined in the browser
         await customElements.whenDefined('esp-web-flasher');
-        
-        if (flasherRef.current) {
-            // Set the manifest path. This tells the component where to find firmware info.
-            (flasherRef.current as any).manifest = "/firmware/manifest.json";
-        }
+
+        // Once defined, set the component as ready to be rendered
+        setFlasherState('ready');
+
       } catch (error) {
         console.error("Failed to load or initialize esp-web-tools:", error);
+        setFlasherState('error');
       }
     };
     
-    importAndInitializeFlasher();
-  }, []);
+    // Run the initialization
+    initializeFlasher();
+  }, []); // Empty dependency array ensures this runs only once on mount
 
-  if (!isClient) {
-    // Render nothing on the server, return a placeholder if needed
-    return null;
+  // Effect to configure the flasher once it's ready and rendered
+  useEffect(() => {
+    if (flasherState === 'ready' && flasherRef.current) {
+        // Now it's safe to set the manifest attribute
+        (flasherRef.current as any).manifest = "/firmware/manifest.json";
+    }
+  }, [flasherState]);
+
+  // Render loading state
+  if (flasherState === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <p>Carregando instalador...</p>
+      </div>
+    );
   }
 
+  // Render error state
+  if (flasherState === 'error') {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erro ao Carregar Ferramenta</AlertTitle>
+        <AlertDescription>
+          Não foi possível carregar o instalador web. Verifique sua conexão com a internet ou tente recarregar a página.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Render the flasher component once it's ready
   return (
-    // The web component's initial state might not have visible content until the manifest loads.
-    // We provide content for its "slots" to define what the UI looks like.
-    <div className="min-h-[200px] flex flex-col items-center justify-center text-center">
+    <div className="w-full flex flex-col items-center justify-center text-center">
       <esp-web-flasher ref={flasherRef}>
-        {/* This slot is used for the main action button */}
         <div slot="activate">
             <Button size="lg">
                 <Usb className="mr-2 h-4 w-4" />
                 {t('deviceConfigurator.copyButton', 'Conectar')}
             </Button>
         </div>
-
-        {/* This slot is shown if the browser doesn't support Web Serial */}
         <div slot="unsupported">
              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -78,8 +98,6 @@ export default function WebFlasher() {
                 </AlertDescription>
             </Alert>
         </div>
-
-        {/* This slot is shown if the user denies access to the serial port */}
         <div slot="not-allowed">
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
