@@ -38,7 +38,7 @@ export default function WebFlasher() {
         // Once defined, set the component as ready to be rendered
         setFlasherState('ready');
 
-      } catch (error) => {
+      } catch (error) {
         console.error("Failed to load or initialize esp-web-tools:", error);
         setFlasherState('error');
       }
