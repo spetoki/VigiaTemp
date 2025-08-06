@@ -187,9 +187,6 @@
   "sensorForm.connectionCheckToast.title": "Connection Check",
   "sensorForm.connectionCheckToast.success": "Sensor appears to be online!",
   "sensorForm.connectionCheckToast.fail": "Could not connect to the sensor.",
-  "sensorForm.alertSoundsTitle": "Alert Sounds",
-  "sensorForm.criticalAlertSoundLabel": "Critical Alert Sound (Optional)",
-  "sensorForm.criticalAlertSoundDescription": "Upload an audio file (MP3, WAV, OGG, M4A) up to 1GB.",
   "sensorForm.fileConversionError.title": "File Upload Error",
   "sensorForm.fileConversionError.description": "Could not process the audio file.",
   "sensorForm.fileTooLarge.title": "File Too Large",
@@ -374,9 +371,9 @@
   "traceability.loadErrorDescription": "Could not fetch saved lots.",
   
   "deviceConfigurator.title": "ESP32 Code Configurator",
-  "deviceConfigurator.description": "Generate a universal code for your device. This code uses a web portal to allow anyone to configure the WiFi network without needing to edit the source code.",
-  "deviceConfigurator.formTitle": "Universal Configuration (WiFiManager)",
-  "deviceConfigurator.formDescription": "The only information needed is your application's URL. The WiFi credentials will be requested from the end user through a configuration portal.",
+  "deviceConfigurator.description": "Generate code for your device. Choose between a universal code (with a configuration portal) or one with hardcoded WiFi credentials.",
+  "deviceConfigurator.formTitle": "Device Configuration",
+  "deviceConfigurator.formDescription": "Select the configuration type and fill in the required fields.",
   "deviceConfigurator.ssidLabel": "WiFi Network Name (SSID)",
   "deviceConfigurator.passwordLabel": "WiFi Password",
   "deviceConfigurator.appUrlLabel": "Application URL",
@@ -385,13 +382,14 @@
   "deviceConfigurator.pinDescription": "Data pin for the DS18B20 sensor. Default is 4.",
   "deviceConfigurator.intervalLabel": "Send Interval (seconds)",
   "deviceConfigurator.intervalDescription": "Frequency of data transmission. Default is 30s.",
-  "deviceConfigurator.generateButton": "Generate Universal Code",
+  "deviceConfigurator.generateButton": "Generate Code",
   "deviceConfigurator.generatedCodeTitle": "Generated Code for Arduino IDE",
-  "deviceConfigurator.generatedCodeDescription": "Copy, paste into your Arduino IDE, and install the 'WiFiManager' library via the Library Manager.",
+  "deviceConfigurator.generatedCodeDescription": "Copy, paste into your Arduino IDE, and install the necessary libraries via the Library Manager.",
   "deviceConfigurator.copyButton": "Copy Code",
   "deviceConfigurator.copiedButton": "Copied!",
   "deviceConfigurator.errorTitle": "Required Fields",
   "deviceConfigurator.errorDescription": "Please fill in the Application URL.",
+  "deviceConfigurator.errorCredentials": "For hardcoded credentials, SSID and password are required.",
   "deviceConfigurator.copySuccessTitle": "Copied!",
   "deviceConfigurator.copySuccessDescription": "The code has been copied to your clipboard.",
   "deviceConfigurator.copyErrorTitle": "Copy Failed",
@@ -420,6 +418,7 @@
   "weatherForecast.title": "Detailed Weather Forecast",
   "weatherForecast.description": "Analyze weather conditions for the upcoming day, week, and month.",
   "weatherForecast.pageDescription": "Enter a location and analyze weather conditions for the upcoming day, week, and month.",
+  "weatherForecast.location": "Cocoa Farm, Bahia",
   "weatherForecast.locationPlaceholder": "E.g., Salvador, Bahia",
   "weatherForecast.searchButton": "Search Forecast",
   "weatherForecast.tabs.day": "Today",
@@ -445,7 +444,7 @@
   "weatherForecast.hourly.time": "Time",
   "weatherForecast.hourly.temperature": "Temp.",
   "weatherForecast.hourly.timelineTitle": "Hourly Forecast",
-
+  
   "lockScreen.title": "VigiaTemp",
   "lockScreen.description": "Please enter the access key to continue.",
   "lockScreen.keyLabel": "Access Key",
@@ -471,3 +470,5 @@
   "webFlasher.cardDescription": "This flasher will write the necessary software to your ESP32 to connect to VigiaTemp.",
   "webFlasher.connectButton": "Connect"
 }
+
+    

@@ -9,27 +9,36 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useSettings } from '@/context/SettingsContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CodeXml, Copy, Check, AlertCircle, FileCode2 } from 'lucide-react';
+import { CodeXml, Copy, Check, AlertCircle, FileCode2, Wifi, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
 
-const generateCppCode = (appUrl: string, pin: string, interval: string) => `
+const generateCppCode = (config: {
+  configType: 'wifimanager' | 'hardcoded';
+  appUrl: string;
+  pin: string;
+  interval: string;
+  ssid?: string;
+  password?: string;
+}) => {
+  const commonIncludes = `
 // Bibliotecas necessárias. Instale-as através do Gerenciador de Bibliotecas do Arduino IDE:
-// - WiFiManager by tzapu
 // - DallasTemperature
 // - OneWire
 // - ArduinoJson
-
 #include <WiFi.h>
-#include <WiFiManager.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+`;
 
+  const commonSetupAndLoop = `
 // --- Configurações Editáveis ---
-const char* app_url = "${appUrl}"; // URL do seu aplicativo VigiaTemp
-const int SENSOR_PIN = ${pin};           // Pino de dados do sensor DS18B20
-const int SEND_INTERVAL_SEC = ${interval};  // Intervalo de envio em segundos
+const char* app_url = "${config.appUrl}"; // URL do seu aplicativo VigiaTemp
+const int SENSOR_PIN = ${config.pin};           // Pino de dados do sensor DS18B20
+const int SEND_INTERVAL_SEC = ${config.interval};  // Intervalo de envio em segundos
 
 // --- Inicialização de Componentes ---
 OneWire oneWire(SENSOR_PIN);
@@ -52,21 +61,7 @@ void setup() {
     Serial.println();
   }
 
-  // Inicia o WiFiManager para configuração universal
-  WiFiManager wm;
-  // wm.resetSettings(); // Descomente para forçar a reconfiguração na próxima inicialização
-  
-  bool res = wm.autoConnect("VigiaTemp-Config", "senha123"); // SSID do portal e senha
-
-  if(!res) {
-      Serial.println("Falha ao conectar. Reiniciando...");
-      ESP.restart();
-  } 
-  else {
-      Serial.println("Conectado ao WiFi!");
-      Serial.print("Endereço IP: ");
-      Serial.println(WiFi.localIP());
-  }
+  connectWiFi();
 }
 
 void loop() {
@@ -97,11 +92,9 @@ void sendTemperature(float temperature) {
   if(WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     
-    // Inicia a conexão com a URL da API
     http.begin(app_url);
     http.addHeader("Content-Type", "application/json");
 
-    // Cria o corpo da requisição JSON
     StaticJsonDocument<200> doc;
     doc["macAddress"] = WiFi.macAddress();
     doc["temperature"] = temperature;
@@ -109,7 +102,6 @@ void sendTemperature(float temperature) {
     String requestBody;
     serializeJson(doc, requestBody);
 
-    // Envia a requisição POST
     int httpResponseCode = http.POST(requestBody);
 
     Serial.print("Enviando dados para: ");
@@ -131,11 +123,10 @@ void sendTemperature(float temperature) {
     http.end();
   } else {
     Serial.println("WiFi Desconectado. Tentando reconectar...");
-    // O ESP32 tentará reconectar automaticamente
+    connectWiFi();
   }
 }
 
-// Função auxiliar para imprimir o endereço do sensor
 void printAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
     if (deviceAddress[i] < 16) Serial.print("0");
@@ -144,13 +135,78 @@ void printAddress(DeviceAddress deviceAddress) {
 }
 `;
 
+  if (config.configType === 'hardcoded') {
+    return `
+${commonIncludes}
+
+// --- Credenciais de WiFi (Fixas) ---
+const char* ssid = "${config.ssid}";
+const char* password = "${config.password}";
+
+void connectWiFi() {
+  Serial.print("Conectando a ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) { // Tenta por 10 segundos
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+
+  if(WiFi.status() == WL_CONNECTED) {
+    Serial.println("\\nWiFi conectado!");
+    Serial.print("Endereço IP: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\\nFalha ao conectar. Reiniciando em 10 segundos...");
+    delay(10000);
+    ESP.restart();
+  }
+}
+${commonSetupAndLoop}
+`;
+  }
+
+  // WiFiManager implementation
+  return `
+${commonIncludes}
+#include <WiFiManager.h> // Biblioteca adicional para configuração universal
+
+void connectWiFi() {
+  WiFiManager wm;
+  // wm.resetSettings(); // Descomente para forçar a reconfiguração
+  
+  bool res = wm.autoConnect("VigiaTemp-Config", "senha123");
+
+  if(!res) {
+      Serial.println("Falha ao conectar. Reiniciando...");
+      ESP.restart();
+  } 
+  else {
+      Serial.println("Conectado ao WiFi!");
+      Serial.print("Endereço IP: ");
+      Serial.println(WiFi.localIP());
+  }
+}
+${commonSetupAndLoop}
+`;
+};
+
+type ConfigType = 'wifimanager' | 'hardcoded';
+
 export default function DeviceConfiguratorPage() {
   const { t } = useSettings();
   const { toast } = useToast();
 
+  const [configType, setConfigType] = useState<ConfigType>('wifimanager');
   const [appUrl, setAppUrl] = useState('https://vigia-temp.vercel.app/api/sensor');
   const [sensorPin, setSensorPin] = useState('4');
   const [sendInterval, setSendInterval] = useState('30');
+  const [ssid, setSsid] = useState('');
+  const [password, setPassword] = useState('');
+
   const [generatedCode, setGeneratedCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState('');
@@ -160,8 +216,20 @@ export default function DeviceConfiguratorPage() {
       setError(t('deviceConfigurator.errorDescription', 'Por favor, preencha a URL do Aplicativo.'));
       return;
     }
+    if (configType === 'hardcoded' && (!ssid || !password)) {
+      setError(t('deviceConfigurator.errorCredentials', 'Para credenciais fixas, o SSID e a senha são obrigatórios.'));
+      return;
+    }
+
     setError('');
-    const code = generateCppCode(appUrl, sensorPin, sendInterval);
+    const code = generateCppCode({
+      configType,
+      appUrl,
+      pin: sensorPin,
+      interval: sendInterval,
+      ssid,
+      password,
+    });
     setGeneratedCode(code);
   };
 
@@ -190,18 +258,18 @@ export default function DeviceConfiguratorPage() {
           {t('deviceConfigurator.title', 'Configurador de Código para ESP32')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          {t('deviceConfigurator.description', 'Gere um código universal para o seu dispositivo. Este código usa um portal web para permitir que qualquer pessoa configure a rede WiFi sem precisar editar o código-fonte.')}
+          {t('deviceConfigurator.description', 'Gere um código para o seu dispositivo. Escolha entre um código universal (com portal de configuração) ou um com credenciais de WiFi fixas.')}
         </p>
       </div>
       
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>{t('deviceConfigurator.formTitle', 'Configuração Universal (WiFiManager)')}</CardTitle>
+          <CardTitle>{t('deviceConfigurator.formTitle', 'Configuração do Dispositivo')}</CardTitle>
           <CardDescription>
-            {t('deviceConfigurator.formDescription', 'A única informação necessária é a URL do seu aplicativo. As credenciais de WiFi serão solicitadas ao usuário final através de um portal de configuração.')}
+            {t('deviceConfigurator.formDescription', 'Selecione o tipo de configuração e preencha os campos necessários.')}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {error && (
              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -209,6 +277,40 @@ export default function DeviceConfiguratorPage() {
                 <AlertDescription>{error}</AlertDescription>
              </Alert>
           )}
+
+          <RadioGroup value={configType} onValueChange={(value) => setConfigType(value as ConfigType)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Label htmlFor="type-wifimanager" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                <RadioGroupItem value="wifimanager" id="type-wifimanager" className="sr-only" />
+                <Wifi className="mb-3 h-6 w-6" />
+                Universal (WiFiManager)
+                <span className="mt-2 text-center text-xs text-muted-foreground">Cria um portal para configurar o WiFi no próprio dispositivo. Ideal para flexibilidade.</span>
+            </Label>
+             <Label htmlFor="type-hardcoded" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                <RadioGroupItem value="hardcoded" id="type-hardcoded" className="sr-only" />
+                <Settings className="mb-3 h-6 w-6" />
+                Credenciais Fixas
+                <span className="mt-2 text-center text-xs text-muted-foreground">Grava o nome e a senha da rede diretamente no código. Mais simples, menos flexível.</span>
+            </Label>
+          </RadioGroup>
+
+          <Separator />
+          
+          {configType === 'hardcoded' && (
+            <div className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="ssid">{t('deviceConfigurator.ssidLabel', 'Nome da Rede WiFi (SSID)')}</Label>
+                        <Input id="ssid" value={ssid} onChange={(e) => setSsid(e.target.value)} placeholder="Ex: MinhaRedeWiFi" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">{t('deviceConfigurator.passwordLabel', 'Senha da Rede WiFi')}</Label>
+                        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
+                 </div>
+                 <Separator />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="app-url">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')}</Label>
             <Input id="app-url" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} />
@@ -234,7 +336,8 @@ export default function DeviceConfiguratorPage() {
           </div>
 
           <Button onClick={handleGenerate}>
-            {t('deviceConfigurator.generateButton', 'Gerar Código Universal')}
+            <CodeXml className="mr-2 h-4 w-4" />
+            {t('deviceConfigurator.generateButton', 'Gerar Código')}
           </Button>
         </CardContent>
       </Card>
@@ -244,7 +347,7 @@ export default function DeviceConfiguratorPage() {
           <CardHeader>
             <CardTitle>{t('deviceConfigurator.generatedCodeTitle', 'Código Gerado para Arduino IDE')}</CardTitle>
             <CardDescription>
-                {t('deviceConfigurator.generatedCodeDescription', 'Copie, cole na sua Arduino IDE e instale a biblioteca \'WiFiManager\' pelo Gerenciador de Bibliotecas.')}
+                {t('deviceConfigurator.generatedCodeDescription', 'Copie, cole na sua Arduino IDE e instale as bibliotecas necessárias pelo Gerenciador de Bibliotecas.')}
             </CardDescription>
           </CardHeader>
           <CardContent className="relative">
@@ -266,3 +369,5 @@ export default function DeviceConfiguratorPage() {
     </div>
   );
 }
+
+    

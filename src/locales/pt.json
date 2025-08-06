@@ -365,9 +365,9 @@
   "traceability.loadErrorDescription": "Não foi possível buscar os lotes salvos.",
   
   "deviceConfigurator.title": "Configurador de Código para ESP32",
-  "deviceConfigurator.description": "Gere um código universal para o seu dispositivo. Este código usa um portal web para permitir que qualquer pessoa configure a rede WiFi sem precisar editar o código-fonte.",
-  "deviceConfigurator.formTitle": "Configuração Universal (WiFiManager)",
-  "deviceConfigurator.formDescription": "A única informação necessária é a URL do seu aplicativo. As credenciais de WiFi serão solicitadas ao usuário final através de um portal de configuração.",
+  "deviceConfigurator.description": "Gere um código para o seu dispositivo. Escolha entre um código universal (com portal de configuração) ou um com credenciais de WiFi fixas.",
+  "deviceConfigurator.formTitle": "Configuração do Dispositivo",
+  "deviceConfigurator.formDescription": "Selecione o tipo de configuração e preencha os campos necessários.",
   "deviceConfigurator.ssidLabel": "Nome da Rede WiFi (SSID)",
   "deviceConfigurator.passwordLabel": "Senha da Rede WiFi",
   "deviceConfigurator.appUrlLabel": "URL do Aplicativo",
@@ -376,13 +376,14 @@
   "deviceConfigurator.pinDescription": "Pino de dados para o sensor DS18B20. O padrão é 4.",
   "deviceConfigurator.intervalLabel": "Intervalo de Envio (segundos)",
   "deviceConfigurator.intervalDescription": "Frequência de envio dos dados. O padrão é 30s.",
-  "deviceConfigurator.generateButton": "Gerar Código Universal",
+  "deviceConfigurator.generateButton": "Gerar Código",
   "deviceConfigurator.generatedCodeTitle": "Código Gerado para Arduino IDE",
-  "deviceConfigurator.generatedCodeDescription": "Copie, cole na sua Arduino IDE e instale a biblioteca 'WiFiManager' pelo Gerenciador de Bibliotecas.",
+  "deviceConfigurator.generatedCodeDescription": "Copie, cole na sua Arduino IDE e instale as bibliotecas necessárias pelo Gerenciador de Bibliotecas.",
   "deviceConfigurator.copyButton": "Copiar Código",
   "deviceConfigurator.copiedButton": "Copiado!",
   "deviceConfigurator.errorTitle": "Campos Obrigatórios",
   "deviceConfigurator.errorDescription": "Por favor, preencha a URL do Aplicativo.",
+  "deviceConfigurator.errorCredentials": "Para credenciais fixas, o SSID e a senha são obrigatórios.",
   "deviceConfigurator.copySuccessTitle": "Copiado!",
   "deviceConfigurator.copySuccessDescription": "O código foi copiado para a sua área de transferência.",
   "deviceConfigurator.copyErrorTitle": "Falha ao Copiar",
@@ -463,3 +464,5 @@
   "webFlasher.cardDescription": "Este instalador irá gravar o software necessário no seu ESP32 para se conectar ao VigiaTemp.",
   "webFlasher.connectButton": "Conectar"
 }
+
+    
