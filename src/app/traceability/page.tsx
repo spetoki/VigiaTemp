@@ -69,19 +69,22 @@ export default function TraceabilityPage() {
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {
-        const qrCodeDataString = JSON.stringify({
-          id: selectedLot.id,
-          name: selectedLot.name,
-          lotDescription: selectedLot.lotDescription,
-          wetCocoaWeight: selectedLot.wetCocoaWeight,
-          dryCocoaWeight: selectedLot.dryCocoaWeight,
-          fermentationTime: selectedLot.fermentationTime,
-          dryingTime: selectedLot.dryingTime,
-          isoClassification: selectedLot.isoClassification,
-          createdAt: selectedLot.createdAt
-        });
+        const readableLotData = `
+--- Rastreabilidade de Lote ---
+Lote/Produtor: ${selectedLot.name}
+Descrição: ${selectedLot.lotDescription.replace(/\n/g, ', ')}
+Classificação: ${selectedLot.isoClassification}
+-------------------------------
+Peso Cacau Mole: ${selectedLot.wetCocoaWeight} kg
+Peso Cacau Seco: ${selectedLot.dryCocoaWeight} kg
+Tempo Fermentação: ${selectedLot.fermentationTime} dias
+Tempo Secagem: ${selectedLot.dryingTime} dias
+-------------------------------
+ID do Lote: ${selectedLot.id}
+Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('localeCode', 'pt-BR'))}
+`.trim();
 
-      QRCode.toDataURL(qrCodeDataString, { errorCorrectionLevel: 'H', width: 200 })
+      QRCode.toDataURL(readableLotData, { errorCorrectionLevel: 'H', width: 200 })
         .then(url => setQrCodeUrl(url))
         .catch(err => {
           console.error('QR Code generation failed:', err);
