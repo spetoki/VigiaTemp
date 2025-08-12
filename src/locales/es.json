@@ -340,7 +340,7 @@
   "traceability.savingButton": "Guardando...",
   "traceability.qrCodeTitle": "Lote Registrado y Código QR Generado",
   "traceability.qrCodeDescription": "El Código QR a continuación contiene toda la información del lote. Imprímalo para adjuntarlo al lote físico.",
-  "traceability.printButton": "Imprimir Etiqueta",
+  "traceability.printButton": "Generar PDF",
   "traceability.newLotButton": "Registrar Nuevo Lote",
   "traceability.lotDetails": "Detalles del Lote",
   "traceability.saveSuccessTitle": "¡Éxito!",

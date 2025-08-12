@@ -346,7 +346,7 @@
   "traceability.savingButton": "Saving...",
   "traceability.qrCodeTitle": "Lot Registered and QR Code Generated",
   "traceability.qrCodeDescription": "The QR Code below contains all the lot information. Print it to attach to the physical lot.",
-  "traceability.printButton": "Print Label",
+  "traceability.printButton": "Generate PDF",
   "traceability.newLotButton": "Register New Lot",
   "traceability.lotDetails": "Lot Details",
   "traceability.saveSuccessTitle": "Success!",

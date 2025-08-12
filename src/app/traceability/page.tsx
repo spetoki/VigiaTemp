@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,12 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSettings } from '@/context/SettingsContext';
-import { ClipboardList, Leaf, Save, Printer, PlusCircle, QrCode, List, Eye, Loader2 } from 'lucide-react';
+import { ClipboardList, Leaf, Save, FileDown, PlusCircle, QrCode, List, Eye, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TraceabilityData, addLot, getLots, TraceabilityFormData } from '@/services/traceability-service';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 
 const initialFormData: TraceabilityFormData = {
     lotDescription: '',
@@ -38,6 +41,7 @@ export default function TraceabilityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const pdfRef = useRef<HTMLDivElement>(null);
   
   const fetchLots = useCallback(async () => {
     if (!activeKey) {
@@ -134,11 +138,23 @@ export default function TraceabilityPage() {
     setView('details');
   };
 
-  const handlePrint = () => window.print();
+  const handleGeneratePdf = async () => {
+    if (!pdfRef.current || !selectedLot) return;
+
+    const canvas = await html2canvas(pdfRef.current);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+    });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save(`Lote_${selectedLot.name.replace(/ /g, '_')}.pdf`);
+  };
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-       <div className="text-left no-print">
+       <div className="text-left">
           <h1 className="text-3xl font-bold font-headline text-primary flex items-center">
             <ClipboardList className="mr-3 h-8 w-8" />
             {t('traceability.pageTitle', 'Rastreabilidade de Lotes de Cacau')}
@@ -148,7 +164,7 @@ export default function TraceabilityPage() {
           </p>
         </div>
         
-        <div className="flex justify-end gap-2 no-print">
+        <div className="flex justify-end gap-2">
             {view !== 'list' && (
                 <Button variant="outline" onClick={() => setView('list')}>
                 <List className="mr-2 h-4 w-4" />
@@ -275,49 +291,43 @@ export default function TraceabilityPage() {
             </Card>
         ) : view === 'details' && selectedLot ? (
             <>
-                <style>{`
-                    @media print {
-                    body * { visibility: hidden; }
-                    .printable-area, .printable-area * { visibility: visible; }
-                    .printable-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; padding: 2rem; }
-                    .no-print { display: none !important; }
-                    }
-                `}</style>
-                <Card className="w-full shadow-lg printable-area">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-primary">
-                            <QrCode className="h-6 w-6"/>
-                            {t('traceability.qrCodeTitle', 'Lote Registrado e QR Code Gerado')}
-                        </CardTitle>
-                        <CardDescription>
-                        {t('traceability.qrCodeDescription', 'O QR Code abaixo contém todas as informações do lote. Imprima-o para anexar ao lote físico.')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col md:flex-row items-center justify-center gap-8 p-6">
-                        <div className="text-center p-4 border rounded-lg bg-white h-[216px] w-[216px] flex items-center justify-center">
-                        {qrCodeUrl ? (
-                            <Image src={qrCodeUrl} alt={t('traceability.qrCodeAlt', 'QR Code for lot {name}', {name: selectedLot.name})} width={200} height={200} />
-                        ) : (
-                            <Skeleton className="h-[200px] w-[200px]" />
-                        )}
-                        </div>
-                        <div className="space-y-2">
-                            <h4 className="font-bold text-lg">{t('traceability.lotDetails', 'Detalhes do Lote')}</h4>
-                            <p><strong>{t('traceability.nameLabel', 'Nome do Produtor/Lote')}:</strong> {selectedLot.name}</p>
-                            <p><strong>{t('traceability.lotDescriptionLabel', 'Descrição do Lote')}:</strong> {selectedLot.lotDescription}</p>
-                            <p><strong>{t('traceability.wetCocoaWeightLabel', 'Peso Cacau Mole (kg)')}:</strong> {selectedLot.wetCocoaWeight}</p>
-                            <p><strong>{t('traceability.dryCocoaWeightLabel', 'Peso Cacau Seco (kg)')}:</strong> {selectedLot.dryCocoaWeight}</p>
-                            <p><strong>{t('traceability.fermentationTimeLabel', 'Tempo de Fermentação (dias)')}:</strong> {selectedLot.fermentationTime}</p>
-                            <p><strong>{t('traceability.dryingTimeLabel', 'Tempo de Secagem (dias)')}:</strong> {selectedLot.dryingTime}</p>
-                            <p><strong>{t('traceability.isoClassificationLabel', 'Classificação Física (ISO-2451)')}:</strong> {selectedLot.isoClassification}</p>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-end gap-2 no-print">
+                <Card className="w-full shadow-lg" >
+                    <div ref={pdfRef} className="p-6 bg-white">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-primary">
+                                <QrCode className="h-6 w-6"/>
+                                {t('traceability.qrCodeTitle', 'Lote Registrado e QR Code Gerado')}
+                            </CardTitle>
+                            <CardDescription>
+                            {t('traceability.qrCodeDescription', 'O QR Code abaixo contém todas as informações do lote. Imprima-o para anexar ao lote físico.')}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col md:flex-row items-center justify-center gap-8 p-6">
+                            <div className="text-center p-4 border rounded-lg bg-white h-[216px] w-[216px] flex items-center justify-center">
+                            {qrCodeUrl ? (
+                                <Image src={qrCodeUrl} alt={t('traceability.qrCodeAlt', 'QR Code for lot {name}', {name: selectedLot.name})} width={200} height={200} />
+                            ) : (
+                                <Skeleton className="h-[200px] w-[200px]" />
+                            )}
+                            </div>
+                            <div className="space-y-2 text-card-foreground">
+                                <h4 className="font-bold text-lg">{t('traceability.lotDetails', 'Detalhes do Lote')}</h4>
+                                <p><strong>{t('traceability.nameLabel', 'Nome do Produtor/Lote')}:</strong> {selectedLot.name}</p>
+                                <p><strong>{t('traceability.lotDescriptionLabel', 'Descrição do Lote')}:</strong> {selectedLot.lotDescription}</p>
+                                <p><strong>{t('traceability.wetCocoaWeightLabel', 'Peso Cacau Mole (kg)')}:</strong> {selectedLot.wetCocoaWeight}</p>
+                                <p><strong>{t('traceability.dryCocoaWeightLabel', 'Peso Cacau Seco (kg)')}:</strong> {selectedLot.dryCocoaWeight}</p>
+                                <p><strong>{t('traceability.fermentationTimeLabel', 'Tempo de Fermentação (dias)')}:</strong> {selectedLot.fermentationTime}</p>
+                                <p><strong>{t('traceability.dryingTimeLabel', 'Tempo de Secagem (dias)')}:</strong> {selectedLot.dryingTime}</p>
+                                <p><strong>{t('traceability.isoClassificationLabel', 'Classificação Física (ISO-2451)')}:</strong> {selectedLot.isoClassification}</p>
+                            </div>
+                        </CardContent>
+                    </div>
+                    <CardFooter className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setView('list')}>
                            <List className="mr-2 h-4 w-4"/> {t('traceability.backToListButton', 'Voltar para a Lista')}
                         </Button>
-                        <Button onClick={handlePrint}>
-                            <Printer className="mr-2 h-4 w-4"/> {t('traceability.printButton', 'Imprimir Etiqueta')}
+                        <Button onClick={handleGeneratePdf}>
+                            <FileDown className="mr-2 h-4 w-4"/> {t('traceability.printButton', 'Gerar PDF')}
                         </Button>
                     </CardFooter>
                 </Card>

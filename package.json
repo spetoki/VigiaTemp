@@ -45,6 +45,8 @@
     "esp-web-tools": "^9.4.3",
     "firebase": "^10.12.3",
     "genkit": "1.13.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "lucide-react": "0.400.0",
     "next": "14.2.8",
     "qrcode": "1.5.3",
