@@ -3,13 +3,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, CodeXml, Usb, BookOpenCheck, FileCode2 } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
-// --- New Types and Data Structure ---
 interface Component {
   id: string;
   nameKey: string;
@@ -28,13 +29,11 @@ const defaultComponents: Component[] = [
 ];
 
 const setStoredComponents = (components: Component[]) => {
-  // This check ensures we only access localStorage on the client
   if (typeof window !== 'undefined') {
     localStorage.setItem('hardware_components', JSON.stringify(components));
   }
 };
 
-// --- Updated ComponentItem ---
 const ComponentItem = ({
   component,
   isEditing,
@@ -72,7 +71,7 @@ const ComponentItem = ({
           height={150}
           className="rounded-md aspect-square object-cover"
           data-ai-hint={component.hint}
-          key={component.imageUrl} // Re-render image when src changes
+          key={component.imageUrl}
         />
       </div>
       <p className="text-sm font-medium text-center text-card-foreground">{name}</p>
@@ -102,11 +101,9 @@ export default function HardwareAssemblyPage() {
   const [components, setComponents] = useState<Component[]>(defaultComponents);
   const [mainDiagramUrl, setMainDiagramUrl] = useState("https://placehold.co/800x600.png");
   
-  // Since user system is removed, admin editing is disabled.
   const isAdmin = false;
 
   useEffect(() => {
-    // This effect runs only on the client side, making it safe to access localStorage.
     const getStoredComponents = (): Component[] => {
       try {
         const stored = localStorage.getItem('hardware_components');
@@ -262,39 +259,51 @@ export default function HardwareAssemblyPage() {
               <p className="text-muted-foreground">{t('hardwareAssembly.step4Description', 'Conecte o resistor de 4.7kΩ entre o pino de DADOS do sensor (o mesmo conectado ao GPIO 4) e a linha de alimentação positiva (+). Este resistor é crucial para a comunicação estável com o sensor.')}</p>
             </div>
           </div>
-          <div className="flex gap-4 items-start">
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">5</div>
-            <div>
-              <h3 className="font-semibold">{t('hardwareAssembly.step5Title', 'Verificação Final e Conexão')}</h3>
-              <p className="text-muted-foreground">{t('hardwareAssembly.step5Description', 'Revise todas as conexões para garantir que estão corretas e firmes. Uma vez confirmado, conecte o cabo USB do seu computador à placa ESP32. Um LED na placa deve acender, indicando que ela está ligada.')}</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
       
-      <Card className="shadow-lg">
+       <Card className="shadow-lg border-amber-500/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpenCheck className="h-5 w-5 text-primary"/>
-            {t('hardwareAssembly.alternatives.title', 'Alternativas ao ESP32 para Iniciantes')}
+          <CardTitle className="flex items-center gap-2 text-amber-600">
+            <LifeBuoy className="h-5 w-5"/>
+            Próximo Passo: Gravar o Firmware
           </CardTitle>
           <CardDescription>
-            {t('hardwareAssembly.alternatives.description', 'O ESP32 é poderoso, mas se você está começando, existem opções mais simples que também funcionam perfeitamente para este projeto.')}
+            Com o hardware montado, o próximo passo é gravar o software (firmware) na placa. Se você não está conseguindo, leia estas dicas.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-            <div>
-                <h4 className="font-semibold text-md">1. Raspberry Pi Pico W</h4>
-                <p className="text-muted-foreground text-sm">
-                    {t('hardwareAssembly.alternatives.picoW', 'A melhor alternativa. É barato, poderoso e tem Wi-Fi integrado. É programado em MicroPython, que é muito amigável para iniciantes. A documentação oficial é excelente.')}
-                </p>
-            </div>
-            <div>
-                <h4 className="font-semibold text-md">2. Arduino Uno R4 WiFi / Nano ESP32</h4>
-                <p className="text-muted-foreground text-sm">
-                    {t('hardwareAssembly.alternatives.arduino', 'As versões modernas das placas Arduino clássicas agora vêm com Wi-Fi. Você obtém a enorme comunidade e a simplicidade do ecossistema Arduino sem precisar de módulos extras.')}
-                </p>
-            </div>
+          <div>
+            <h3 className="font-semibold">1. Instale os Drivers USB (Causa #1 de problemas)</h3>
+            <p className="text-muted-foreground text-sm">
+              Seu computador precisa de um "tradutor" (driver) para conversar com a placa. A maioria dos problemas de conexão ocorre porque este driver está faltando. Identifique o chip USB na sua placa (um chip retangular perto do conector USB) e instale o driver correspondente:
+            </p>
+            <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+              <li><strong className="font-semibold">Driver CP210x:</strong> Para a maioria das placas ESP32. Baixe em <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener noreferrer" className="text-primary underline">Silicon Labs</a>.</li>
+              <li><strong className="font-semibold">Driver CH340:</strong> Para placas mais baratas ou clones. Baixe em <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html" target="_blank" rel="noopener noreferrer" className="text-primary underline">WCH</a>.</li>
+            </ul>
+             <p className="text-muted-foreground text-sm mt-2">
+              Após instalar, **reinicie o seu computador** e tente o Instalador Web novamente.
+            </p>
+          </div>
+           <div>
+            <h3 className="font-semibold">2. Use um Cabo USB de DADOS</h3>
+            <p className="text-muted-foreground text-sm">
+             Certifique-se de que está usando um cabo USB capaz de transferir dados, e não apenas um cabo de carregamento de celular. Muitos cabos baratos não possuem os fios necessários para a comunicação. Na dúvida, teste com outro cabo.
+            </p>
+          </div>
+           <div>
+            <h3 className="font-semibold">3. Modo de "Boot" Manual</h3>
+            <p className="text-muted-foreground text-sm">
+              O "Modo de Boot" é o que diz à placa para aceitar um novo software. O Instalador Web tenta fazer isso automaticamente, mas às vezes falha. Faça manualmente:
+            </p>
+             <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
+                <li>Com a placa desconectada, **pressione e segure o botão "BOOT"**.</li>
+                <li>Mantendo-o pressionado, **conecte o cabo USB**.</li>
+                <li>**Solte o botão "BOOT"**.</li>
+                <li>Agora, vá para a página do **Instalador Web** e tente conectar.</li>
+             </ol>
+          </div>
         </CardContent>
       </Card>
 
@@ -341,3 +350,5 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    
