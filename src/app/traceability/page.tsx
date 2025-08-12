@@ -142,17 +142,38 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
   };
 
   const handleGeneratePdf = async () => {
-    if (!pdfRef.current || !selectedLot) return;
+    const elementToCapture = pdfRef.current;
+    if (!elementToCapture || !selectedLot) return;
 
-    const canvas = await html2canvas(pdfRef.current);
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-    });
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save(`Lote_${selectedLot.name.replace(/ /g, '_')}.pdf`);
+    try {
+        const canvas = await html2canvas(elementToCapture, {
+            scale: 2, // Aumenta a resolução para melhor qualidade
+            backgroundColor: '#ffffff', // Garante o fundo branco
+            useCORS: true,
+            // Informa ao html2canvas para usar as dimensões reais do elemento
+            width: elementToCapture.scrollWidth,
+            height: elementToCapture.scrollHeight,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+
+        // Cria o PDF com as dimensões da imagem capturada
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`Lote_${selectedLot.name.replace(/ /g, '_')}.pdf`);
+    } catch (error) {
+        console.error("PDF generation failed:", error);
+        toast({
+            variant: 'destructive',
+            title: "Erro ao Gerar PDF",
+            description: "Não foi possível gerar o PDF. Tente novamente.",
+        });
+    }
   };
 
   return (
@@ -295,13 +316,13 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
         ) : view === 'details' && selectedLot ? (
             <>
                 <Card className="w-full shadow-lg" >
-                    <div ref={pdfRef} className="p-6 bg-white">
+                     <div ref={pdfRef} className="bg-white text-black p-6">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-primary">
                                 <QrCode className="h-6 w-6"/>
                                 {t('traceability.qrCodeTitle', 'Lote Registrado e QR Code Gerado')}
                             </CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-muted-foreground">
                             {t('traceability.qrCodeDescription', 'O QR Code abaixo contém todas as informações do lote. Imprima-o para anexar ao lote físico.')}
                             </CardDescription>
                         </CardHeader>
