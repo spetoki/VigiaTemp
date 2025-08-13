@@ -9,19 +9,41 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useSettings } from '@/context/SettingsContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CodeXml, Copy, Check, AlertCircle, FileCode2, Wifi, Settings } from 'lucide-react';
+import { CodeXml, Copy, Check, AlertCircle, FileCode2, Wifi, Settings, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 
+const generateWebSerialTestCode = () => `
+// Código de Teste Mínimo - "Olá, Mundo!" Serial
+// O objetivo deste código é apenas testar a conexão USB e o Monitor Serial.
+void setup() {
+  // Inicia a comunicação Serial na velocidade padrão.
+  // IMPORTANTE: No Monitor Serial do Arduino IDE, selecione "115200" no canto inferior direito.
+  Serial.begin(115200);
+}
+
+void loop() {
+  // Envia a mensagem "Olá, Mundo! A placa está funcionando." pela porta USB a cada 2 segundos.
+  Serial.println("Olá, Mundo! A placa está funcionando.");
+  delay(2000); // Espera 2 segundos.
+}
+`;
+
+
 const generateCppCode = (config: {
-  configType: 'wifimanager' | 'hardcoded';
-  appUrl: string;
-  pin: string;
-  interval: string;
+  configType: 'wifimanager' | 'hardcoded' | 'webserial';
+  appUrl?: string;
+  pin?: string;
+  interval?: string;
   ssid?: string;
   password?: string;
 }) => {
+
+  if (config.configType === 'webserial') {
+    return generateWebSerialTestCode();
+  }
+
   const commonIncludes = `
 // Bibliotecas necessárias. Instale-as através do Gerenciador de Bibliotecas do Arduino IDE:
 // - DallasTemperature
@@ -252,7 +274,7 @@ ${commonSetupAndLoop}
 `;
 };
 
-type ConfigType = 'wifimanager' | 'hardcoded';
+type ConfigType = 'wifimanager' | 'hardcoded' | 'webserial';
 
 export default function DeviceConfiguratorPage() {
   const { t } = useSettings();
@@ -270,16 +292,19 @@ export default function DeviceConfiguratorPage() {
   const [error, setError] = useState('');
 
   const handleGenerate = () => {
-    if (!appUrl) {
-      setError(t('deviceConfigurator.errorDescription', 'Por favor, preencha a URL do Aplicativo.'));
-      return;
-    }
-    if (configType === 'hardcoded' && (!ssid || !password)) {
-      setError(t('deviceConfigurator.errorCredentials', 'Para credenciais fixas, o SSID e a senha são obrigatórios.'));
-      return;
-    }
-
     setError('');
+
+    if (configType !== 'webserial') {
+       if (!appUrl) {
+        setError(t('deviceConfigurator.errorDescription', 'Por favor, preencha a URL do Aplicativo.'));
+        return;
+      }
+      if (configType === 'hardcoded' && (!ssid || !password)) {
+        setError(t('deviceConfigurator.errorCredentials', 'Para credenciais fixas, o SSID e a senha são obrigatórios.'));
+        return;
+      }
+    }
+   
     const code = generateCppCode({
       configType,
       appUrl,
@@ -336,7 +361,13 @@ export default function DeviceConfiguratorPage() {
              </Alert>
           )}
 
-          <RadioGroup value={configType} onValueChange={(value) => setConfigType(value as ConfigType)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <RadioGroup value={configType} onValueChange={(value) => setConfigType(value as ConfigType)} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <Label htmlFor="type-webserial" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                <RadioGroupItem value="webserial" id="type-webserial" className="sr-only" />
+                <HelpCircle className="mb-3 h-6 w-6" />
+                Alternativa (Web Serial)
+                <span className="mt-2 text-center text-xs text-muted-foreground">Não consegue gravar? Use este código ultra-simples para testar a conexão USB básica.</span>
+            </Label>
             <Label htmlFor="type-wifimanager" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                 <RadioGroupItem value="wifimanager" id="type-wifimanager" className="sr-only" />
                 <Wifi className="mb-3 h-6 w-6" />
@@ -368,30 +399,50 @@ export default function DeviceConfiguratorPage() {
                  <Separator />
             </div>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="app-url">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')}</Label>
-            <Input id="app-url" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} />
-            <p className="text-sm text-muted-foreground">
-                {t('deviceConfigurator.appUrlDescription', 'Insira a URL completa da sua aplicação, terminando com /api/sensor.')}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor="sensor-pin">{t('deviceConfigurator.pinLabel', 'Pino do Sensor (GPIO)')}</Label>
-                <Input id="sensor-pin" type="number" value={sensorPin} onChange={(e) => setSensorPin(e.target.value)} />
-                 <p className="text-sm text-muted-foreground">
-                    {t('deviceConfigurator.pinDescription', 'Pino de dados para o sensor DS18B20. O padrão é 4.')}
-                </p>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="send-interval">{t('deviceConfigurator.intervalLabel', 'Intervalo de Envio (segundos)')}</Label>
-                <Input id="send-interval" type="number" value={sendInterval} onChange={(e) => setSendInterval(e.target.value)} />
-                 <p className="text-sm text-muted-foreground">
-                    {t('deviceConfigurator.intervalDescription', 'Frequência de envio dos dados. O padrão é 30s.')}
-                </p>
-            </div>
-          </div>
+          
+          {configType !== 'webserial' && (
+             <>
+                <div className="space-y-2">
+                  <Label htmlFor="app-url">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')}</Label>
+                  <Input id="app-url" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} />
+                  <p className="text-sm text-muted-foreground">
+                      {t('deviceConfigurator.appUrlDescription', 'Insira a URL completa da sua aplicação, terminando com /api/sensor.')}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="sensor-pin">{t('deviceConfigurator.pinLabel', 'Pino do Sensor (GPIO)')}</Label>
+                      <Input id="sensor-pin" type="number" value={sensorPin} onChange={(e) => setSensorPin(e.target.value)} />
+                      <p className="text-sm text-muted-foreground">
+                          {t('deviceConfigurator.pinDescription', 'Pino de dados para o sensor DS18B20. O padrão é 4.')}
+                      </p>
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="send-interval">{t('deviceConfigurator.intervalLabel', 'Intervalo de Envio (segundos)')}</Label>
+                      <Input id="send-interval" type="number" value={sendInterval} onChange={(e) => setSendInterval(e.target.value)} />
+                      <p className="text-sm text-muted-foreground">
+                          {t('deviceConfigurator.intervalDescription', 'Frequência de envio dos dados. O padrão é 30s.')}
+                      </p>
+                  </div>
+                </div>
+             </>
+           )}
+           
+            {configType === 'webserial' && (
+             <Alert variant="default" className="border-sky-500/50 text-sky-600 bg-sky-500/5">
+               <HelpCircle className="h-4 w-4 !text-sky-600" />
+               <AlertTitle>Como usar este código de teste</AlertTitle>
+                <AlertDescription>
+                  <ol className="list-decimal list-inside space-y-1 mt-2">
+                      <li>Clique em "Gerar Código" e copie o código.</li>
+                      <li>Cole no Arduino IDE e tente gravar na placa (pressione BOOT ao conectar o USB).</li>
+                      <li>Se a gravação funcionar, abra o Monitor Serial (Ctrl+Shift+M).</li>
+                      <li>Você DEVE ver a mensagem "Olá, Mundo!..." aparecendo a cada 2 segundos.</li>
+                      <li>Se vir a mensagem, sua conexão e drivers estão funcionando! Agora pode voltar e usar o código "Universal".</li>
+                  </ol>
+                </AlertDescription>
+             </Alert>
+           )}
 
           <Button onClick={handleGenerate}>
             <CodeXml className="mr-2 h-4 w-4" />
@@ -427,3 +478,6 @@ export default function DeviceConfiguratorPage() {
     </div>
   );
 }
+
+
+    
