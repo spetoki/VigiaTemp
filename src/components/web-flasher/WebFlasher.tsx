@@ -19,7 +19,6 @@ declare global {
 }
 
 export default function WebFlasher() {
-  const flasherRef = useRef<HTMLElement>(null);
   const { t } = useSettings();
   
   // State to manage the loading and initialization of the web component
@@ -28,6 +27,10 @@ export default function WebFlasher() {
   useEffect(() => {
     // This function will handle the dynamic import and initialization
     const initializeFlasher = async () => {
+      // Ensure this code only runs in the browser
+      if (typeof window === 'undefined') {
+        return;
+      }
       try {
         // Dynamically import the library only on the client side
         await import('esp-web-tools');
@@ -48,13 +51,6 @@ export default function WebFlasher() {
     initializeFlasher();
   }, []); // Empty dependency array ensures this runs only once on mount
 
-  // Effect to configure the flasher once it's ready and rendered
-  useEffect(() => {
-    if (flasherState === 'ready' && flasherRef.current) {
-        // Now it's safe to set the manifest attribute
-        (flasherRef.current as any).manifest = "/firmware/manifest.json";
-    }
-  }, [flasherState]);
 
   // Render loading state
   if (flasherState === 'loading') {
@@ -82,7 +78,7 @@ export default function WebFlasher() {
   // Render the flasher component once it's ready
   return (
     <div className="w-full flex flex-col items-center justify-center text-center">
-      <esp-web-flasher ref={flasherRef}>
+      <esp-web-flasher manifest="/firmware/manifest.json">
         <div slot="activate">
             <Button size="lg">
                 <Usb className="mr-2 h-4 w-4" />
