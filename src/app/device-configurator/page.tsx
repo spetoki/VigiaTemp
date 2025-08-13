@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CodeXml, Copy, Check, AlertCircle, FileCode2, Wifi, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '../ui/separator';
+import { Separator } from '@/components/ui/separator';
 
 const generateCppCode = (config: {
   configType: 'wifimanager' | 'hardcoded';
