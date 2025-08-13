@@ -23,6 +23,8 @@
   "nav.webFlasher": "Instalador Web",
   "nav.users": "Usuarios",
   "nav.chat": "Asistente de IA",
+  "nav.esphome": "Configurador ESPHome",
+  "nav.hardwareMenu": "Hardware",
 
   "temperatureUnitSelection": "Selección de unidad de temperatura",
   "openMenu": "Abrir menú",
@@ -304,10 +306,6 @@
   "hardwareAssembly.step3Description": "Enchufe el sensor DS18B20 en la protoboard. Conecte el pin VCC (alimentación) del sensor al riel positivo (+). Conecte el pin GND del sensor al riel negativo (-). Conecte el pin de DATOS (Data) del sensor a un pin GPIO en el ESP32, como el pin 'GPIO 4' (o D4).",
   "hardwareAssembly.step4Title": "Añada la Resistencia de Pull-up (MUY IMPORTANTE)",
   "hardwareAssembly.step4Description": "Conecte la resistencia de 4.7kΩ entre el pin de DATOS del sensor (el mismo conectado a GPIO 4) y el riel de alimentación positivo (+). Esta resistencia es crucial para una comunicación estable con el sensor.",
-  "hardwareAssembly.step5Title": "Verificación Final y Conexión",
-  "hardwareAssembly.step5Description": "Revise todas las conexiones para asegurarse de que sean correctas y firmes. Una vez confirmado, conecte el cable USB de su ordenador a la placa ESP32. Un LED en la placa debería encenderse, indicando que está alimentada.",
-  "hardwareAssembly.nextStepsTitle": "Próximos Pasos: Programando el ESP32",
-  "hardwareAssembly.nextStepsDescription": "Con el hardware montado, el siguiente paso es programar el ESP32. Puedes usar el software gratuito **Arduino IDE** para escribir y cargar el código en tu ESP32 (no se necesita una placa Arduino física). PlatformIO es otra gran alternativa.",
   "hardwareAssembly.changeImage": "Cambiar Imagen",
   "hardwareAssembly.enterEditMode": "Editar Página",
   "hardwareAssembly.exitEditMode": "Salir de Edición",
@@ -317,10 +315,6 @@
   "hardwareAssembly.webFlasherCard.title": "Instale el Firmware Fácilmente",
   "hardwareAssembly.webFlasherCard.description": "Use nuestro instalador web para programar su ESP32 directamente desde el navegador con un solo clic. Es la forma más fácil de comenzar.",
   "hardwareAssembly.webFlasherCard.button": "Abrir Instalador Web",
-  "hardwareAssembly.alternatives.title": "Alternativas al ESP32 para Principiantes",
-  "hardwareAssembly.alternatives.description": "El ESP32 es potente, pero si estás empezando, existen opciones más sencillas que también funcionan perfectamente para este proyecto.",
-  "hardwareAssembly.alternatives.picoW": "La mejor alternativa. Es barato, potente y tiene Wi-Fi incorporado. Se programa en MicroPython, que es muy amigable para principiantes. La documentación oficial es excelente.",
-  "hardwareAssembly.alternatives.arduino": "Las versiones modernas de las placas Arduino clásicas ahora vienen con Wi-Fi. Obtienes la enorme comunidad y la simplicidad del ecosistema Arduino sin necesidad de módulos adicionales.",
   
   "traceability.pageTitle": "Trazabilidad de Lotes de Cacao",
   "traceability.pageDescription": "Registre toda la información importante de cada lote de cacao para garantizar la calidad y la trazabilidad.",
@@ -389,6 +383,16 @@
   "deviceConfigurator.copyErrorTitle": "Fallo al Copiar",
   "deviceConfigurator.copyErrorDescription": "No se pudo copiar el código.",
   
+  "esphome.title": "Configurador de YAML para ESPHome",
+  "esphome.description": "Genere el código de configuración YAML para su dispositivo ESP32 para ser utilizado con ESPHome y Home Assistant.",
+  "esphome.formTitle": "Configuración del Dispositivo para ESPHome",
+  "esphome.formDescription": "Rellene los campos a continuación. El código generado debe ser pegado en su panel de ESPHome.",
+  "esphome.deviceNameLabel": "Nombre del Dispositivo (sin espacios)",
+  "esphome.deviceNameDescription": "Use letras minúsculas, números y guiones bajos. Este será el nombre del dispositivo en la red.",
+  "esphome.generateButton": "Generar Código YAML",
+  "esphome.generatedCodeTitle": "Código YAML Generado para ESPHome",
+  "esphome.generatedCodeDescription": "Copie este código y péguelo en un nuevo dispositivo en el panel de ESPHome.",
+
   "dataAnalysis.pageTitle": "Análisis de Datos de Sensores",
   "dataAnalysis.pageDescription": "Explore visualizaciones avanzadas del comportamiento de sus sensores y la frecuencia de alertas para identificar patrones y optimizar operaciones.",
   "dataAnalysis.pieChart.title": "Distribución de Estado por Sensor",
@@ -462,7 +466,17 @@
   "webFlasher.compatibilityDescription": "Esta herramienta funciona mejor en Google Chrome, Microsoft Edge u otros navegadores basados en Chromium. Firefox y Safari no son compatibles.",
   "webFlasher.cardTitle": "Instalador de Firmware VigiaTemp",
   "webFlasher.cardDescription": "Este instalador escribirá el software necesario en su ESP32 para conectarse a VigiaTemp.",
-  "webFlasher.connectButton": "Conectar"
+  "webFlasher.connectButton": "Conectar",
+  "webFlasher.guide.title": "Cómo Usar el Instalador Web (Paso a Paso)",
+  "webFlasher.guide.description": "Siga estos pasos para asegurar una grabación exitosa del firmware en su ESP32.",
+  "webFlasher.guide.step1": "1. Prepare el Entorno (Lo más importante)",
+  "webFlasher.guide.step1desc": "Primero, asegúrese de que los **controladores USB** correctos (CP210x o CH340) estén instalados en su computadora. Sin ellos, la placa no será reconocida. Además, use un **cable USB de datos**, no solo uno de carga.",
+  "webFlasher.guide.step2": "2. Ponga la Placa en 'Modo de Grabación'",
+  "webFlasher.guide.step2desc": "Con el ESP32 **desconectado**, presione y **mantenga presionado el botón 'BOOT'** (o 'FLASH'). Mientras lo mantiene presionado, conecte el cable USB a su computadora. Después de conectarlo, puede soltar el botón. Esto prepara la placa para recibir nuevo software.",
+  "webFlasher.guide.step3": "3. Conecte y Grabe a través del Navegador",
+  "webFlasher.guide.step3desc": "Haga clic en el botón **'Conectar'** de arriba. Aparecerá una ventana del navegador para que elija el puerto serie correcto. Después de conectarse, el botón cambiará a **'Instalar'**. Haga clic en él y espere a que la barra de progreso llegue al 100%. No desconecte el cable durante el proceso.",
+  "webFlasher.guide.step4": "4. Reinicie y Use",
+  "webFlasher.guide.step4desc": "Una vez que la instalación se complete con éxito, simplemente desconecte y vuelva a conectar el cable USB. Esta vez, **no mantenga presionado** el botón 'BOOT'. La placa se iniciará con el firmware de VigiaTemp y estará lista para ser configurada.",
+  "webFlasher.troubleshooting.title": "Solución de Problemas",
+  "webFlasher.troubleshooting.description": "Si su dispositivo ESP32 no es reconocido, siga estos pasos."
 }
-
-    

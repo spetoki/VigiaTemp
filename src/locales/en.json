@@ -23,6 +23,8 @@
   "nav.webFlasher": "Web Flasher",
   "nav.users": "Users",
   "nav.chat": "AI Assistant",
+  "nav.esphome": "ESPHome Configurator",
+  "nav.hardwareMenu": "Hardware",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
@@ -308,10 +310,6 @@
   "hardwareAssembly.step3Description": "Plug the DS18B20 sensor into the breadboard. Connect the VCC (power) pin of the sensor to the positive rail (+). Connect the GND pin of the sensor to the negative rail (-). Connect the DATA pin of the sensor to a GPIO pin on the ESP32, such as pin 'GPIO 4' (or D4).",
   "hardwareAssembly.step4Title": "Add the Pull-up Resistor (VERY IMPORTANT)",
   "hardwareAssembly.step4Description": "Connect the 4.7kΩ resistor between the DATA pin of the sensor (the same one connected to GPIO 4) and the positive power rail (+). This resistor is crucial for stable communication with the sensor.",
-  "hardwareAssembly.step5Title": "Final Check and Connection",
-  "hardwareAssembly.step5Description": "Review all connections to ensure they are correct and firm. Once confirmed, connect the USB cable from your computer to the ESP32 board. An LED on the board should light up, indicating it is powered on.",
-  "hardwareAssembly.nextStepsTitle": "Next Steps: Programming the ESP32",
-  "hardwareAssembly.nextStepsDescription": "With the hardware assembled, the next step is to program the ESP32. You can use the free **Arduino IDE** software to write and upload code to your ESP32 (no physical Arduino board is needed). PlatformIO is another great alternative.",
   "hardwareAssembly.changeImage": "Change Image",
   "hardwareAssembly.enterEditMode": "Edit Page",
   "hardwareAssembly.exitEditMode": "Exit Edit Mode",
@@ -321,10 +319,6 @@
   "hardwareAssembly.webFlasherCard.title": "Install Firmware Easily",
   "hardwareAssembly.webFlasherCard.description": "Use our web flasher to program your ESP32 directly from the browser with just one click. It's the easiest way to get started.",
   "hardwareAssembly.webFlasherCard.button": "Open Web Flasher",
-  "hardwareAssembly.alternatives.title": "Alternatives to ESP32 for Beginners",
-  "hardwareAssembly.alternatives.description": "The ESP32 is powerful, but if you're just starting out, there are simpler options that also work perfectly for this project.",
-  "hardwareAssembly.alternatives.picoW": "The best alternative. It's cheap, powerful, and has built-in Wi-Fi. It's programmed in MicroPython, which is very beginner-friendly. The official documentation is excellent.",
-  "hardwareAssembly.alternatives.arduino": "Modern versions of the classic Arduino boards now come with Wi-Fi. You get the huge community and simplicity of the Arduino ecosystem without needing extra modules.",
 
   "traceability.pageTitle": "Cocoa Lot Traceability",
   "traceability.pageDescription": "Record all important information for each cocoa lot to ensure quality and traceability.",
@@ -395,6 +389,16 @@
   "deviceConfigurator.copyErrorTitle": "Copy Failed",
   "deviceConfigurator.copyErrorDescription": "Could not copy the code.",
   
+  "esphome.title": "YAML Configurator for ESPHome",
+  "esphome.description": "Generate the YAML configuration code for your ESP32 device to be used with ESPHome and Home Assistant.",
+  "esphome.formTitle": "Device Configuration for ESPHome",
+  "esphome.formDescription": "Fill in the fields below. The generated code should be pasted into your ESPHome dashboard.",
+  "esphome.deviceNameLabel": "Device Name (no spaces)",
+  "esphome.deviceNameDescription": "Use lowercase letters, numbers, and underscores. This will be the device name on the network.",
+  "esphome.generateButton": "Generate YAML Code",
+  "esphome.generatedCodeTitle": "Generated YAML Code for ESPHome",
+  "esphome.generatedCodeDescription": "Copy this code and paste it into a new device in the ESPHome dashboard.",
+
   "dataAnalysis.pageTitle": "Sensor Data Analysis",
   "dataAnalysis.pageDescription": "Explore advanced visualizations of your sensor behavior and alert frequency to identify patterns and optimize operations.",
   "dataAnalysis.pieChart.title": "Status Distribution per Sensor",
@@ -468,7 +472,19 @@
   "webFlasher.compatibilityDescription": "This tool works best on Google Chrome, Microsoft Edge, or other Chromium-based browsers. Firefox and Safari are not supported.",
   "webFlasher.cardTitle": "VigiaTemp Firmware Flasher",
   "webFlasher.cardDescription": "This flasher will write the necessary software to your ESP32 to connect to VigiaTemp.",
-  "webFlasher.connectButton": "Connect"
+  "webFlasher.connectButton": "Connect",
+  "webFlasher.guide.title": "How to Use the Web Flasher (Step-by-Step)",
+  "webFlasher.guide.description": "Follow these steps to ensure a successful firmware flash to your ESP32.",
+  "webFlasher.guide.step1": "1. Prepare the Environment (Most Important)",
+  "webFlasher.guide.step1desc": "First, ensure the correct **USB drivers** (CP210x or CH340) are installed on your computer. Without them, the board will not be recognized. Also, use a **data USB cable**, not just a charging cable.",
+  "webFlasher.guide.step2": "2. Put the Board in 'Flashing Mode'",
+  "webFlasher.guide.step2desc": "With the ESP32 **unplugged**, press and **hold the 'BOOT'** (or 'FLASH') button. While holding it, connect the USB cable to your computer. After connecting, you can release the button. This prepares the board to receive new software.",
+  "webFlasher.guide.step3": "3. Connect and Flash via Browser",
+  "webFlasher.guide.step3desc": "Click the **'Connect'** button above. A browser window will appear for you to choose the correct serial port. After connecting, the button will change to **'Install'**. Click it and wait for the progress bar to reach 100%. Do not disconnect the cable during the process.",
+  "webFlasher.guide.step4": "4. Restart and Use",
+  "webFlasher.guide.step4desc": "After the installation is successfully completed, simply unplug and reconnect the USB cable. This time, **do not hold** the 'BOOT' button. The board will start with the VigiaTemp firmware and be ready for configuration.",
+  "webFlasher.troubleshooting.title": "Troubleshooting",
+  "webFlasher.troubleshooting.description": "If your ESP32 device is not being recognized, follow these steps."
 }
 
     

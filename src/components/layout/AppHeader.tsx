@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, LogOut, Usb, FileCode2 } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, LogOut, Usb, FileCode2, Puzzle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -37,10 +37,17 @@ export default function AppHeader() {
     { href: '/data-analysis', labelKey: 'nav.dataAnalysis', icon: Activity, defaultLabel: 'Análise de Dados' },
     { href: '/traceability', labelKey: 'nav.traceability', icon: ClipboardList, defaultLabel: 'Rastreabilidade' },
     { href: '/optimize-alarms', labelKey: 'nav.optimizeAlarms', icon: BrainCircuit, defaultLabel: 'Otimizar Alarmes' },
+  ];
+
+  const hardwareNavItems = [
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
     { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: FileCode2, defaultLabel: 'Configurar Dispositivo' },
     { href: '/web-flasher', labelKey: 'nav.webFlasher', icon: Usb, defaultLabel: 'Instalador Web' },
-    { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
+    { href: '/esphome', labelKey: 'nav.esphome', icon: Puzzle, defaultLabel: 'Configurador ESPHome' },
+  ];
+
+  const settingsAndLogout = [
+     { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
   ];
   
   const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {
@@ -114,10 +121,18 @@ export default function AppHeader() {
               <SheetHeader className="p-4 border-b">
                 <SheetTitle className="text-left">{t('nav.mainMenu', 'Menu Principal')}</SheetTitle>
               </SheetHeader>
-                <div className="flex-grow overflow-y-auto p-4">
-                    <div className="flex flex-col space-y-2">
+                <div className="flex-grow overflow-y-auto p-4 space-y-4">
+                    <div className="flex flex-col space-y-1">
                       {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
-                      <Separator className="my-2" />
+                    </div>
+                    <Separator />
+                    <div className="flex flex-col space-y-1">
+                      <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.hardwareMenu', 'Hardware')}</p>
+                      {hardwareNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                    </div>
+                    <Separator />
+                    <div className="flex flex-col space-y-1">
+                       {settingsAndLogout.map(item => <NavLink key={item.href} {...item} isMobile />)}
                       <LogoutButton isMobile />
                     </div>
                 </div>
@@ -136,6 +151,10 @@ export default function AppHeader() {
         
         <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
           {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
+          <Separator orientation="vertical" className="h-6" />
+          {hardwareNavItems.map(item => <NavLink key={item.href} {...item} />)}
+           <Separator orientation="vertical" className="h-6" />
+          {settingsAndLogout.map(item => <NavLink key={item.href} {...item} />)}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-4">
