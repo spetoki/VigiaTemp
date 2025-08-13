@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer, Bluetooth } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -303,6 +303,12 @@ export default function HardwareAssemblyPage() {
                 <li>**Solte o botão "BOOT"**.</li>
                 <li>Agora, vá para a página do **Instalador Web** e tente conectar.</li>
              </ol>
+          </div>
+           <div>
+            <h3 className="font-semibold flex items-center gap-2"><Bluetooth className="h-4 w-4"/>Alternativa: Gravação via Bluetooth (Android)</h3>
+            <p className="text-muted-foreground text-sm">
+              Se a conexão USB continuar falhando, você pode tentar gravar o firmware via Bluetooth. Isso requer que você tenha conseguido gravar o firmware inicial pelo menos uma vez. Depois, você pode usar um aplicativo Android como o **"Web Bluetooth DFU"** para enviar atualizações de firmware (`.bin`) para a placa sem usar cabos.
+            </p>
           </div>
         </CardContent>
       </Card>
