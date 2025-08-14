@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Usb, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -13,6 +13,7 @@ declare global {
     interface IntrinsicElements {
       'esp-web-flasher': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
           manifest?: string;
+          overrides?: string;
       };
     }
   }
@@ -21,38 +22,24 @@ declare global {
 export default function WebFlasher() {
   const { t } = useSettings();
   
-  // State to manage the loading and initialization of the web component
   const [flasherState, setFlasherState] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
-    // This function will handle the dynamic import and initialization
     const initializeFlasher = async () => {
-      // Ensure this code only runs in the browser
-      if (typeof window === 'undefined') {
-        return;
-      }
+      if (typeof window === 'undefined') return;
       try {
-        // Dynamically import the library only on the client side
         await import('esp-web-tools');
-        
-        // Wait until the custom element is actually defined in the browser
         await customElements.whenDefined('esp-web-flasher');
-
-        // Once defined, set the component as ready to be rendered
         setFlasherState('ready');
-
       } catch (error) {
         console.error("Failed to load or initialize esp-web-tools:", error);
         setFlasherState('error');
       }
     };
     
-    // Run the initialization
     initializeFlasher();
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []); 
 
-
-  // Render loading state
   if (flasherState === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
@@ -62,7 +49,6 @@ export default function WebFlasher() {
     );
   }
 
-  // Render error state
   if (flasherState === 'error') {
     return (
       <Alert variant="destructive">
@@ -75,7 +61,6 @@ export default function WebFlasher() {
     );
   }
 
-  // Render the flasher component once it's ready
   return (
     <div className="w-full flex flex-col items-center justify-center text-center">
       <esp-web-flasher manifest="/firmware/manifest.json">
@@ -85,6 +70,9 @@ export default function WebFlasher() {
                 {t('webFlasher.connectButton', 'Conectar')}
             </Button>
         </div>
+        <Button slot="provision" size="lg" variant="outline">
+            Provisionar
+        </Button>
         <div slot="unsupported">
              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
