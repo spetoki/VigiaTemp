@@ -10,6 +10,9 @@ O aplicativo é construído sobre uma base de tecnologias de ponta, garantindo p
 
 *   **Framework Principal:** **Next.js 14.2.8** (com App Router) - Utiliza renderização no servidor (SSR) e componentes de servidor (RSC) para otimizar o carregamento e o desempenho, além de fornecer um sistema de roteamento moderno e eficiente.
 *   **Linguagem:** **TypeScript** - Garante a segurança de tipos em todo o projeto, reduzindo bugs e melhorando a manutenibilidade do código.
+*   **Hardware Compatível:**
+    *   **ESP32:** Placa recomendada, com ótimo poder de processamento e conectividade.
+    *   **ESP8266 (NodeMCU, Wemos D1 Mini):** Uma alternativa de baixo custo e amplamente disponível, totalmente compatível com o código fornecido.
 *   **Interface e Componentes:**
     *   **React 18.3.1**: Biblioteca principal para a construção da interface de usuário.
     *   **ShadCN UI**: Coleção de componentes de UI reutilizáveis, construídos sobre Radix UI e Tailwind CSS, que garantem uma aparência profissional e acessível.
