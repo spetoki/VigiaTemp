@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 
 interface Component {
