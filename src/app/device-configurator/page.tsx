@@ -362,23 +362,23 @@ export default function DeviceConfiguratorPage() {
           )}
 
           <RadioGroup value={configType} onValueChange={(value) => setConfigType(value as ConfigType)} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <Label htmlFor="type-webserial" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+             <Label htmlFor="type-webserial" className="cursor-pointer flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground [&:has([data-state=checked])]:border-primary">
                 <RadioGroupItem value="webserial" id="type-webserial" className="sr-only" />
                 <HelpCircle className="mb-3 h-6 w-6" />
                 Alternativa (Web Serial)
-                <span className="mt-2 text-center text-xs text-muted-foreground">Não consegue gravar? Use este código ultra-simples para testar a conexão USB básica.</span>
+                <span className="mt-2 text-center text-xs text-muted-foreground peer-data-[state=checked]:text-primary-foreground/80">Não consegue gravar? Use este código ultra-simples para testar a conexão USB básica.</span>
             </Label>
-            <Label htmlFor="type-wifimanager" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+            <Label htmlFor="type-wifimanager" className="cursor-pointer flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground [&:has([data-state=checked])]:border-primary">
                 <RadioGroupItem value="wifimanager" id="type-wifimanager" className="sr-only" />
                 <Wifi className="mb-3 h-6 w-6" />
                 Universal (WiFiManager)
-                <span className="mt-2 text-center text-xs text-muted-foreground">Cria um portal para configurar o WiFi no próprio dispositivo. Ideal para flexibilidade.</span>
+                <span className="mt-2 text-center text-xs text-muted-foreground peer-data-[state=checked]:text-primary-foreground/80">Cria um portal para configurar o WiFi no próprio dispositivo. Ideal para flexibilidade.</span>
             </Label>
-             <Label htmlFor="type-hardcoded" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+             <Label htmlFor="type-hardcoded" className="cursor-pointer flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground [&:has([data-state=checked])]:border-primary">
                 <RadioGroupItem value="hardcoded" id="type-hardcoded" className="sr-only" />
                 <Settings className="mb-3 h-6 w-6" />
                 Credenciais Fixas
-                <span className="mt-2 text-center text-xs text-muted-foreground">Grava o nome e a senha da rede diretamente no código. Mais simples, menos flexível.</span>
+                <span className="mt-2 text-center text-xs text-muted-foreground peer-data-[state=checked]:text-primary-foreground/80">Grava o nome e a senha da rede diretamente no código. Mais simples, menos flexível.</span>
             </Label>
           </RadioGroup>
 
@@ -479,5 +479,7 @@ export default function DeviceConfiguratorPage() {
   );
 }
 
+
+    
 
     
