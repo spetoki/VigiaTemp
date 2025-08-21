@@ -119,23 +119,29 @@ export default function DashboardPage() {
         
         let currentSensors: Sensor[] = [];
         try {
-            currentSensors = await getSensors(activeKey);
+            // No need to fetch from Firestore again if we are just simulating
+             currentSensors = sensors;
         } catch (e) {
             console.error("Failed to fetch sensors during update.", e);
             return;
         }
 
         const updatePromises: Promise<any>[] = [];
-        const updatedSensors = currentSensors.map((sensor) => {
+        const updatedSensors = sensors.map((sensor) => {
             const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
             const updatedSensor = { ...sensor, currentTemperature: newTemperature };
+            // In a real scenario with live data, you might not push updates this frequently
+            // but for simulation, this is fine.
             updatePromises.push(updateSensor(activeKey, sensor.id, { currentTemperature: newTemperature }));
             return updatedSensor;
         });
         
+        // This keeps the local state updated for a smoother UI experience.
+        setSensors(updatedSensors);
+
+        // Batch the Firestore updates
         await Promise.all(updatePromises);
         
-        setSensors(updatedSensors);
 
         let currentAlerts: Alert[] = [];
         try {
@@ -192,7 +198,7 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [activeKey, t, temperatureUnit]);
+  }, [activeKey, sensors, t, temperatureUnit]);
 
   if (isLoading) {
     return (

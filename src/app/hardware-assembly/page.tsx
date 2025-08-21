@@ -356,7 +356,3 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
-
-    
-
-    

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { Sensor } from '@/types';
@@ -41,6 +40,11 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
     if (sensorToDelete) {
       onDelete(sensorToDelete.id);
     }
+    setDeleteConfirmationOpen(false);
+    setSensorToDelete(null);
+  };
+  
+  const cancelDelete = () => {
     setDeleteConfirmationOpen(false);
     setSensorToDelete(null);
   };
@@ -114,7 +118,7 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setSensorToDelete(null)}>{t('sensorsPage.deleteDialog.cancel', 'Cancelar')}</AlertDialogCancel>
+              <AlertDialogCancel onClick={cancelDelete}>{t('sensorsPage.deleteDialog.cancel', 'Cancelar')}</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
                 {t('sensorsPage.deleteDialog.confirm', 'Excluir')}
               </AlertDialogAction>

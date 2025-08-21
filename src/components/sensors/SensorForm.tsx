@@ -213,7 +213,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                 name="macAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('sensorForm.macAddressLabel', 'Endereço MAC (Opcional)')}</FormLabel>
+                    <FormLabel>{t('sensorForm.macAddressLabel', 'Endereço MAC')}</FormLabel>
                     <FormControl>
                       <Input placeholder={t('sensorForm.placeholder.mac', "Ex: 00:1A:2B:3C:4D:5E")} {...field} />
                     </FormControl>
