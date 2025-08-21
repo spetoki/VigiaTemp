@@ -306,6 +306,25 @@
   "hardwareAssembly.step3Description": "Enchufe el sensor DS18B20 en la protoboard. Conecte el pin VCC (alimentación) del sensor al riel positivo (+). Conecte el pin GND del sensor al riel negativo (-). Conecte el pin de DATOS (Data) del sensor a un pin GPIO en el ESP32, como el pin 'GPIO 4' (o D4).",
   "hardwareAssembly.step4Title": "Añada la Resistencia de Pull-up (MUY IMPORTANTE)",
   "hardwareAssembly.step4Description": "Conecte la resistencia de 4.7kΩ entre el pin de DATOS del sensor (el mismo conectado a GPIO 4) y el riel de alimentación positivo (+). Esta resistencia es crucial para una comunicación estable con el sensor.",
+  "hardwareAssembly.nextStepsTitle": "Próximo Paso: Grabar el Firmware",
+  "hardwareAssembly.nextStepsDescription": "Con el hardware montado, el siguiente paso es grabar el software (firmware) en la placa. Si tienes problemas, lee estos consejos.",
+  "hardwareAssembly.step1Driver": "1. Instale los Drivers USB (Causa #1 de problemas)",
+  "hardwareAssembly.step1DriverDescription": "Su computadora necesita un 'traductor' (driver) para comunicarse con la placa. La mayoría de los problemas de conexión ocurren porque falta este driver. Identifique el chip USB en su placa (un chip rectangular cerca del conector USB) e instale el driver correspondiente:",
+  "hardwareAssembly.step1DriverCP210x": "Driver CP210x:",
+  "hardwareAssembly.step1DriverCP210xInfo": "Para la mayoría de las placas ESP32. Descargue en",
+  "hardwareAssembly.step1DriverCH340": "Driver CH340:",
+  "hardwareAssembly.step1DriverCH340Info": "Para placas más baratas o clones. Descargue en",
+  "hardwareAssembly.step1DriverRestart": "Después de instalar, **reinicie su computadora** y vuelva a intentar el Instalador Web.",
+  "hardwareAssembly.step2Cable": "2. Use un Cable USB de DATOS",
+  "hardwareAssembly.step2CableDescription": "Asegúrese de que está usando un cable USB capaz de transferir datos, y no solo un cable de carga de teléfono. Muchos cables baratos carecen de los hilos necesarios para la comunicación. En caso de duda, pruebe con otro cable.",
+  "hardwareAssembly.step3Boot": "3. Modo 'Boot' Manual",
+  "hardwareAssembly.step3BootDescription": "El 'Modo Boot' es lo que le dice a la placa que acepte nuevo software. El Instalador Web intenta hacerlo automáticamente, pero a veces falla. Hágalo manualmente:",
+  "hardwareAssembly.step3BootStep1": "Con la placa desconectada, **mantenga presionado el botón 'BOOT'**.",
+  "hardwareAssembly.step3BootStep2": "Mientras lo mantiene presionado, **conecte el cable USB**.",
+  "hardwareAssembly.step3BootStep3": "**Suelte el botón 'BOOT'**.",
+  "hardwareAssembly.step3BootStep4": "Ahora, vaya a la página del **Instalador Web** e intente conectar.",
+  "hardwareAssembly.step4Bluetooth": "4. Alternativa: Grabación vía Bluetooth (Android)",
+  "hardwareAssembly.step4BluetoothDescription": "Si la conexión USB sigue fallando, puede intentar grabar el firmware vía Bluetooth. Esto requiere que haya grabado con éxito el firmware inicial al menos una vez. Después, puede usar una aplicación de Android como **'Web Bluetooth DFU'** para enviar actualizaciones de firmware (`.bin`) a la placa sin usar cables.",
   "hardwareAssembly.changeImage": "Cambiar Imagen",
   "hardwareAssembly.enterEditMode": "Editar Página",
   "hardwareAssembly.exitEditMode": "Salir de Edición",
@@ -480,3 +499,5 @@
   "webFlasher.troubleshooting.title": "Solución de Problemas",
   "webFlasher.troubleshooting.description": "Si su dispositivo ESP32 no es reconocido, siga estos pasos."
 }
+
+    

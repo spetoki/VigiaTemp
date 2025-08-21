@@ -310,8 +310,10 @@
   "hardwareAssembly.nextStepsDescription": "Com o hardware montado, o próximo passo é gravar o software (firmware) na placa. Se você não está conseguindo, leia estas dicas.",
   "hardwareAssembly.step1Driver": "1. Instale os Drivers USB (Causa #1 de problemas)",
   "hardwareAssembly.step1DriverDescription": "Seu computador precisa de um \"tradutor\" (driver) para conversar com a placa. A maioria dos problemas de conexão ocorre porque este driver está faltando. Identifique o chip USB na sua placa (um chip retangular perto do conector USB) e instale o driver correspondente:",
-  "hardwareAssembly.step1DriverCP210x": "Driver CP210x: Para a maioria das placas ESP32. Baixe em",
-  "hardwareAssembly.step1DriverCH340": "Driver CH340: Para placas mais baratas ou clones. Baixe em",
+  "hardwareAssembly.step1DriverCP210x": "Driver CP210x:",
+  "hardwareAssembly.step1DriverCP210xInfo": "Para a maioria das placas ESP32. Baixe em",
+  "hardwareAssembly.step1DriverCH340": "Driver CH340:",
+  "hardwareAssembly.step1DriverCH340Info": "Para placas mais baratas ou clones. Baixe em",
   "hardwareAssembly.step1DriverRestart": "Após instalar, **reinicie o seu computador** e tente o Instalador Web novamente.",
   "hardwareAssembly.step2Cable": "2. Use um Cabo USB de DADOS",
   "hardwareAssembly.step2CableDescription": "Certifique-se de que está usando um cabo USB capaz de transferir dados, e não apenas um cabo de carregamento de celular. Muitos cabos baratos não possuem os fios necessários para a comunicação. Na dúvida, teste com outro cabo.",
@@ -497,5 +499,7 @@
   "webFlasher.troubleshooting.title": "Solução de Problemas",
   "webFlasher.troubleshooting.description": "Se o seu dispositivo ESP32 não está sendo reconhecido, siga estes passos."
 }
+
+    
 
     

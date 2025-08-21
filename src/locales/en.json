@@ -310,6 +310,25 @@
   "hardwareAssembly.step3Description": "Plug the DS18B20 sensor into the breadboard. Connect the VCC (power) pin of the sensor to the positive rail (+). Connect the GND pin of the sensor to the negative rail (-). Connect the DATA pin of the sensor to a GPIO pin on the ESP32, such as pin 'GPIO 4' (or D4).",
   "hardwareAssembly.step4Title": "Add the Pull-up Resistor (VERY IMPORTANT)",
   "hardwareAssembly.step4Description": "Connect the 4.7kΩ resistor between the DATA pin of the sensor (the same one connected to GPIO 4) and the positive power rail (+). This resistor is crucial for stable communication with the sensor.",
+  "hardwareAssembly.nextStepsTitle": "Next Step: Flash the Firmware",
+  "hardwareAssembly.nextStepsDescription": "With the hardware assembled, the next step is to flash the software (firmware) onto the board. If you're having trouble, read these tips.",
+  "hardwareAssembly.step1Driver": "1. Install USB Drivers (Cause #1 of problems)",
+  "hardwareAssembly.step1DriverDescription": "Your computer needs a 'translator' (driver) to talk to the board. Most connection issues occur because this driver is missing. Identify the USB chip on your board (a rectangular chip near the USB connector) and install the corresponding driver:",
+  "hardwareAssembly.step1DriverCP210x": "CP210x Driver:",
+  "hardwareAssembly.step1DriverCP210xInfo": "For most ESP32 boards. Download at",
+  "hardwareAssembly.step1DriverCH340": "CH340 Driver:",
+  "hardwareAssembly.step1DriverCH340Info": "For cheaper boards or clones. Download at",
+  "hardwareAssembly.step1DriverRestart": "After installing, **restart your computer** and try the Web Flasher again.",
+  "hardwareAssembly.step2Cable": "2. Use a DATA USB Cable",
+  "hardwareAssembly.step2CableDescription": "Make sure you are using a USB cable capable of transferring data, not just a phone charging cable. Many cheap cables lack the necessary wires for communication. When in doubt, try another cable.",
+  "hardwareAssembly.step3Boot": "3. Manual 'Boot' Mode",
+  "hardwareAssembly.step3BootDescription": "'Boot Mode' is what tells the board to accept new software. The Web Flasher tries to do this automatically, but sometimes fails. Do it manually:",
+  "hardwareAssembly.step3BootStep1": "With the board unplugged, **press and hold the 'BOOT' button**.",
+  "hardwareAssembly.step3BootStep2": "While holding it, **connect the USB cable**.",
+  "hardwareAssembly.step3BootStep3": "**Release the 'BOOT' button**.",
+  "hardwareAssembly.step3BootStep4": "Now, go to the **Web Flasher** page and try to connect.",
+  "hardwareAssembly.step4Bluetooth": "4. Alternative: Flashing via Bluetooth (Android)",
+  "hardwareAssembly.step4BluetoothDescription": "If the USB connection continues to fail, you can try flashing the firmware via Bluetooth. This requires that you have successfully flashed the initial firmware at least once. Afterward, you can use an Android app like **'Web Bluetooth DFU'** to send firmware updates (`.bin`) to the board without using cables.",
   "hardwareAssembly.changeImage": "Change Image",
   "hardwareAssembly.enterEditMode": "Edit Page",
   "hardwareAssembly.exitEditMode": "Exit Edit Mode",
@@ -486,5 +505,7 @@
   "webFlasher.troubleshooting.title": "Troubleshooting",
   "webFlasher.troubleshooting.description": "If your ESP32 device is not being recognized, follow these steps."
 }
+
+    
 
     

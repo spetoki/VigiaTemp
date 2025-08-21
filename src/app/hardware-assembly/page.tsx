@@ -266,48 +266,48 @@ export default function HardwareAssemblyPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-amber-600">
             <LifeBuoy className="h-5 w-5"/>
-            Próximo Passo: Gravar o Firmware
+            {t('hardwareAssembly.nextStepsTitle', 'Próximo Passo: Gravar o Firmware')}
           </CardTitle>
           <CardDescription>
-            Com o hardware montado, o próximo passo é gravar o software (firmware) na placa. Se você não está conseguindo, leia estas dicas.
+            {t('hardwareAssembly.nextStepsDescription', 'Com o hardware montado, o próximo passo é gravar o software (firmware) na placa. Se você não está conseguindo, leia estas dicas.')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h3 className="font-semibold">1. Instale os Drivers USB (Causa #1 de problemas)</h3>
+            <h3 className="font-semibold">{t('hardwareAssembly.step1Driver', '1. Instale os Drivers USB (Causa #1 de problemas)')}</h3>
             <p className="text-muted-foreground text-sm">
-              Seu computador precisa de um "tradutor" (driver) para conversar com a placa. A maioria dos problemas de conexão ocorre porque este driver está faltando. Identifique o chip USB na sua placa (um chip retangular perto do conector USB) e instale o driver correspondente:
+              {t('hardwareAssembly.step1DriverDescription', 'Seu computador precisa de um "tradutor" (driver) para conversar com a placa. A maioria dos problemas de conexão ocorre porque este driver está faltando. Identifique o chip USB na sua placa (um chip retangular perto do conector USB) e instale o driver correspondente:')}
             </p>
             <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-              <li><strong className="font-semibold">Driver CP210x:</strong> Para a maioria das placas ESP32. Baixe em <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener noreferrer" className="text-primary underline">Silicon Labs</a>.</li>
-              <li><strong className="font-semibold">Driver CH340:</strong> Para placas mais baratas ou clones. Baixe em <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html" target="_blank" rel="noopener noreferrer" className="text-primary underline">WCH</a>.</li>
+              <li><strong className="font-semibold">{t('hardwareAssembly.step1DriverCP210x', 'Driver CP210x:')}</strong> {t('hardwareAssembly.step1DriverCP210xInfo', 'Para a maioria das placas ESP32. Baixe em')} <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener noreferrer" className="text-primary underline">Silicon Labs</a>.</li>
+              <li><strong className="font-semibold">{t('hardwareAssembly.step1DriverCH340', 'Driver CH340:')}</strong> {t('hardwareAssembly.step1DriverCH340Info', 'Para placas mais baratas ou clones. Baixe em')} <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html" target="_blank" rel="noopener noreferrer" className="text-primary underline">WCH</a>.</li>
             </ul>
              <p className="text-muted-foreground text-sm mt-2">
-              Após instalar, **reinicie o seu computador** e tente o Instalador Web novamente.
+              {t('hardwareAssembly.step1DriverRestart', 'Após instalar, **reinicie o seu computador** e tente o Instalador Web novamente.')}
             </p>
           </div>
            <div>
-            <h3 className="font-semibold">2. Use um Cabo USB de DADOS</h3>
+            <h3 className="font-semibold">{t('hardwareAssembly.step2Cable', '2. Use um Cabo USB de DADOS')}</h3>
             <p className="text-muted-foreground text-sm">
-             Certifique-se de que está usando um cabo USB capaz de transferir dados, e não apenas um cabo de carregamento de celular. Muitos cabos baratos não possuem os fios necessários para a comunicação. Na dúvida, teste com outro cabo.
+             {t('hardwareAssembly.step2CableDescription', 'Certifique-se de que está usando um cabo USB capaz de transferir dados, e não apenas um cabo de carregamento de celular. Muitos cabos baratos não possuem os fios necessários para a comunicação. Na dúvida, teste com outro cabo.')}
             </p>
           </div>
            <div>
-            <h3 className="font-semibold">3. Modo de "Boot" Manual</h3>
+            <h3 className="font-semibold">{t('hardwareAssembly.step3Boot', '3. Modo de "Boot" Manual')}</h3>
             <p className="text-muted-foreground text-sm">
-              O "Modo de Boot" é o que diz à placa para aceitar um novo software. O Instalador Web tenta fazer isso automaticamente, mas às vezes falha. Faça manualmente:
+              {t('hardwareAssembly.step3BootDescription', 'O "Modo de Boot" é o que diz à placa para aceitar um novo software. O Instalador Web tenta fazer isso automaticamente, mas às vezes falha. Faça manualmente:')}
             </p>
              <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
-                <li>Com a placa desconectada, **pressione e segure o botão "BOOT"**.</li>
-                <li>Mantendo-o pressionado, **conecte o cabo USB**.</li>
-                <li>**Solte o botão "BOOT"**.</li>
-                <li>Agora, vá para a página do **Instalador Web** e tente conectar.</li>
+                <li>{t('hardwareAssembly.step3BootStep1', 'Com a placa desconectada, **pressione e segure o botão "BOOT"**.')}</li>
+                <li>{t('hardwareAssembly.step3BootStep2', 'Mantendo-o pressionado, **conecte o cabo USB**.')}</li>
+                <li>{t('hardwareAssembly.step3BootStep3', '**Solte o botão "BOOT"**.')}</li>
+                <li>{t('hardwareAssembly.step3BootStep4', 'Agora, vá para a página do **Instalador Web** e tente conectar.')}</li>
              </ol>
           </div>
            <div>
-            <h3 className="font-semibold flex items-center gap-2"><Bluetooth className="h-4 w-4"/>Alternativa: Gravação via Bluetooth (Android)</h3>
+            <h3 className="font-semibold flex items-center gap-2"><Bluetooth className="h-4 w-4"/>{t('hardwareAssembly.step4Bluetooth', 'Alternativa: Gravação via Bluetooth (Android)')}</h3>
             <p className="text-muted-foreground text-sm">
-              Se a conexão USB continuar falhando, você pode tentar gravar o firmware via Bluetooth. Isso requer que você tenha conseguido gravar o firmware inicial pelo menos uma vez. Depois, você pode usar um aplicativo Android como o **"Web Bluetooth DFU"** para enviar atualizações de firmware (`.bin`) para a placa sem usar cabos.
+              {t('hardwareAssembly.step4BluetoothDescription', 'Se a conexão USB continuar falhando, você pode tentar gravar o firmware via Bluetooth. Isso requer que você tenha conseguido gravar o firmware inicial pelo menos uma vez. Depois, você pode usar um aplicativo Android como o **"Web Bluetooth DFU"** para enviar atualizações de firmware (`.bin`) para a placa sem usar cabos.')}
             </p>
           </div>
         </CardContent>
@@ -356,5 +356,7 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    
 
     
