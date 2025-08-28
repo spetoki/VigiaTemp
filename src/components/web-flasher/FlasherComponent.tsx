@@ -68,7 +68,8 @@ export function FlasherComponent() {
   // Renderiza o componente `esp-web-flasher` real apenas quando estiver 100% pronto.
   // Os "slots" são pontos de customização fornecidos pela biblioteca `esp-web-tools`.
   return (
-    <esp-web-flasher manifest="/firmware/manifest.json">
+    <esp-web-flasher>
+      <div slot="manifest">/firmware/manifest.json</div>
       {/* Este `div` é substituído pelo botão "Conectar" */}
       <div slot="activate">
           <Button size="lg">
@@ -76,7 +77,11 @@ export function FlasherComponent() {
             {t('webFlasher.connectButton', 'Conectar')}
           </Button>
       </div>
-
+      <div slot="provision">
+          <Button size="lg" variant="outline">
+            {t('webFlasher.provisionButton', 'Provisionar')}
+          </Button>
+      </div>
       {/* Slots para mensagens de erro, caso o navegador não seja compatível */}
       <div slot="unsupported">
            <Alert variant="destructive">
