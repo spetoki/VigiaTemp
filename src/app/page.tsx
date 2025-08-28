@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
         const updatePromises: Promise<any>[] = [];
         const updatedSensors = sensors.map((sensor) => {
-            const newTemperature = simulateTemperatureUpdate(sensor.currentTemperature);
+            const newTemperature = simulateTemperatureUpdate(sensor);
             const updatedSensor = { ...sensor, currentTemperature: newTemperature };
             // In a real scenario with live data, you might not push updates this frequently
             // but for simulation, this is fine.

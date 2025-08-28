@@ -55,9 +55,39 @@ export const demoSensors: Sensor[] = [
   },
 ];
 
+// Stores the timestamp of the last temperature spike for TESTE01
+let lastSpikeTime = 0;
+
 // Function to simulate real-time temperature updates
-export const simulateTemperatureUpdate = (currentTemp: number): number => {
-  // A small, random change to simulate real-world fluctuation
+export const simulateTemperatureUpdate = (sensor: Sensor): number => {
+  const currentTemp = sensor.currentTemperature;
+
+  // Special simulation logic for TESTE01
+  if (sensor.name === 'TESTE01') {
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    // Check if it's time for a spike (once every 5 minutes)
+    if (now - lastSpikeTime > fiveMinutes) {
+      lastSpikeTime = now;
+      // Return a high temperature between 50 and 60
+      return parseFloat((50 + Math.random() * 10).toFixed(1));
+    }
+    
+    // If it's just after a spike, return to normal range quickly
+    if (currentTemp > 40) {
+        return parseFloat((22.5 + (Math.random() - 0.5) * 5).toFixed(1)); // Return to 20-25 range
+    }
+
+    // Normal behavior: fluctuate between 20 and 25
+    let newTemp = currentTemp + (Math.random() - 0.5) * 0.5; // Small fluctuation
+    if (newTemp > 25) newTemp = 24.8;
+    if (newTemp < 20) newTemp = 20.2;
+    
+    return parseFloat(newTemp.toFixed(1));
+  }
+
+  // Default simulation for all other sensors
   const change = (Math.random() - 0.5) * 0.5; // +/- 0.25 degrees
   return parseFloat((currentTemp + change).toFixed(1));
 };
