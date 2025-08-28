@@ -55,15 +55,25 @@ export function FlasherComponent() {
     );
   }
 
-  // Renderiza o componente `esp-web-flasher` real.
+  // Se a biblioteca ainda não estiver pronta, mostramos um botão de "Aguarde..." genérico
+  if (!isReady) {
+     return (
+        <Button size="lg" disabled={true}>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('webFlasher.connectButton.loading', 'Aguarde...')}
+        </Button>
+     )
+  }
+
+  // Renderiza o componente `esp-web-flasher` real apenas quando estiver 100% pronto.
   // Os "slots" são pontos de customização fornecidos pela biblioteca `esp-web-tools`.
   return (
     <esp-web-flasher manifest="/firmware/manifest.json">
-      {/* Este `div` é substituído pelo botão "Conectar" quando a biblioteca está pronta */}
+      {/* Este `div` é substituído pelo botão "Conectar" */}
       <div slot="activate">
-          <Button size="lg" disabled={!isReady}>
-            {isReady ? <Usb className="mr-2 h-4 w-4" /> : <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isReady ? t('webFlasher.connectButton', 'Conectar') : 'Aguarde...'}
+          <Button size="lg">
+            <Usb className="mr-2 h-4 w-4" />
+            {t('webFlasher.connectButton', 'Conectar')}
           </Button>
       </div>
 
@@ -80,9 +90,9 @@ export function FlasherComponent() {
       <div slot="not-allowed">
           <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t('lockScreen.error.incorrectKey', 'Permissão Negada')}</AlertTitle>
+              <AlertTitle>{t('webFlasher.permissionDenied.title', 'Permissão Negada')}</AlertTitle>
               <AlertDescription>
-                 {t('traceability.qrCodeErrorDescription', 'Você precisa permitir o acesso à porta serial para continuar. Por favor, recarregue a página e tente novamente.')}
+                 {t('webFlasher.permissionDenied.description', 'Você precisa permitir o acesso à porta serial para continuar. Por favor, recarregue a página e tente novamente.')}
               </AlertDescription>
           </Alert>
       </div>

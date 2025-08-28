@@ -486,6 +486,9 @@
   "webFlasher.cardTitle": "Instalador de Firmware VigiaTemp",
   "webFlasher.cardDescription": "Este instalador irá gravar o software necessário no seu ESP32 para se conectar ao VigiaTemp.",
   "webFlasher.connectButton": "Conectar",
+  "webFlasher.connectButton.loading": "Aguarde...",
+  "webFlasher.permissionDenied.title": "Permissão Negada",
+  "webFlasher.permissionDenied.description": "Você precisa permitir o acesso à porta serial para continuar. Por favor, recarregue a página e tente novamente.",
   "webFlasher.guide.title": "Como Usar o Instalador Web (Passo a Passo)",
   "webFlasher.guide.description": "Siga estes passos para garantir que a gravação do firmware no seu ESP32 seja bem-sucedida.",
   "webFlasher.guide.step1": "1. Prepare o Ambiente (O mais importante)",
@@ -499,7 +502,3 @@
   "webFlasher.troubleshooting.title": "Solução de Problemas",
   "webFlasher.troubleshooting.description": "Se o seu dispositivo ESP32 não está sendo reconhecido, siga estes passos."
 }
-
-    
-
-    

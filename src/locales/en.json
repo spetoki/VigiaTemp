@@ -492,6 +492,9 @@
   "webFlasher.cardTitle": "VigiaTemp Firmware Flasher",
   "webFlasher.cardDescription": "This flasher will write the necessary software to your ESP32 to connect to VigiaTemp.",
   "webFlasher.connectButton": "Connect",
+  "webFlasher.connectButton.loading": "Wait...",
+  "webFlasher.permissionDenied.title": "Permission Denied",
+  "webFlasher.permissionDenied.description": "You need to allow access to the serial port to continue. Please reload the page and try again.",
   "webFlasher.guide.title": "How to Use the Web Flasher (Step-by-Step)",
   "webFlasher.guide.description": "Follow these steps to ensure a successful firmware flash to your ESP32.",
   "webFlasher.guide.step1": "1. Prepare the Environment (Most Important)",
@@ -505,7 +508,3 @@
   "webFlasher.troubleshooting.title": "Troubleshooting",
   "webFlasher.troubleshooting.description": "If your ESP32 device is not being recognized, follow these steps."
 }
-
-    
-
-    
