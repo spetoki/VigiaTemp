@@ -29,6 +29,8 @@ export function FlasherComponent() {
     // Só executa no navegador e apenas uma vez.
     if (typeof window === 'undefined' || flasherScriptLoaded.current) return;
 
+    flasherScriptLoaded.current = true; // Marca que o script já foi iniciado
+    
     const loadScript = async () => {
       try {
         await import('esp-web-tools');
@@ -43,7 +45,6 @@ export function FlasherComponent() {
     };
 
     loadScript();
-    flasherScriptLoaded.current = true;
   }, []);
 
   if (error) {
@@ -76,11 +77,6 @@ export function FlasherComponent() {
           <Button size="lg">
             <Usb className="mr-2 h-4 w-4" />
             {t('webFlasher.connectButton', 'Conectar')}
-          </Button>
-      </div>
-      <div slot="provision">
-          <Button size="lg" variant="outline">
-            {t('webFlasher.provisionButton', 'Provisionar')}
           </Button>
       </div>
       {/* Slots para mensagens de erro, caso o navegador não seja compatível */}
