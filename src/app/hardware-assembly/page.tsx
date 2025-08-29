@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Component {
   id: string;
@@ -28,11 +29,20 @@ const defaultComponents: Component[] = [
   { id: 'usb-cable', nameKey: 'hardwareAssembly.component6', defaultName: 'Cabo USB para conectar o ESP32 ao computador', hint: 'usb cable', imageUrl: 'https://placehold.co/150x150.png' }
 ];
 
-const setStoredComponents = (components: Component[]) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('hardware_components', JSON.stringify(components));
-  }
-};
+const setStoredItem = (key: string, value: string): boolean => {
+    if (typeof window === 'undefined') return false;
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (e: any) {
+        if (e.name === 'QuotaExceededError') {
+            console.error(`LocalStorage quota exceeded for key: ${key}`);
+            return false;
+        }
+        console.error(`Failed to set localStorage item: ${key}`, e);
+        return false;
+    }
+}
 
 const ComponentItem = ({
   component,
@@ -96,7 +106,8 @@ const ComponentItem = ({
 };
 
 export default function HardwareAssemblyPage() {
-  const { t } = useSettings();
+  const { t, storageKeys } = useSettings();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [components, setComponents] = useState<Component[]>(defaultComponents);
   const [mainDiagramUrl, setMainDiagramUrl] = useState("https://placehold.co/800x600.png");
@@ -106,7 +117,7 @@ export default function HardwareAssemblyPage() {
   useEffect(() => {
     const getStoredComponents = (): Component[] => {
       try {
-        const stored = localStorage.getItem('hardware_components');
+        const stored = localStorage.getItem(storageKeys.components);
         const parsed = stored ? JSON.parse(stored) : defaultComponents;
         return defaultComponents.map(def => parsed.find((p: Component) => p.id === def.id) || def);
       } catch {
@@ -115,18 +126,25 @@ export default function HardwareAssemblyPage() {
     };
     
     setComponents(getStoredComponents());
-    const storedDiagram = localStorage.getItem('hardware_diagram');
+    const storedDiagram = localStorage.getItem(storageKeys.diagram);
     if (storedDiagram) {
       setMainDiagramUrl(storedDiagram);
     }
-  }, []);
+  }, [storageKeys]);
 
   const handleImageUpload = (componentId: string, imageBase64: string) => {
     const updatedComponents = components.map(c =>
       c.id === componentId ? { ...c, imageUrl: imageBase64 } : c
     );
     setComponents(updatedComponents);
-    setStoredComponents(updatedComponents);
+    const success = setStoredItem(storageKeys.components, JSON.stringify(updatedComponents));
+    if (!success) {
+      toast({
+        variant: "destructive",
+        title: "Erro de Armazenamento",
+        description: "Não foi possível salvar a imagem. O armazenamento local está cheio. Tente usar uma imagem menor."
+      });
+    }
   };
 
   const handleDiagramUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +156,14 @@ export default function HardwareAssemblyPage() {
       const base64 = e.target?.result as string;
       if (base64) {
         setMainDiagramUrl(base64);
-        localStorage.setItem('hardware_diagram', base64);
+        const success = setStoredItem(storageKeys.diagram, base64);
+        if (!success) {
+          toast({
+              variant: "destructive",
+              title: "Erro de Armazenamento",
+              description: "Não foi possível salvar a imagem do diagrama. O armazenamento local está cheio. Tente usar uma imagem menor."
+          });
+        }
       }
     };
     reader.readAsDataURL(file);
@@ -356,3 +381,5 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    
