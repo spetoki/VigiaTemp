@@ -101,7 +101,7 @@ export default function HardwareAssemblyPage() {
   const [components, setComponents] = useState<Component[]>(defaultComponents);
   const [mainDiagramUrl, setMainDiagramUrl] = useState("https://placehold.co/800x600.png");
   
-  const isAdmin = false;
+  const isAdmin = true;
 
   useEffect(() => {
     const getStoredComponents = (): Component[] => {
