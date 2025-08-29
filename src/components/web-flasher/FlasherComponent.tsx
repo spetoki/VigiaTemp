@@ -33,6 +33,7 @@ export function FlasherComponent() {
       try {
         await import('esp-web-tools');
         // `whenDefined` retorna uma promessa que resolve quando o custom element está registrado.
+        // Isso garante que o componente está 100% pronto antes de tentarmos usá-lo.
         await customElements.whenDefined('esp-web-flasher');
         setIsReady(true);
       } catch (err) {
