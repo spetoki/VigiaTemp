@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '../ui/button';
-import { Usb, AlertCircle, Loader2 } from 'lucide-react';
+import { Usb, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useSettings } from '@/context/SettingsContext';
 
@@ -19,55 +19,13 @@ declare global {
 // Este componente é o responsável por carregar a biblioteca e renderizar o botão.
 export function FlasherComponent() {
   const { t } = useSettings();
-  const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
-  // Usamos uma ref para evitar que a importação seja chamada múltiplas vezes.
-  const flasherScriptLoaded = useRef(false);
-
+  // Importa a biblioteca `esp-web-tools` dinamicamente no lado do cliente.
   useEffect(() => {
-    // Só executa no navegador e apenas uma vez.
-    if (typeof window === 'undefined' || flasherScriptLoaded.current) return;
-
-    flasherScriptLoaded.current = true; // Marca que o script já foi iniciado
-    
-    const loadScript = async () => {
-      try {
-        await import('esp-web-tools');
-        // `whenDefined` retorna uma promessa que resolve quando o custom element está registrado.
-        // Isso garante que o componente está 100% pronto antes de tentarmos usá-lo.
-        await customElements.whenDefined('esp-web-flasher');
-        setIsReady(true);
-      } catch (err) {
-        console.error("Failed to load esp-web-tools:", err);
-        setError("Não foi possível carregar a ferramenta de gravação. Verifique sua conexão ou recarregue a página.");
-      }
-    };
-
-    loadScript();
+    import('esp-web-tools');
   }, []);
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Erro ao Carregar Ferramenta</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Se a biblioteca ainda não estiver pronta, mostramos um botão de "Aguarde..." genérico
-  if (!isReady) {
-     return (
-        <Button size="lg" disabled={true}>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('webFlasher.connectButton.loading', 'Aguarde...')}
-        </Button>
-     )
-  }
-
-  // Renderiza o componente `esp-web-flasher` real apenas quando estiver 100% pronto.
+  // Renderiza o componente `esp-web-flasher` real.
   // Os "slots" são pontos de customização fornecidos pela biblioteca `esp-web-tools`.
   return (
     <esp-web-flasher>
