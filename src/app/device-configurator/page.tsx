@@ -112,7 +112,7 @@ void setupBLE() {
 
   const commonSetupAndLoop = `
 // --- Configurações Editáveis ---
-const char* app_url = "${config.appUrl}"; // URL do seu aplicativo VigiaTemp
+const char* app_url = "${config.appUrl}/api/sensor"; // URL do seu aplicativo VigiaTemp
 const int SENSOR_PIN = ${config.pin};           // Pino de dados do sensor DS18B20
 const int SEND_INTERVAL_SEC = ${config.interval};  // Intervalo de envio em segundos
 
@@ -281,7 +281,7 @@ export default function DeviceConfiguratorPage() {
   const { toast } = useToast();
 
   const [configType, setConfigType] = useState<ConfigType>('wifimanager');
-  const [appUrl, setAppUrl] = useState('https://vigia-temp.vercel.app/api/sensor');
+  const [appUrl, setAppUrl] = useState('https://vigia-temp.vercel.app');
   const [sensorPin, setSensorPin] = useState('4');
   const [sendInterval, setSendInterval] = useState('30');
   const [ssid, setSsid] = useState('');

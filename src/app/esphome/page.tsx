@@ -26,7 +26,7 @@ substitutions:
   friendly_name: ${config.deviceName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
   update_interval: ${config.interval}s
   pin_ds18b20: GPIO${config.sensorPin}
-  app_api_url: ${config.appUrl}
+  app_api_url: ${config.appUrl}/api/sensor
 
 esphome:
   name: \${name}
@@ -87,7 +87,7 @@ export default function EsphomeConfiguratorPage() {
   const { toast } = useToast();
 
   const [deviceName, setDeviceName] = useState('sensor_estufa_1');
-  const [appUrl, setAppUrl] = useState('https://vigia-temp.vercel.app/api/sensor');
+  const [appUrl, setAppUrl] = useState('https://vigia-temp.vercel.app');
   const [sensorPin, setSensorPin] = useState('4');
   const [sendInterval, setSendInterval] = useState('30');
   const [ssid, setSsid] = useState('');
