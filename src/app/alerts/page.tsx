@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AlertsTable from '@/components/alerts/AlertsTable';
-import { getAlerts, updateAlert, updateMultipleAlerts, deleteAcknowledgedAlerts } from '@/services/alert-service';
+import { getAlerts, updateAlert, updateMultipleAlerts, deleteMultipleAlerts } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -29,6 +29,7 @@ export default function AlertsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('unacknowledged');
+  const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
 
   const loadAlerts = useCallback(async () => {
     if (!activeKey) {
@@ -55,6 +56,11 @@ export default function AlertsPage() {
   useEffect(() => {
     loadAlerts();
   }, [loadAlerts]);
+  
+  // Clear selection when tab changes
+  useEffect(() => {
+    setSelectedAlerts([]);
+  }, [activeTab]);
 
   const handleAcknowledge = async (alertId: string) => {
     if (!activeKey) return;
@@ -92,20 +98,21 @@ export default function AlertsPage() {
         });
     }
   };
-
-  const handleDeleteAcknowledged = async () => {
-    if (!activeKey || acknowledgedCount === 0) return;
+  
+  const handleDeleteSelected = async () => {
+    if (!activeKey || selectedAlerts.length === 0) return;
     try {
-      await deleteAcknowledgedAlerts(activeKey);
-      setAlerts(prev => prev.filter(alert => !alert.acknowledged));
+      await deleteMultipleAlerts(activeKey, selectedAlerts);
+      setAlerts(prev => prev.filter(alert => !selectedAlerts.includes(alert.id)));
       toast({
         title: 'Alertas Excluídos',
-        description: 'Todos os alertas confirmados foram excluídos com sucesso.',
+        description: `${selectedAlerts.length} alerta(s) foram excluídos com sucesso.`,
       });
+      setSelectedAlerts([]); // Clear selection after deletion
     } catch (error) {
        toast({
         title: "Erro ao excluir alertas",
-        description: "Não foi possível excluir os alertas confirmados.",
+        description: "Não foi possível excluir os alertas selecionados.",
         variant: "destructive",
       });
     }
@@ -126,7 +133,6 @@ export default function AlertsPage() {
   }, [alerts, activeTab]);
 
   const unacknowledgedCount = useMemo(() => alerts.filter(a => !a.acknowledged).length, [alerts]);
-  const acknowledgedCount = useMemo(() => alerts.filter(a => a.acknowledged).length, [alerts]);
 
   if (isLoading) {
     return (
@@ -156,21 +162,21 @@ export default function AlertsPage() {
         <div className="flex items-center gap-2">
            <AlertDialog>
               <AlertDialogTrigger asChild>
-                  <Button variant="outline" disabled={acknowledgedCount === 0}>
+                  <Button variant="outline" disabled={selectedAlerts.length === 0}>
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir Confirmados
+                    Excluir Selecionados ({selectedAlerts.length})
                   </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Todos os {acknowledgedCount} alertas confirmados serão permanentemente excluídos.
+                    Esta ação não pode ser desfeita. {selectedAlerts.length} alerta(s) selecionado(s) serão permanentemente excluídos.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteAcknowledged} className="bg-destructive hover:bg-destructive/90">
+                  <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive hover:bg-destructive/90">
                     Excluir
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -196,6 +202,8 @@ export default function AlertsPage() {
               alerts={filteredAlerts}
               onAcknowledge={handleAcknowledge}
               isLoading={isLoading}
+              selectedAlerts={selectedAlerts}
+              onSelectedAlertsChange={setSelectedAlerts}
             />
         </TabsContent>
       </Tabs>

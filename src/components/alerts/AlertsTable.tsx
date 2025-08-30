@@ -14,15 +14,43 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox"
+import React from 'react';
 
 interface AlertsTableProps {
   alerts: Alert[];
   onAcknowledge: (alertId: string) => void;
   isLoading: boolean;
+  selectedAlerts: string[];
+  onSelectedAlertsChange: (ids: string[]) => void;
 }
 
-export default function AlertsTable({ alerts, onAcknowledge, isLoading }: AlertsTableProps) {
+export default function AlertsTable({ 
+  alerts, 
+  onAcknowledge, 
+  isLoading,
+  selectedAlerts,
+  onSelectedAlertsChange
+}: AlertsTableProps) {
   const { t, language } = useSettings();
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      onSelectedAlertsChange(alerts.map(a => a.id));
+    } else {
+      onSelectedAlertsChange([]);
+    }
+  };
+
+  const handleSelectOne = (alertId: string, checked: boolean) => {
+    if (checked) {
+      onSelectedAlertsChange([...selectedAlerts, alertId]);
+    } else {
+      onSelectedAlertsChange(selectedAlerts.filter(id => id !== alertId));
+    }
+  };
+
+  const isAllSelected = alerts.length > 0 && selectedAlerts.length === alerts.length;
 
   const levelConfig = {
     critical: {
@@ -45,6 +73,13 @@ export default function AlertsTable({ alerts, onAcknowledge, isLoading }: Alerts
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                 <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Selecionar todos"
+                  />
+              </TableHead>
               <TableHead className="w-[120px]">{t('alertsTable.header.status', 'Status')}</TableHead>
               <TableHead className="w-[150px]">{t('alertsTable.header.level', 'Nível')}</TableHead>
               <TableHead>{t('alertsTable.header.sensor', 'Sensor')}</TableHead>
@@ -57,14 +92,14 @@ export default function AlertsTable({ alerts, onAcknowledge, isLoading }: Alerts
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground h-24">
+                <TableCell colSpan={8} className="text-center text-muted-foreground h-24">
                   {t('alertsTable.loading', 'Carregando alertas...')}
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && alerts.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground h-24">
+                <TableCell colSpan={8} className="text-center text-muted-foreground h-24">
                   {t('alertsTable.noAlerts', 'Nenhum alerta encontrado.')}
                 </TableCell>
               </TableRow>
@@ -73,7 +108,21 @@ export default function AlertsTable({ alerts, onAcknowledge, isLoading }: Alerts
               const config = levelConfig[alert.level];
               const Icon = config.icon;
               return (
-                <TableRow key={alert.id} className={cn(!alert.acknowledged && "font-bold bg-primary/5")}>
+                <TableRow 
+                  key={alert.id} 
+                  className={cn(
+                    !alert.acknowledged && "font-bold bg-primary/5",
+                    selectedAlerts.includes(alert.id) && "bg-primary/10"
+                  )}
+                  data-state={selectedAlerts.includes(alert.id) ? "selected" : "unselected"}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedAlerts.includes(alert.id)}
+                      onCheckedChange={(checked) => handleSelectOne(alert.id, Boolean(checked))}
+                      aria-label={`Selecionar alerta ${alert.id}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <Badge variant={alert.acknowledged ? 'secondary' : 'default'} className={cn(alert.acknowledged ? '' : 'bg-accent text-accent-foreground')}>
                       {alert.acknowledged ? (

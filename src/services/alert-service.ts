@@ -17,6 +17,7 @@ import {
   limit,
   updateDoc,
   where,
+  deleteDoc,
 } from 'firebase/firestore';
 
 
@@ -93,23 +94,16 @@ export async function updateMultipleAlerts(accessKey: string, alertIds: string[]
     await batch.commit();
 }
 
-export async function deleteAcknowledgedAlerts(accessKey: string): Promise<void> {
-  if (!db) {
-    throw new Error("Firestore not configured.");
-  }
-  
-  const alertsCol = collection(db, `users/${accessKey}/alerts`);
-  const q = query(alertsCol, where("acknowledged", "==", true));
-  
-  const snapshot = await getDocs(q);
-  
-  if (snapshot.empty) {
-    return;
-  }
 
+export async function deleteMultipleAlerts(accessKey: string, alertIds: string[]): Promise<void> {
+  if (!db || alertIds.length === 0) {
+    throw new Error("Firestore not configured or no alerts to delete.");
+  }
+  
   const batch = writeBatch(db);
-  snapshot.docs.forEach(doc => {
-    batch.delete(doc.ref);
+  alertIds.forEach(id => {
+    const alertDoc = doc(db, `users/${accessKey}/alerts`, id);
+    batch.delete(alertDoc);
   });
   
   await batch.commit();
