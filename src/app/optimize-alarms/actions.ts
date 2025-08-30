@@ -30,10 +30,10 @@ export async function handleOptimizeAlarms(
         ...(fieldErrors.historicalData || []),
         ...(fieldErrors.cacaoVariety || []),
         ...(fieldErrors.microclimateInfo || [])
-    ];
+    ].filter(Boolean); // Filter out any empty arrays
     
     return {
-      message: "A validação do formulário falhou.",
+      message: "A validação do formulário falhou. Verifique os campos.",
       issues: allIssues,
       success: false,
     };
