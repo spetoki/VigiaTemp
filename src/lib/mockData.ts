@@ -64,9 +64,9 @@ export const simulateTemperatureUpdate = (sensor: Sensor): number => {
 
   // Special simulation logic for TESTE01
   if (sensor.name === 'TESTE01') {
-    // New logic: Fluctuate between 2°C and 9°C
-    const minTemp = 2;
-    const maxTemp = 9;
+    // New logic: Fluctuate between -5°C and 10°C
+    const minTemp = -5;
+    const maxTemp = 10;
     let newTemp = currentTemp + (Math.random() - 0.5) * 1.5; // Fluctuate more
     
     // Keep it within bounds
