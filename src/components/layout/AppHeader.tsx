@@ -24,13 +24,48 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from '../ui/separator';
 
+const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, className }: {
+  href: string;
+  labelKey: string;
+  icon: React.ElementType;
+  defaultLabel: string;
+  isMobile?: boolean;
+  className?: string;
+}) => {
+  const { t } = useSettings();
+  const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false); // Local state for mobile menu link clicks
+
+  return (
+    <Link
+      href={href}
+      onClick={() => {
+        if (isMobile && isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
+      }}
+      className={cn(
+        "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+        pathname === href
+          ? "bg-primary/10 text-primary"
+          : "text-foreground/70 hover:text-foreground hover:bg-primary/5",
+        isMobile && "text-base w-full justify-start",
+        className
+      )}
+      aria-current={pathname === href ? "page" : undefined}
+    >
+      <Icon className="h-5 w-5" />
+      <span>{t(labelKey, defaultLabel)}</span>
+    </Link>
+  );
+}
+
 export default function AppHeader() {
   const { temperatureUnit, setTemperatureUnit, t, lockApp } = useSettings();
-  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
+  // Dashboard link is now handled separately
   const mainNavItems = [
-    { href: '/', labelKey: 'nav.dashboard', icon: Home, defaultLabel: 'Painel' },
     { href: '/alerts', labelKey: 'nav.alerts', icon: Bell, defaultLabel: 'Alertas' },
     { href: '/sensors', labelKey: 'nav.sensors', icon: Settings, defaultLabel: 'Sensores' },
     { href: '/sensor-charts', labelKey: 'nav.sensorCharts', icon: LineChart, defaultLabel: 'Gráficos' },
@@ -50,36 +85,22 @@ export default function AppHeader() {
      { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
   ];
   
-  const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile }: {
+  const MobileNavLink = ({ href, labelKey, icon: Icon, defaultLabel }: {
     href: string;
     labelKey: string;
     icon: React.ElementType;
     defaultLabel: string;
-    isMobile?: boolean;
-  }) => {
-    return (
-      <Link
-        href={href}
-        onClick={() => {
-          if (isMobile && isMobileMenuOpen) {
-            setIsMobileMenuOpen(false);
-          }
-        }}
-        className={cn(
-          "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-          pathname === href
-            ? "bg-primary/10 text-primary"
-            : "text-foreground/70 hover:text-foreground hover:bg-primary/5",
-          isMobile && "text-base w-full justify-start"
-        )}
-        aria-current={pathname === href ? "page" : undefined}
-      >
-        <Icon className="h-5 w-5" />
-        {t(labelKey, defaultLabel)}
-      </Link>
-    );
-  }
-
+  }) => (
+     <NavLink 
+      href={href}
+      labelKey={labelKey}
+      icon={Icon}
+      defaultLabel={defaultLabel}
+      isMobile
+      className="text-base w-full justify-start"
+     />
+  );
+  
   const LogoutButton = ({ isMobile }: { isMobile?: boolean }) => (
      <AlertDialog>
         <AlertDialogTrigger asChild>
@@ -123,16 +144,16 @@ export default function AppHeader() {
               </SheetHeader>
                 <div className="flex-grow overflow-y-auto p-4 space-y-4">
                     <div className="flex flex-col space-y-1">
-                      {mainNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                      {mainNavItems.map(item => <MobileNavLink key={item.href} {...item} />)}
                     </div>
                     <Separator />
                     <div className="flex flex-col space-y-1">
                       <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.hardwareMenu', 'Hardware')}</p>
-                      {hardwareNavItems.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                      {hardwareNavItems.map(item => <MobileNavLink key={item.href} {...item} />)}
                     </div>
                     <Separator />
                     <div className="flex flex-col space-y-1">
-                       {settingsAndLogout.map(item => <NavLink key={item.href} {...item} isMobile />)}
+                       {settingsAndLogout.map(item => <MobileNavLink key={item.href} {...item} />)}
                       <LogoutButton isMobile />
                     </div>
                 </div>
@@ -144,10 +165,21 @@ export default function AppHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2">
-          <ThermometerSnowflake className="h-8 w-8 text-primary" />
-          <span className="text-2xl font-bold text-primary font-headline">VigiaTemp</span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2">
+            <ThermometerSnowflake className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold text-primary font-headline hidden sm:inline">VigiaTemp</span>
+          </Link>
+          <Separator orientation="vertical" className="h-8 hidden sm:block"/>
+           <div className="hidden sm:flex">
+             <NavLink 
+                href="/"
+                labelKey='nav.dashboard'
+                icon={Home}
+                defaultLabel='Painel'
+             />
+           </div>
+        </div>
         
         <div className="flex items-center gap-2 sm:gap-4">
             <RadioGroup
