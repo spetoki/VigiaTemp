@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer, Bluetooth } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer, Bluetooth, Download } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -198,6 +198,19 @@ export default function HardwareAssemblyPage() {
         )}
       </div>
 
+       <Alert variant="default" className="border-sky-500/50 text-sky-600 bg-sky-500/5">
+        <Download className="h-4 w-4 !text-sky-600" />
+        <AlertTitle>Link do Driver USB (CP210x)</AlertTitle>
+        <AlertDescription>
+          <p>Se a sua placa não for reconhecida, o primeiro passo é instalar este driver. Este é o link oficial e seguro.</p>
+          <Button asChild variant="link" className="p-0 h-auto text-sky-600 font-bold">
+              <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener noreferrer">
+                Baixar Driver na Silicon Labs
+              </a>
+          </Button>
+        </AlertDescription>
+      </Alert>
+
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -381,3 +394,5 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    
