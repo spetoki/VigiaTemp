@@ -50,64 +50,11 @@ const generateCppCode = (config: {
 // - OneWire
 // - ArduinoJson
 // - WiFiManager (apenas para o modo Universal)
-// - NimBLE-Arduino (para atualização via Bluetooth)
 #include <WiFi.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include <NimBLEDevice.h>
-#include <NimBLEServer.h>
-#include <NimBLEUtils.h>
-#include <NimBLEService.h>
-#include "esp_ota_ops.h" // Necessário para a atualização
-`;
-
-  const bleDfuCode = `
-// --- Configuração para Atualização via Bluetooth (DFU) ---
-#define SERVICE_UUID        "0000180d-0000-1000-8000-00805f9b34fb" // Exemplo de UUID
-#define CHARACTERISTIC_UUID "00002a37-0000-1000-8000-00805f9b34fb" // Exemplo de UUID
-
-class DFUCallbacks: public NimBLECharacteristicCallbacks {
-    void onWrite(NimBLECharacteristic* pCharacteristic) {
-        std::string value = pCharacteristic->getValue();
-        if (value.length() > 0) {
-            // Iniciar processo de OTA
-            Serial.println("Iniciando atualização de firmware via Bluetooth...");
-            // O manuseio real da atualização de firmware (OTA) é complexo.
-            // Para um exemplo simples, vamos apenas reiniciar a placa.
-            // Uma implementação completa receberia os dados do firmware em partes.
-            esp_ota_handle_t update_handle = 0;
-            const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
-
-            esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &update_handle);
-            // Aqui você receberia os blocos de firmware e os escreveria com esp_ota_write()
-            // Por simplicidade, este exemplo não implementa o fluxo de dados completo.
-            // Após receber todos os dados, você chamaria:
-            // esp_ota_end(update_handle);
-            // esp_ota_set_boot_partition(update_partition);
-            // ESP.restart();
-            Serial.println("Pronto para receber o firmware. Implementação completa necessária.");
-        }
-    }
-};
-
-void setupBLE() {
-  NimBLEDevice::init("VigiaTemp-DFU");
-  NimBLEServer *pServer = NimBLEDevice::createServer();
-  NimBLEService *pService = pServer->createService(SERVICE_UUID);
-  NimBLECharacteristic *pCharacteristic = pService->createCharacteristic(
-                                           CHARACTERISTIC_UUID,
-                                           NIMBLE_PROPERTY::WRITE
-                                         );
-  pCharacteristic->setCallbacks(new DFUCallbacks());
-  pService->start();
-  
-  NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pServer->getAdvertising()->start();
-  Serial.println("Serviço de DFU por Bluetooth iniciado.");
-}
 `;
 
   const commonSetupAndLoop = `
@@ -138,7 +85,6 @@ void setup() {
   }
 
   connectWiFi();
-  setupBLE(); // Inicia o serviço de atualização via Bluetooth
 }
 
 void loop() {
@@ -216,7 +162,6 @@ void printAddress(DeviceAddress deviceAddress) {
   if (config.configType === 'hardcoded') {
     return `
 ${commonIncludes}
-${bleDfuCode}
 
 // --- Credenciais de WiFi (Fixas) ---
 const char* ssid = "${config.ssid}";
@@ -252,7 +197,6 @@ ${commonSetupAndLoop}
   return `
 ${commonIncludes}
 #include <WiFiManager.h> // Biblioteca adicional para configuração universal
-${bleDfuCode}
 
 void connectWiFi() {
   WiFiManager wm;
