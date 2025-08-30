@@ -6,11 +6,22 @@ import type { Alert } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AlertsTable from '@/components/alerts/AlertsTable';
-import { getAlerts, updateAlert, updateMultipleAlerts } from '@/services/alert-service';
+import { getAlerts, updateAlert, updateMultipleAlerts, deleteAcknowledgedAlerts } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function AlertsPage() {
   const { t, activeKey } = useSettings();
@@ -82,6 +93,24 @@ export default function AlertsPage() {
     }
   };
 
+  const handleDeleteAcknowledged = async () => {
+    if (!activeKey || acknowledgedCount === 0) return;
+    try {
+      await deleteAcknowledgedAlerts(activeKey);
+      setAlerts(prev => prev.filter(alert => !alert.acknowledged));
+      toast({
+        title: 'Alertas Excluídos',
+        description: 'Todos os alertas confirmados foram excluídos com sucesso.',
+      });
+    } catch (error) {
+       toast({
+        title: "Erro ao excluir alertas",
+        description: "Não foi possível excluir os alertas confirmados.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredAlerts = useMemo(() => {
     switch (activeTab) {
       case 'unacknowledged':
@@ -97,6 +126,7 @@ export default function AlertsPage() {
   }, [alerts, activeTab]);
 
   const unacknowledgedCount = useMemo(() => alerts.filter(a => !a.acknowledged).length, [alerts]);
+  const acknowledgedCount = useMemo(() => alerts.filter(a => a.acknowledged).length, [alerts]);
 
   if (isLoading) {
     return (
@@ -123,10 +153,35 @@ export default function AlertsPage() {
             {t('alertsPage.description', 'Monitore e gerencie todos os alertas de sensores do sistema.')}
           </p>
         </div>
-        <Button onClick={handleAcknowledgeAll} disabled={unacknowledgedCount === 0}>
-          <CheckCheck className="mr-2 h-4 w-4" />
-          {t('alertsPage.acknowledgeAllButton', 'Confirmar Todos')} ({unacknowledgedCount})
-        </Button>
+        <div className="flex items-center gap-2">
+           <AlertDialog>
+              <AlertDialogTrigger asChild>
+                  <Button variant="outline" disabled={acknowledgedCount === 0}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir Confirmados
+                  </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Todos os {acknowledgedCount} alertas confirmados serão permanentemente excluídos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAcknowledged} className="bg-destructive hover:bg-destructive/90">
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Button onClick={handleAcknowledgeAll} disabled={unacknowledgedCount === 0}>
+              <CheckCheck className="mr-2 h-4 w-4" />
+              {t('alertsPage.acknowledgeAllButton', 'Confirmar Todos')} ({unacknowledgedCount})
+            </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
