@@ -108,8 +108,8 @@ export default function AppHeader() {
     </AlertDialog>
   );
 
-  const MobileNavMenu = () => (
-     <div className="md:hidden">
+  const NavMenu = () => (
+     <div>
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -149,14 +149,6 @@ export default function AppHeader() {
           <span className="text-2xl font-bold text-primary font-headline">VigiaTemp</span>
         </Link>
         
-        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-          {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
-          <Separator orientation="vertical" className="h-6" />
-          {hardwareNavItems.map(item => <NavLink key={item.href} {...item} />)}
-           <Separator orientation="vertical" className="h-6" />
-          {settingsAndLogout.map(item => <NavLink key={item.href} {...item} />)}
-        </nav>
-
         <div className="flex items-center gap-2 sm:gap-4">
             <RadioGroup
               value={temperatureUnit}
@@ -173,12 +165,8 @@ export default function AppHeader() {
                 <Label htmlFor="unit-f-desktop" className="cursor-pointer">°F</Label>
               </div>
             </RadioGroup>
-
-            <div className="hidden md:block">
-              <LogoutButton />
-            </div>
           
-            <MobileNavMenu />
+            <NavMenu />
         </div>
       </div>
     </header>
