@@ -188,7 +188,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    {t('sensorForm.modelDescription', 'Especifique o modelo ou tipo do sensor.')}
+                    Para placas físicas como ESP32 ou ESP8266, selecione 'WiFi Generic'.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
