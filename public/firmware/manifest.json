@@ -1,11 +1,15 @@
+
 {
   "name": "VigiaTemp Firmware",
   "version": "1.0.0",
+  "new_install_prompt_erase": true,
   "builds": [
     {
       "chipFamily": "ESP32",
       "parts": [
-        { "path": "/firmware/vigiatemp-firmware.bin", "offset": 0 }
+        { "path": "bootloader.bin", "offset": 4096 },
+        { "path": "partitions.bin", "offset": 32768 },
+        { "path": "firmware.bin", "offset": 65536 }
       ]
     }
   ]
