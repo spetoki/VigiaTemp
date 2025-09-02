@@ -170,7 +170,7 @@
   "sensorForm.modelLabel": "Modelo del Sensor",
   "sensorForm.modelPlaceholder": "Seleccione un modelo",
   "sensorForm.modelError": "El modelo del sensor es obligatorio",
-  "sensorForm.modelDescription": "Especifique el modelo o tipo del sensor.",
+  "sensorForm.modelDescription": "Para placas físicas como ESP32 o ESP8266, seleccione 'WiFi Generic'.",
   "sensorForm.ipAddressLabel": "Dirección IP (Opcional)",
   "sensorForm.placeholder.ip": "Ej: 192.168.1.100",
   "sensorForm.ipAddressError": "Dirección IP inválida",
@@ -289,10 +289,10 @@
   "hardwareAssembly.description": "Siga esta guía paso a paso para montar su primer prototipo de sensor de temperatura con ESP32 y DS18B20.",
   "hardwareAssembly.componentsTitle": "Componentes Necesarios",
   "hardwareAssembly.component1": "Placa de Desarrollo ESP32",
-  "hardwareAssembly.component2": "Sensor de Temperatura DS18B20 (versión de 3 pines)",
+  "hardwareAssembly.component2": "Sensor de Temperatura DS18B20 (componente o módulo)",
   "hardwareAssembly.component3": "Protoboard (Placa de Pruebas)",
   "hardwareAssembly.component4": "Cables de Puente (Macho-Macho)",
-  "hardwareAssembly.component5": "Resistencia de 4.7kΩ (colores: amarillo, violeta, rojo)",
+  "hardwareAssembly.component5": "Resistencia de 4.7kΩ (si no se usa un módulo adaptador)",
   "hardwareAssembly.component6": "Cable USB para conectar el ESP32 al ordenador",
   "hardwareAssembly.wiringDiagramTitle": "Diagrama de Conexión",
   "hardwareAssembly.wiringDiagramDescription": "La imagen a continuación ilustra cómo se deben conectar los componentes. Siga los colores de los cables para facilitar.",
@@ -304,8 +304,8 @@
   "hardwareAssembly.step2Description": "Use cables de puente para conectar el pin '3V3' (o 3.3V) del ESP32 al riel de alimentación positivo (+) de la protoboard (generalmente marcado en rojo). Conecte el pin 'GND' del ESP32 al riel de tierra negativo (-) de la protoboard (marcado en azul).",
   "hardwareAssembly.step3Title": "Conecte el Sensor DS18B20",
   "hardwareAssembly.step3Description": "Enchufe el sensor DS18B20 en la protoboard. Conecte el pin VCC (alimentación) del sensor al riel positivo (+). Conecte el pin GND del sensor al riel negativo (-). Conecte el pin de DATOS (Data) del sensor a un pin GPIO en el ESP32, como el pin 'GPIO 4' (o D4).",
-  "hardwareAssembly.step4Title": "Añada la Resistencia de Pull-up (MUY IMPORTANTE)",
-  "hardwareAssembly.step4Description": "Conecte la resistencia de 4.7kΩ entre el pin de DATOS del sensor (el mismo conectado a GPIO 4) y el riel de alimentación positivo (+). Esta resistencia es crucial para una comunicación estable con el sensor.",
+  "hardwareAssembly.step4Title": "Añada la Resistencia de Pull-up",
+  "hardwareAssembly.step4Description": "Conecte la resistencia de 4.7kΩ entre el pin de DATOS del sensor y el riel de alimentación positivo (+). Este paso es crucial para la comunicación. **Nota:** Si está utilizando un módulo adaptador para el DS18B20, esta resistencia ya está incluida en la placa del módulo y este paso puede omitirse.",
   "hardwareAssembly.nextStepsTitle": "Próximo Paso: Grabar el Firmware",
   "hardwareAssembly.nextStepsDescription": "Con el hardware montado, el siguiente paso es grabar el software (firmware) en la placa. Si tienes problemas, lee estos consejos.",
   "hardwareAssembly.step1Driver": "1. Instale los Drivers USB (Causa #1 de problemas)",
@@ -502,3 +502,5 @@
   "webFlasher.troubleshooting.title": "Solución de Problemas",
   "webFlasher.troubleshooting.description": "Si su dispositivo ESP32 no es reconocido, siga estos pasos."
 }
+
+    

@@ -170,7 +170,7 @@
   "sensorForm.modelLabel": "Sensor Model",
   "sensorForm.modelPlaceholder": "Select a model",
   "sensorForm.modelError": "Sensor model is required",
-  "sensorForm.modelDescription": "Specify the model or type of the sensor.",
+  "sensorForm.modelDescription": "For physical boards like ESP32 or ESP8266, select 'WiFi Generic'.",
   "sensorForm.ipAddressLabel": "IP Address (Optional)",
   "sensorForm.placeholder.ip": "E.g., 192.168.1.100",
   "sensorForm.ipAddressError": "Invalid IP address",
@@ -293,10 +293,10 @@
   "hardwareAssembly.description": "Follow this step-by-step guide to assemble your first temperature sensor prototype with ESP32 and DS18B20.",
   "hardwareAssembly.componentsTitle": "Required Components",
   "hardwareAssembly.component1": "ESP32 Development Board",
-  "hardwareAssembly.component2": "DS18B20 Temperature Sensor (3-pin version)",
+  "hardwareAssembly.component2": "DS18B20 Temperature Sensor (component or module)",
   "hardwareAssembly.component3": "Breadboard",
   "hardwareAssembly.component4": "Jumper Wires (Male-Male)",
-  "hardwareAssembly.component5": "4.7kΩ Resistor (colors: yellow, purple, red)",
+  "hardwareAssembly.component5": "4.7kΩ Resistor (if not using an adapter module)",
   "hardwareAssembly.component6": "USB cable to connect the ESP32 to the computer",
   "hardwareAssembly.wiringDiagramTitle": "Connection Diagram",
   "hardwareAssembly.wiringDiagramDescription": "The image below illustrates how the components should be connected. Follow the wire colors for ease.",
@@ -308,8 +308,8 @@
   "hardwareAssembly.step2Description": "Use jumpers to connect the '3V3' (or 3.3V) pin of the ESP32 to the positive power rail (+) of the breadboard (usually marked in red). Connect the 'GND' pin of the ESP32 to the negative ground rail (-) of the breadboard (marked in blue).",
   "hardwareAssembly.step3Title": "Connect the DS18B20 Sensor",
   "hardwareAssembly.step3Description": "Plug the DS18B20 sensor into the breadboard. Connect the VCC (power) pin of the sensor to the positive rail (+). Connect the GND pin of the sensor to the negative rail (-). Connect the DATA pin of the sensor to a GPIO pin on the ESP32, such as pin 'GPIO 4' (or D4).",
-  "hardwareAssembly.step4Title": "Add the Pull-up Resistor (VERY IMPORTANT)",
-  "hardwareAssembly.step4Description": "Connect the 4.7kΩ resistor between the DATA pin of the sensor (the same one connected to GPIO 4) and the positive power rail (+). This resistor is crucial for stable communication with the sensor.",
+  "hardwareAssembly.step4Title": "Add the Pull-up Resistor",
+  "hardwareAssembly.step4Description": "Connect the 4.7kΩ resistor between the DATA pin of the sensor and the positive power rail (+). This step is crucial for communication. **Note:** If you are using an adapter module for the DS18B20, this resistor is already included on the module's board and this step can be skipped.",
   "hardwareAssembly.nextStepsTitle": "Next Step: Flash the Firmware",
   "hardwareAssembly.nextStepsDescription": "With the hardware assembled, the next step is to flash the software (firmware) onto the board. If you're having trouble, read these tips.",
   "hardwareAssembly.step1Driver": "1. Install USB Drivers (Cause #1 of problems)",
@@ -353,8 +353,6 @@
   "traceability.dryingTimeLabel": "Drying Time (days)",
   "traceability.isoClassificationLabel": "Physical Classification (ISO-2451)",
   "traceability.isoClassificationPlaceholder": "E.g., Grade I, Type A",
-  "traceability.boardImageLabel": "Image of Classification Board",
-  "traceability.boardImagePreviewAlt": "Classification board image preview",
   "traceability.saveButton": "Save Traceability Record",
   "traceability.savingButton": "Saving...",
   "traceability.qrCodeTitle": "Lot Registered and QR Code Generated",
@@ -508,3 +506,5 @@
   "webFlasher.troubleshooting.title": "Troubleshooting",
   "webFlasher.troubleshooting.description": "If your ESP32 device is not being recognized, follow these steps."
 }
+
+    

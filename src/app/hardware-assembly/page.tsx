@@ -22,10 +22,10 @@ interface Component {
 
 const defaultComponents: Component[] = [
   { id: 'esp32', nameKey: 'hardwareAssembly.component1', defaultName: 'Placa de Desenvolvimento ESP32', hint: 'esp32 board', imageUrl: 'https://placehold.co/150x150.png' },
-  { id: 'ds18b20', nameKey: 'hardwareAssembly.component2', defaultName: 'Sensor de Temperatura DS18B20 (versão de 3 pinos)', hint: 'ds18b20 sensor', imageUrl: 'https://placehold.co/150x150.png' },
+  { id: 'ds18b20', nameKey: 'hardwareAssembly.component2', defaultName: 'Sensor de Temperatura DS18B20 (componente ou módulo)', hint: 'ds18b20 sensor module', imageUrl: 'https://placehold.co/150x150.png' },
   { id: 'breadboard', nameKey: 'hardwareAssembly.component3', defaultName: 'Protoboard (Placa de Ensaio)', hint: 'breadboard', imageUrl: 'https://placehold.co/150x150.png' },
-  { id: 'jumper-wires', nameKey: 'hardwareAssembly.component4', defaultName: 'Jumper Wires (Fios Macho-Macho)', hint: 'jumper wires', imageUrl: 'https://placehold.co/150x150.png' },
-  { id: 'resistor', nameKey: 'hardwareAssembly.component5', defaultName: 'Resistor de 4.7kΩ (cores: amarelo, roxo, vermelho)', hint: 'resistor', imageUrl: 'https://placehold.co/150x150.png' },
+  { id: 'jumper-wires', nameKey: 'hardwareAssembly.component4', defaultName: 'Jumper Wires (Fios Macho-Facho)', hint: 'jumper wires', imageUrl: 'https://placehold.co/150x150.png' },
+  { id: 'resistor', nameKey: 'hardwareAssembly.component5', defaultName: 'Resistor de 4.7kΩ (se não usar módulo adaptador)', hint: 'resistor', imageUrl: 'https://placehold.co/150x150.png' },
   { id: 'usb-cable', nameKey: 'hardwareAssembly.component6', defaultName: 'Cabo USB para conectar o ESP32 ao computador', hint: 'usb cable', imageUrl: 'https://placehold.co/150x150.png' }
 ];
 
@@ -246,7 +246,7 @@ export default function HardwareAssemblyPage() {
               width={800}
               height={600}
               className="rounded-lg border"
-              data-ai-hint="esp32 ds18b20"
+              data-ai-hint="esp32 ds18b20 module"
               key={mainDiagramUrl}
             />
             {isEditing && (
@@ -293,8 +293,8 @@ export default function HardwareAssemblyPage() {
            <div className="flex gap-4 items-start">
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">4</div>
             <div>
-              <h3 className="font-semibold">{t('hardwareAssembly.step4Title', 'Adicione o Resistor de Pull-up (MUITO IMPORTANTE)')}</h3>
-              <p className="text-muted-foreground">{t('hardwareAssembly.step4Description', 'Conecte o resistor de 4.7kΩ entre o pino de DADOS do sensor (o mesmo conectado ao GPIO 4) e a linha de alimentação positiva (+). Este resistor é crucial para a comunicação estável com o sensor.')}</p>
+              <h3 className="font-semibold">{t('hardwareAssembly.step4Title', 'Adicione o Resistor de Pull-up')}</h3>
+              <p className="text-muted-foreground">{t('hardwareAssembly.step4Description', 'Conecte o resistor de 4.7kΩ entre o pino de DADOS do sensor e a linha de alimentação positiva (+). Este passo é crucial para a comunicação. **Observação:** Se você está usando um módulo adaptador para o DS18B20, este resistor já está incluído na placa do módulo e este passo pode ser ignorado.')}</p>
             </div>
           </div>
         </CardContent>
@@ -394,5 +394,7 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    
 
     
