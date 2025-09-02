@@ -7,12 +7,23 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useSettings } from '@/context/SettingsContext';
 import type { LanguageCode, TemperatureUnit } from '@/types';
-import { SlidersHorizontal, Palette, Thermometer } from 'lucide-react';
+import { SlidersHorizontal, Palette, Thermometer, DownloadCloud } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type Theme = 'light' | 'dark';
 
 export default function SystemSettingsPage() {
-  const { language, setLanguage, theme, setTheme, temperatureUnit, setTemperatureUnit, t } = useSettings();
+  const { 
+    language, 
+    setLanguage, 
+    theme, 
+    setTheme, 
+    temperatureUnit, 
+    setTemperatureUnit, 
+    t,
+    installPromptEvent,
+    triggerInstallPrompt
+  } = useSettings();
 
   const languages: { value: LanguageCode; labelKey: string; defaultLabel: string }[] = [
     { value: 'pt-BR', labelKey: 'language.portuguese', defaultLabel: 'Português (Brasil)' },
@@ -42,7 +53,7 @@ export default function SystemSettingsPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <Card className="w-full shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center"><Palette className="mr-2 h-5 w-5 text-primary" />{t('systemSettings.appearanceTitle', 'Aparência')}</CardTitle>
@@ -96,7 +107,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
         
-        <Card className="w-full shadow-lg md:col-span-2">
+        <Card className="w-full shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center"><Thermometer className="mr-2 h-5 w-5 text-primary" />{t('systemSettings.unitsTitle', 'Unidades de Medida')}</CardTitle>
             <CardDescription>
@@ -123,6 +134,25 @@ export default function SystemSettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {installPromptEvent && (
+          <Card className="w-full shadow-lg md:col-span-3">
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <DownloadCloud className="mr-2 h-5 w-5 text-primary" />
+                    {t('systemSettings.installApp.title', 'Instalar Aplicativo')}
+                </CardTitle>
+                <CardDescription>
+                    {t('systemSettings.installApp.description', 'Para uma melhor experiência, instale o VigiaTemp na tela inicial do seu dispositivo.')}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button onClick={triggerInstallPrompt} className="w-full">
+                    {t('systemSettings.installApp.button', 'Instalar Aplicativo')}
+                </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

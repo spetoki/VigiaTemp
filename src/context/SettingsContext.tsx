@@ -15,6 +15,14 @@ const DEFAULT_ACCESS_KEY = '8352';
 const UNLOCKED_KEY_PREFIX = 'vigiatemp_unlocked_status';
 const ACTIVE_KEY_STORAGE = 'vigiatemp_active_key';
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
 
 interface SettingsContextType {
   temperatureUnit: TemperatureUnit;
@@ -34,7 +42,9 @@ interface SettingsContextType {
     lots: string;
     components: string;
     diagram: string;
-  }
+  };
+  installPromptEvent: BeforeInstallPromptEvent | null;
+  triggerInstallPrompt: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -74,6 +84,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [translations, setTranslations] = useState<Translations>({});
   const [isLocked, setIsLocked] = useState<boolean>(true);
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+
 
   const storageKeys = {
     sensors: activeKey ? `${activeKey}_demo_sensors` : 'demo_sensors',
@@ -130,6 +142,33 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('theme', theme);
     }
   }, [theme]);
+
+   useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+  
+  const triggerInstallPrompt = () => {
+    if (installPromptEvent) {
+      installPromptEvent.prompt();
+      installPromptEvent.userChoice.then(choiceResult => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        setInstallPromptEvent(null);
+      });
+    }
+  };
   
   const unlockApp = (key: string): boolean => {
     if (ACCESS_KEYS.includes(key)) {
@@ -182,7 +221,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [translations]);
 
   return (
-    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp, lockApp, activeKey, storageKeys }}>
+    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp, lockApp, activeKey, storageKeys, installPromptEvent, triggerInstallPrompt }}>
       {children}
     </SettingsContext.Provider>
   );
