@@ -115,94 +115,94 @@ export default function DashboardPage() {
     if (!activeKey || sensors.length === 0) return;
 
     const intervalId = setInterval(async () => {
-        let hasChanged = false;
-        
-        const fetchPromises = sensors.map(async (sensor) => {
-            if (!sensor.macAddress) {
-                return sensor; // Retorna o sensor inalterado
+      let hasChanged = false;
+      
+      const updatedSensors = await Promise.all(
+        sensors.map(async (sensor) => {
+          if (!sensor.macAddress) {
+            return sensor; // Retorna o sensor simulado inalterado
+          }
+          
+          try {
+            const res = await fetch(`/api/sensor/${sensor.macAddress}`);
+            if (!res.ok) {
+              if (res.status !== 404) {
+                 console.error(`Failed to fetch data for ${sensor.macAddress}: ${res.statusText}`);
+              }
+              return sensor;
             }
-            try {
-                const res = await fetch(`/api/sensor/${sensor.macAddress}`);
-                if (!res.ok) {
-                    if (res.status !== 404) {
-                       console.error(`Failed to fetch data for ${sensor.macAddress}: ${res.statusText}`);
-                    }
-                    return sensor; // Retorna o sensor inalterado em caso de erro ou 404
-                }
-                const data = await res.json();
+            const data = await res.json();
 
-                if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
-                    hasChanged = true;
-                    return { ...sensor, currentTemperature: data.temperature };
-                }
-                return sensor;
-            } catch (error) {
-                console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
-                return sensor; // Retorna o sensor inalterado em caso de falha de fetch
+            if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
+              hasChanged = true;
+              return { ...sensor, currentTemperature: data.temperature };
             }
-        });
+            return sensor;
+          } catch (error) {
+            console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
+            return sensor;
+          }
+        })
+      );
+      
+      if (hasChanged) {
+        setSensors(updatedSensors);
+      }
 
-        const updatedSensors = await Promise.all(fetchPromises);
-        
-        // Apenas atualiza o estado se uma temperatura real tiver mudado
-        if (hasChanged) {
-            setSensors(updatedSensors);
-        }
+      // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
+      let currentAlerts: Alert[] = [];
+      try {
+          currentAlerts = await getAlerts(activeKey);
+      } catch (e) {
+          console.warn("Could not fetch alerts, proceeding without them for this check.");
+          currentAlerts = [];
+      }
 
-        // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
-        let currentAlerts: Alert[] = [];
-        try {
-            currentAlerts = await getAlerts(activeKey);
-        } catch (e) {
-            console.warn("Could not fetch alerts, proceeding without them for this check.");
-            currentAlerts = [];
-        }
+      const soundsToQueueForThisInterval: (string | undefined)[] = [];
+      const newAlertPromises: Promise<any>[] = [];
+      
+      updatedSensors.forEach(sensor => {
+          const status = getSensorStatus(sensor);
+          if (status === 'critical' || status === 'warning') {
+              const hasRecentUnacknowledgedAlert = currentAlerts.some(
+                  alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
+              );
 
-        const soundsToQueueForThisInterval: (string | undefined)[] = [];
-        const newAlertPromises: Promise<any>[] = [];
-        
-        updatedSensors.forEach(sensor => {
-            const status = getSensorStatus(sensor);
-            if (status === 'critical' || status === 'warning') {
-                const hasRecentUnacknowledgedAlert = currentAlerts.some(
-                    alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
-                );
+              if (!hasRecentUnacknowledgedAlert) {
+                  const isHigh = sensor.currentTemperature > sensor.highThreshold;
+                  const message = t('alert.message.template', 
+                      'Temperatura de {temp} está {direction} do limite de {limit}', 
+                      {
+                          temp: formatTemperature(sensor.currentTemperature, temperatureUnit),
+                          direction: isHigh ? t('alert.message.above', 'acima') : t('alert.message.below', 'abaixo'),
+                          limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
+                      }
+                  );
+                  const newAlert: Omit<Alert, 'id'> = {
+                      sensorId: sensor.id,
+                      sensorName: sensor.name,
+                      timestamp: Date.now(),
+                      level: status,
+                      message: message,
+                      acknowledged: false,
+                      reason: isHigh ? 'high' : 'low',
+                  };
+                  newAlertPromises.push(addAlert(activeKey, newAlert));
+              }
+          }
 
-                if (!hasRecentUnacknowledgedAlert) {
-                    const isHigh = sensor.currentTemperature > sensor.highThreshold;
-                    const message = t('alert.message.template', 
-                        'Temperatura de {temp} está {direction} do limite de {limit}', 
-                        {
-                            temp: formatTemperature(sensor.currentTemperature, temperatureUnit),
-                            direction: isHigh ? t('alert.message.above', 'acima') : t('alert.message.below', 'abaixo'),
-                            limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
-                        }
-                    );
-                    const newAlert: Omit<Alert, 'id'> = {
-                        sensorId: sensor.id,
-                        sensorName: sensor.name,
-                        timestamp: Date.now(),
-                        level: status,
-                        message: message,
-                        acknowledged: false,
-                        reason: isHigh ? 'high' : 'low',
-                    };
-                    newAlertPromises.push(addAlert(activeKey, newAlert));
-                }
-            }
+          if (status === 'critical') {
+              soundsToQueueForThisInterval.push(defaultCriticalSound);
+          }
+      });
+      
+      if (newAlertPromises.length > 0) {
+          await Promise.all(newAlertPromises);
+      }
 
-            if (status === 'critical') {
-                soundsToQueueForThisInterval.push(defaultCriticalSound);
-            }
-        });
-        
-        if (newAlertPromises.length > 0) {
-            await Promise.all(newAlertPromises);
-        }
-
-        if (soundsToQueueForThisInterval.length > 0) {
-            setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
-        }
+      if (soundsToQueueForThisInterval.length > 0) {
+          setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
+      }
     }, 5000);
 
     return () => clearInterval(intervalId);
