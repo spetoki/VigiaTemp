@@ -56,19 +56,20 @@ export async function addSensor(
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
     if (!db) {
-      throw new Error("Firestore not configured.");
+      throw new Error("Firestore não está configurado. Não é possível adicionar o sensor.");
     }
 
     const sensorsCol = collection(db, `users/${accessKey}/sensors`);
-    const docRef = await addDoc(sensorsCol, {
+    const newSensorPayload = {
         ...sensorData,
         currentTemperature: 25, // Default starting temperature
-    });
+    };
+    
+    const docRef = await addDoc(sensorsCol, newSensorPayload);
 
     return {
-        ...sensorData,
+        ...newSensorPayload,
         id: docRef.id,
-        currentTemperature: 25,
         historicalData: [],
     };
 }
@@ -79,7 +80,7 @@ export async function updateSensor(
     sensorData: Partial<Sensor>
 ): Promise<void> {
     if (!db) {
-      throw new Error("Firestore not configured.");
+      throw new Error("Firestore não está configurado. Não é possível atualizar o sensor.");
     }
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
     await updateDoc(sensorDoc, sensorData as DocumentData);
@@ -87,7 +88,7 @@ export async function updateSensor(
 
 export async function deleteSensor(accessKey: string, sensorId: string): Promise<void> {
     if (!db) {
-      throw new Error("Firestore not configured.");
+      throw new Error("Firestore não está configurado. Não é possível excluir o sensor.");
     }
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
     await deleteDoc(sensorDoc);

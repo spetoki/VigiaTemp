@@ -16,7 +16,6 @@ import {
   orderBy,
   limit,
   updateDoc,
-  where,
   deleteDoc,
 } from 'firebase/firestore';
 
@@ -55,7 +54,7 @@ export async function getAlerts(accessKey: string): Promise<Alert[]> {
 
 export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
     if (!db) {
-        throw new Error("Firestore not configured.");
+        throw new Error("Firestore não está configurado. Não é possível adicionar alerta.");
     }
     
     const alertsCol = collection(db, `users/${accessKey}/alerts`);
@@ -75,7 +74,7 @@ export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>):
 
 export async function updateAlert(accessKey: string, alertId: string, updateData: Partial<Alert>) {
     if (!db) {
-      throw new Error("Firestore not configured.");
+      throw new Error("Firestore não está configurado. Não é possível atualizar alerta.");
     }
     const alertDoc = doc(db, `users/${accessKey}/alerts`, alertId);
     await updateDoc(alertDoc, updateData as DocumentData);
@@ -97,7 +96,7 @@ export async function updateMultipleAlerts(accessKey: string, alertIds: string[]
 
 export async function deleteMultipleAlerts(accessKey: string, alertIds: string[]): Promise<void> {
   if (!db || alertIds.length === 0) {
-    throw new Error("Firestore not configured or no alerts to delete.");
+    return;
   }
   
   const batch = writeBatch(db);
