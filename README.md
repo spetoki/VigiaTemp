@@ -92,3 +92,6 @@ A maneira mais fácil e recomendada de hospedar este aplicativo é usando a **Ve
     *   Adicione as chaves da sua API do Google AI (`GOOGLE_API_KEY`) e as credenciais do seu projeto Firebase (`NEXT_PUBLIC_FIREBASE_*`).
 
 5.  **Faça o Deploy:** Clique no botão "Deploy". A Vercel irá construir e hospedar seu aplicativo. Em poucos minutos, ele estará no ar!
+
+---
+_Aplicativo desenvolvido por Irineu Marcos Bartnik_

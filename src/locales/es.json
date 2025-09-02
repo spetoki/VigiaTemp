@@ -283,7 +283,7 @@
   
   "localeCode": "es-ES",
 
-  "footer.copyright": "© {year} VigiaTemp. Todos los derechos reservados a Irineu Marcos.",
+  "footer.copyright": "© {year} VigiaTemp. Todos los derechos reservados a Irineu Marcos Bartnik.",
 
   "hardwareAssembly.title": "Guía de Montaje de Hardware",
   "hardwareAssembly.description": "Siga esta guía paso a paso para montar su primer prototipo de sensor de temperatura con ESP32 y DS18B20.",
@@ -318,7 +318,7 @@
   "hardwareAssembly.step2Cable": "2. Use un Cable USB de DATOS",
   "hardwareAssembly.step2CableDescription": "Asegúrese de que está usando un cable USB capaz de transferir datos, y no solo un cable de carga de teléfono. Muchos cables baratos carecen de los hilos necesarios para la comunicación. En caso de duda, pruebe con otro cable.",
   "hardwareAssembly.step3Boot": "3. Modo 'Boot' Manual",
-  "hardwareAssembly.step3BootDescription": "El 'Modo Boot' es lo que le dice a la placa que acepte nuevo software. El Instalador Web intenta hacerlo automáticamente, pero a veces falla. Hágalo manualmente:",
+  "hardwareAssembly.step3BootDescription": "El 'Modo Boot' es lo que le dice a la placa que acepte nuevo software. El Instalador Web intenta hacerlo automáticamente, pero a veces falla. Hágalo manually:",
   "hardwareAssembly.step3BootStep1": "Con la placa desconectada, **mantenga presionado el botón 'BOOT'**.",
   "hardwareAssembly.step3BootStep2": "Mientras lo mantiene presionado, **conecte el cable USB**.",
   "hardwareAssembly.step3BootStep3": "**Suelte el botón 'BOOT'**.",

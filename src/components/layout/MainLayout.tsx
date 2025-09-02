@@ -18,7 +18,7 @@ function LayoutContent({ children }: MainLayoutProps) {
 
   useEffect(() => {
     const year = new Date().getFullYear();
-    setFooterText(t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a Irineu Marcos', { year }));
+    setFooterText(t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a Irineu Marcos Bartnik', { year }));
   }, [t]);
   
   if (isLocked) {
