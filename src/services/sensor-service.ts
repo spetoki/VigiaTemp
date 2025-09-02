@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import type { Sensor } from '@/types';
+import type { Sensor, HistoricalDataPoint } from '@/types';
 import {
   collection,
   doc,
@@ -15,6 +15,9 @@ import {
   Timestamp,
   query,
   orderBy,
+  limit,
+  getDoc,
+  writeBatch,
 } from 'firebase/firestore';
 
 // Helper function to convert a Firestore document to a Sensor object
@@ -30,7 +33,7 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
         model: data.model,
         ipAddress: data.ipAddress,
         macAddress: data.macAddress,
-        // historicalData is not stored in the main document
+        // historicalData is now fetched from a subcollection
         historicalData: [], 
     };
 };
@@ -92,4 +95,65 @@ export async function deleteSensor(accessKey: string, sensorId: string): Promise
     }
     const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
     await deleteDoc(sensorDoc);
+}
+
+
+export async function addHistoricalData(accessKey: string, sensorId: string, dataPoint: HistoricalDataPoint): Promise<void> {
+    if (!db) {
+      throw new Error("Firestore não está configurado. Não é possível salvar o histórico.");
+    }
+    const historyCollection = collection(db, `users/${accessKey}/sensors/${sensorId}/historicalData`);
+    await addDoc(historyCollection, {
+        ...dataPoint,
+        timestamp: Timestamp.fromMillis(dataPoint.timestamp),
+    });
+}
+
+export async function getHistoricalData(accessKey: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
+    if (!db) {
+        return [];
+    }
+
+    const now = Date.now();
+    let startTime: number;
+
+    switch (timePeriod) {
+        case 'hour':
+            startTime = now - 60 * 60 * 1000;
+            break;
+        case 'week':
+            startTime = now - 7 * 24 * 60 * 60 * 1000;
+            break;
+        case 'month':
+            startTime = now - 30 * 24 * 60 * 60 * 1000;
+            break;
+        case 'day':
+        default:
+            startTime = now - 24 * 60 * 60 * 1000;
+            break;
+    }
+
+    try {
+        const historyCollection = collection(db, `users/${accessKey}/sensors/${sensorId}/historicalData`);
+        const q = query(
+            historyCollection, 
+            orderBy("timestamp", "desc"),
+            limit(1000) // Limit to the last 1000 entries to manage performance
+        );
+        const snapshot = await getDocs(q);
+        
+        return snapshot.docs
+            .map(doc => {
+                const data = doc.data();
+                return {
+                    timestamp: (data.timestamp as Timestamp).toMillis(),
+                    temperature: data.temperature
+                } as HistoricalDataPoint;
+            })
+            .filter(point => point.timestamp >= startTime) // Filter by time period after fetching
+            .sort((a, b) => a.timestamp - b.timestamp); // Sort ascending for the chart
+    } catch (error) {
+        console.error(`Error fetching historical data for sensor ${sensorId}:`, error);
+        return [];
+    }
 }

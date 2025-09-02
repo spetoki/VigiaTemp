@@ -1,6 +1,8 @@
 
 import type { Sensor, HistoricalDataPoint } from '@/types';
 
+// This function is no longer the primary source for chart data, but is kept
+// for potential future use in seeding data or for testing purposes.
 export const generateHistoricalData = (baseTemp: number, days: number): HistoricalDataPoint[] => {
   const data = [];
   const now = Date.now();
@@ -24,7 +26,7 @@ export const demoSensors: Sensor[] = [
     currentTemperature: 26.5, // Celsius
     highThreshold: 30, // Celsius
     lowThreshold: 20, // Celsius
-    historicalData: generateHistoricalData(25, 30), // 30 days of data
+    historicalData: [], // Historical data is now loaded from Firestore
     model: 'TermoX 5000',
     ipAddress: '192.168.1.101',
     macAddress: '0A:1B:2C:3D:4E:5F',
@@ -36,7 +38,7 @@ export const demoSensors: Sensor[] = [
     currentTemperature: 19.2, // Celsius
     highThreshold: 28, // Celsius
     lowThreshold: 18, // Celsius
-    historicalData: generateHistoricalData(22, 30),
+    historicalData: [], // Historical data is now loaded from Firestore
     model: 'AmbientePro II',
     ipAddress: '192.168.1.102',
     macAddress: '1A:2B:3C:4D:5E:6F',
@@ -48,7 +50,7 @@ export const demoSensors: Sensor[] = [
     currentTemperature: 31.0, // Celsius
     highThreshold: 29, // Celsius
     lowThreshold: 21, // Celsius
-    historicalData: generateHistoricalData(26, 30),
+    historicalData: [], // Historical data is now loaded from Firestore
     model: 'AgriSense X1',
     ipAddress: '192.168.1.103',
     macAddress: '2A:3B:4C:5D:6E:7F',

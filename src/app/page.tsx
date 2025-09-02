@@ -10,7 +10,7 @@ import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
-import { getSensors, updateSensor } from '@/services/sensor-service';
+import { getSensors, updateSensor, addHistoricalData } from '@/services/sensor-service';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
@@ -115,31 +115,36 @@ export default function DashboardPage() {
     if (!activeKey || sensors.length === 0) return;
 
     const intervalId = setInterval(async () => {
-      let hasChanged = false;
-      
-      const updatedSensorsPromises = sensors.map(async (sensor) => {
-        if (sensor.macAddress) {
-          try {
-            const res = await fetch(`/api/sensor/${sensor.macAddress}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
-                hasChanged = true;
-                return { ...sensor, currentTemperature: data.temperature };
-              }
+        let hasChanged = false;
+        
+        // Create a new array to hold the updated sensors
+        const updatedSensors = await Promise.all(sensors.map(async (sensor) => {
+            if (sensor.macAddress) {
+                try {
+                    const res = await fetch(`/api/sensor/${sensor.macAddress}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
+                            hasChanged = true;
+                            // Save the new reading to the historical data in Firestore
+                            await addHistoricalData(activeKey, sensor.id, {
+                                timestamp: Date.now(),
+                                temperature: data.temperature
+                            });
+                            // Return a new sensor object with the updated temperature
+                            return { ...sensor, currentTemperature: data.temperature };
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
+                }
             }
-          } catch (error) {
-            console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
-          }
-        }
-        return sensor; // Return original sensor if no update
-      });
-      
-      const newSensors = await Promise.all(updatedSensorsPromises);
+            return sensor; // Return the original sensor if no update
+        }));
 
-      if (hasChanged) {
-        setSensors(newSensors);
-      }
+        if (hasChanged) {
+            setSensors(updatedSensors);
+        }
 
       // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
       let currentAlerts: Alert[] = [];
@@ -153,7 +158,7 @@ export default function DashboardPage() {
       const soundsToQueueForThisInterval: (string | undefined)[] = [];
       const newAlertPromises: Promise<any>[] = [];
       
-      newSensors.forEach(sensor => {
+      updatedSensors.forEach(sensor => {
           const status = getSensorStatus(sensor);
           if (status === 'critical' || status === 'warning') {
               const hasRecentUnacknowledgedAlert = currentAlerts.some(
