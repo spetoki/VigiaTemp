@@ -116,28 +116,29 @@ export default function DashboardPage() {
 
     const intervalId = setInterval(async () => {
       let hasChanged = false;
-      const currentSensors = [...sensors];
-
-      for (let i = 0; i < currentSensors.length; i++) {
-        const sensor = currentSensors[i];
+      
+      const updatedSensorsPromises = sensors.map(async (sensor) => {
         if (sensor.macAddress) {
           try {
             const res = await fetch(`/api/sensor/${sensor.macAddress}`);
             if (res.ok) {
               const data = await res.json();
               if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
-                currentSensors[i] = { ...sensor, currentTemperature: data.temperature };
                 hasChanged = true;
+                return { ...sensor, currentTemperature: data.temperature };
               }
             }
           } catch (error) {
             console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
           }
         }
-      }
+        return sensor; // Return original sensor if no update
+      });
+      
+      const newSensors = await Promise.all(updatedSensorsPromises);
 
       if (hasChanged) {
-        setSensors(currentSensors);
+        setSensors(newSensors);
       }
 
       // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
@@ -152,7 +153,7 @@ export default function DashboardPage() {
       const soundsToQueueForThisInterval: (string | undefined)[] = [];
       const newAlertPromises: Promise<any>[] = [];
       
-      currentSensors.forEach(sensor => {
+      newSensors.forEach(sensor => {
           const status = getSensorStatus(sensor);
           if (status === 'critical' || status === 'warning') {
               const hasRecentUnacknowledgedAlert = currentAlerts.some(
@@ -256,3 +257,5 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
+
+    
