@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import SensorCard from '@/components/dashboard/SensorCard';
-import { simulateTemperatureUpdate } from '@/lib/mockData';
 import type { Sensor, Alert } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
@@ -116,33 +115,32 @@ export default function DashboardPage() {
     if (!activeKey) return;
 
     const intervalId = setInterval(async () => {
-        
-        let currentSensors: Sensor[] = [];
-        try {
-            // No need to fetch from Firestore again if we are just simulating
-             currentSensors = sensors;
-        } catch (e) {
-            console.error("Failed to fetch sensors during update.", e);
-            return;
-        }
-
-        const updatePromises: Promise<any>[] = [];
-        const updatedSensors = sensors.map((sensor) => {
-            const newTemperature = simulateTemperatureUpdate(sensor);
-            const updatedSensor = { ...sensor, currentTemperature: newTemperature };
-            // In a real scenario with live data, you might not push updates this frequently
-            // but for simulation, this is fine.
-            updatePromises.push(updateSensor(activeKey, sensor.id, { currentTemperature: newTemperature }));
-            return updatedSensor;
+        const fetchPromises = sensors.map(async (sensor) => {
+            if (!sensor.macAddress) {
+                // Keep the current state for sensors without a MAC address
+                return sensor;
+            }
+            try {
+                const res = await fetch(`/api/sensor/${sensor.macAddress}`);
+                if (!res.ok) {
+                    // If no data is found (404), just return the existing sensor state
+                    if (res.status === 404) return sensor;
+                    console.error(`Failed to fetch data for ${sensor.macAddress}: ${res.statusText}`);
+                    return sensor;
+                }
+                const data = await res.json();
+                return { ...sensor, currentTemperature: data.temperature };
+            } catch (error) {
+                console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
+                // On fetch error, return the existing sensor state to avoid UI disruption
+                return sensor;
+            }
         });
-        
-        // This keeps the local state updated for a smoother UI experience.
+
+        const updatedSensors = await Promise.all(fetchPromises);
         setSensors(updatedSensors);
 
-        // Batch the Firestore updates
-        await Promise.all(updatePromises);
-        
-
+        // --- Alert logic remains the same ---
         let currentAlerts: Alert[] = [];
         try {
             currentAlerts = await getAlerts(activeKey);
@@ -257,3 +255,5 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
+
+    
