@@ -32,7 +32,7 @@ export default function SensorStatusPieChart({ sensor }: SensorStatusPieChartPro
 
   const statusData = useMemo(() => {
     const currentStatus = getSensorStatus(sensor);
-    const counts = getSimulatedStatusData(currentStatus);
+    const counts: Record<string, number> = getSimulatedStatusData(currentStatus);
 
     const total = Object.values(counts).reduce((sum, val) => sum + val, 0);
     if (total === 0) {
@@ -96,3 +96,4 @@ export default function SensorStatusPieChart({ sensor }: SensorStatusPieChartPro
     </Card>
   );
 }
+
