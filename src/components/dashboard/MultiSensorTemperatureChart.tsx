@@ -15,13 +15,15 @@ import { ListFilter } from 'lucide-react';
 import { generateHistoricalData } from '@/lib/mockData';
 
 // Since historical data is not stored in Firestore in this version,
-// we will use the mock data generation for chart display.
-const getChartDataForSensor = (sensor: Sensor) => {
+// this function will return an empty array for a real sensor.
+// In a future version, this function would fetch real historical data from a service.
+const getChartDataForSensor = (sensor: Sensor): HistoricalDataPoint[] => {
     if (sensor.historicalData && sensor.historicalData.length > 0) {
+        // This case is for any existing mock data or future implementation
         return sensor.historicalData;
     }
-    // Generate mock historical data if it's missing
-    return generateHistoricalData(sensor.currentTemperature, 30);
+    // For a real sensor with no history yet, return empty.
+    return [];
 };
 
 

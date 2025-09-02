@@ -116,37 +116,28 @@ export default function DashboardPage() {
 
     const intervalId = setInterval(async () => {
       let hasChanged = false;
-      
-      const updatedSensors = await Promise.all(
-        sensors.map(async (sensor) => {
-          if (!sensor.macAddress) {
-            return sensor; // Retorna o sensor simulado inalterado
-          }
-          
+      const currentSensors = [...sensors];
+
+      for (let i = 0; i < currentSensors.length; i++) {
+        const sensor = currentSensors[i];
+        if (sensor.macAddress) {
           try {
             const res = await fetch(`/api/sensor/${sensor.macAddress}`);
-            if (!res.ok) {
-              if (res.status !== 404) {
-                 console.error(`Failed to fetch data for ${sensor.macAddress}: ${res.statusText}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
+                currentSensors[i] = { ...sensor, currentTemperature: data.temperature };
+                hasChanged = true;
               }
-              return sensor;
             }
-            const data = await res.json();
-
-            if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
-              hasChanged = true;
-              return { ...sensor, currentTemperature: data.temperature };
-            }
-            return sensor;
           } catch (error) {
             console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
-            return sensor;
           }
-        })
-      );
-      
+        }
+      }
+
       if (hasChanged) {
-        setSensors(updatedSensors);
+        setSensors(currentSensors);
       }
 
       // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
@@ -161,7 +152,7 @@ export default function DashboardPage() {
       const soundsToQueueForThisInterval: (string | undefined)[] = [];
       const newAlertPromises: Promise<any>[] = [];
       
-      updatedSensors.forEach(sensor => {
+      currentSensors.forEach(sensor => {
           const status = getSensorStatus(sensor);
           if (status === 'critical' || status === 'warning') {
               const hasRecentUnacknowledgedAlert = currentAlerts.some(
@@ -206,7 +197,7 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [activeKey, sensors, t, temperatureUnit]);
+  }, [activeKey, sensors, t, temperatureUnit, toast]);
 
   if (isLoading) {
     return (
@@ -265,5 +256,3 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
-
-    
