@@ -112,39 +112,49 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-    if (!activeKey) return;
+    if (!activeKey || sensors.length === 0) return;
 
     const intervalId = setInterval(async () => {
+        let hasChanged = false;
+        
         const fetchPromises = sensors.map(async (sensor) => {
             if (!sensor.macAddress) {
-                // Keep the current state for sensors without a MAC address
-                return sensor;
+                return sensor; // Retorna o sensor inalterado
             }
             try {
                 const res = await fetch(`/api/sensor/${sensor.macAddress}`);
                 if (!res.ok) {
-                    // If no data is found (404), just return the existing sensor state
-                    if (res.status === 404) return sensor;
-                    console.error(`Failed to fetch data for ${sensor.macAddress}: ${res.statusText}`);
-                    return sensor;
+                    if (res.status !== 404) {
+                       console.error(`Failed to fetch data for ${sensor.macAddress}: ${res.statusText}`);
+                    }
+                    return sensor; // Retorna o sensor inalterado em caso de erro ou 404
                 }
                 const data = await res.json();
-                return { ...sensor, currentTemperature: data.temperature };
+
+                if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
+                    hasChanged = true;
+                    return { ...sensor, currentTemperature: data.temperature };
+                }
+                return sensor;
             } catch (error) {
                 console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
-                // On fetch error, return the existing sensor state to avoid UI disruption
-                return sensor;
+                return sensor; // Retorna o sensor inalterado em caso de falha de fetch
             }
         });
 
         const updatedSensors = await Promise.all(fetchPromises);
-        setSensors(updatedSensors);
+        
+        // Apenas atualiza o estado se uma temperatura real tiver mudado
+        if (hasChanged) {
+            setSensors(updatedSensors);
+        }
 
-        // --- Alert logic remains the same ---
+        // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
         let currentAlerts: Alert[] = [];
         try {
             currentAlerts = await getAlerts(activeKey);
         } catch (e) {
+            console.warn("Could not fetch alerts, proceeding without them for this check.");
             currentAlerts = [];
         }
 
