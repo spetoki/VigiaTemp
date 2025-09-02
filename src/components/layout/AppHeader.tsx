@@ -77,8 +77,6 @@ export default function AppHeader() {
   const hardwareNavItems = [
     { href: '/hardware-assembly', labelKey: 'nav.hardwareAssembly', icon: Wrench, defaultLabel: 'Montagem' },
     { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: FileCode2, defaultLabel: 'Configurar Dispositivo' },
-    { href: '/web-flasher', labelKey: 'nav.webFlasher', icon: Usb, defaultLabel: 'Instalador Web' },
-    { href: '/esphome', labelKey: 'nav.esphome', icon: Puzzle, defaultLabel: 'Configurador ESPHome' },
   ];
 
   const settingsAndLogout = [

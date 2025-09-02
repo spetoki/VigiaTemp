@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer, Bluetooth, Download } from 'lucide-react';
+import { Cpu, Wrench, Pencil, X, Usb, BookOpenCheck, FileCode2, LifeBuoy, Pointer, Bluetooth, Download, Wifi } from 'lucide-react';
 import Image from 'next/image';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
@@ -303,51 +303,45 @@ export default function HardwareAssemblyPage() {
        <Card className="shadow-lg border-amber-500/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-amber-600">
-            <LifeBuoy className="h-5 w-5"/>
-            {t('hardwareAssembly.nextStepsTitle', 'Próximo Passo: Gravar o Firmware')}
+            <Wifi className="h-5 w-5"/>
+            {t('hardwareAssembly.wifiConfig.title', 'Como Conectar o Dispositivo ao Wi-Fi')}
           </CardTitle>
           <CardDescription>
-            {t('hardwareAssembly.nextStepsDescription', 'Com o hardware montado, o próximo passo é gravar o software (firmware) na placa. Se você não está conseguindo, leia estas dicas.')}
+            {t('hardwareAssembly.wifiConfig.description', 'Seu dispositivo usa o portal "WiFiManager" para se conectar a qualquer rede. Siga os passos abaixo na primeira vez que ligar o dispositivo ou se precisar mudar de rede.')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <h3 className="font-semibold">{t('hardwareAssembly.step1Driver', '1. Instale os Drivers USB (Causa #1 de problemas)')}</h3>
-            <p className="text-muted-foreground text-sm">
-              {t('hardwareAssembly.step1DriverDescription', 'Seu computador precisa de um "tradutor" (driver) para conversar com a placa. A maioria dos problemas de conexão ocorre porque este driver está faltando. Identifique o chip USB na sua placa (um chip retangular perto do conector USB) e instale o driver correspondente:')}
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-              <li><strong className="font-semibold">{t('hardwareAssembly.step1DriverCP210x', 'Driver CP210x:')}</strong> {t('hardwareAssembly.step1DriverCP210xInfo', 'Para a maioria das placas ESP32. Baixe em')} <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener noreferrer" className="text-primary underline">Silicon Labs</a>.</li>
-              <li><strong className="font-semibold">{t('hardwareAssembly.step1DriverCH340', 'Driver CH340:')}</strong> {t('hardwareAssembly.step1DriverCH340Info', 'Para placas mais baratas ou clones. Baixe em')} <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html" target="_blank" rel="noopener noreferrer" className="text-primary underline">WCH</a>.</li>
-            </ul>
-             <p className="text-muted-foreground text-sm mt-2">
-              {t('hardwareAssembly.step1DriverRestart', 'Após instalar, **reinicie o seu computador** e tente o Instalador Web novamente.')}
-            </p>
-          </div>
-           <div>
-            <h3 className="font-semibold">{t('hardwareAssembly.step2Cable', '2. Use um Cabo USB de DADOS')}</h3>
-            <p className="text-muted-foreground text-sm">
-             {t('hardwareAssembly.step2CableDescription', 'Certifique-se de que está usando um cabo USB capaz de transferir dados, e não apenas um cabo de carregamento de celular. Muitos cabos baratos não possuem os fios necessários para a comunicação. Na dúvida, teste com outro cabo.')}
-            </p>
-          </div>
-           <div>
-            <h3 className="font-semibold">{t('hardwareAssembly.step3Boot', '3. Modo de "Boot" Manual')}</h3>
-            <p className="text-muted-foreground text-sm">
-              {t('hardwareAssembly.step3BootDescription', 'O "Modo de Boot" é o que diz à placa para aceitar um novo software. O Instalador Web tenta fazer isso automaticamente, mas às vezes falha. Faça manualmente:')}
-            </p>
-             <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
-                <li>{t('hardwareAssembly.step3BootStep1', 'Com a placa desconectada, **pressione e segure o botão "BOOT"**.')}</li>
-                <li>{t('hardwareAssembly.step3BootStep2', 'Mantendo-o pressionado, **conecte o cabo USB**.')}</li>
-                <li>{t('hardwareAssembly.step3BootStep3', '**Solte o botão "BOOT"**.')}</li>
-                <li>{t('hardwareAssembly.step3BootStep4', 'Agora, vá para a página do **Instalador Web** e tente conectar.')}</li>
-             </ol>
-          </div>
-           <div>
-            <h3 className="font-semibold flex items-center gap-2"><Bluetooth className="h-4 w-4"/>{t('hardwareAssembly.step4Bluetooth', 'Alternativa: Gravação via Bluetooth (Android)')}</h3>
-            <p className="text-muted-foreground text-sm">
-              {t('hardwareAssembly.step4BluetoothDescription', 'Se a conexão USB continuar falhando, você pode tentar gravar o firmware via Bluetooth. Isso requer que você tenha conseguido gravar o firmware inicial pelo menos uma vez. Depois, você pode usar um aplicativo Android como o **"Web Bluetooth DFU"** para enviar atualizações de firmware (`.bin`) para a placa sem usar cabos.')}
-            </p>
-          </div>
+            <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-500 text-white font-bold text-lg flex-shrink-0">1</div>
+                <div>
+                    <h3 className="font-semibold">{t('hardwareAssembly.wifiConfig.step1.title', 'Ligue o Dispositivo pela Primeira Vez')}</h3>
+                    <p className="text-muted-foreground text-sm">{t('hardwareAssembly.wifiConfig.step1.description', 'Conecte seu ESP32 a uma fonte de energia (USB). Como ele ainda não conhece nenhuma rede, ele criará seu próprio ponto de acesso Wi-Fi.')}</p>
+                </div>
+            </div>
+             <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-500 text-white font-bold text-lg flex-shrink-0">2</div>
+                <div>
+                    <h3 className="font-semibold">{t('hardwareAssembly.wifiConfig.step2.title', 'Conecte-se à Rede do Dispositivo')}</h3>
+                    <p className="text-muted-foreground text-sm">{t('hardwareAssembly.wifiConfig.step2.description', 'No seu celular ou computador, procure por redes Wi-Fi. Encontre e conecte-se a uma rede chamada:')}</p>
+                    <p className="text-sm font-mono font-bold bg-muted p-2 rounded-md my-2 text-center">VigiaTemp-Config</p>
+                    <p className="text-muted-foreground text-sm">{t('hardwareAssembly.wifiConfig.step2.password', 'A senha para esta rede é:')} <strong className="font-mono">senha123</strong></p>
+                </div>
+            </div>
+             <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-500 text-white font-bold text-lg flex-shrink-0">3</div>
+                <div>
+                    <h3 className="font-semibold">{t('hardwareAssembly.wifiConfig.step3.title', 'Acesse o Portal de Configuração')}</h3>
+                    <p className="text-muted-foreground text-sm">{t('hardwareAssembly.wifiConfig.step3.description', 'Após conectar à rede, o seu celular pode abrir o portal automaticamente. Se não abrir, abra o navegador e digite o seguinte endereço IP:')}</p>
+                    <p className="text-sm font-mono font-bold bg-muted p-2 rounded-md my-2 text-center">192.168.4.1</p>
+                </div>
+            </div>
+             <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-500 text-white font-bold text-lg flex-shrink-0">4</div>
+                <div>
+                    <h3 className="font-semibold">{t('hardwareAssembly.wifiConfig.step4.title', 'Configure sua Rede')}</h3>
+                    <p className="text-muted-foreground text-sm">{t('hardwareAssembly.wifiConfig.step4.description', 'No portal, clique em "Configure WiFi". Selecione a sua rede Wi-Fi principal na lista, digite a senha dela e clique em "save". O dispositivo irá reiniciar e se conectar automaticamente à sua rede. A partir de agora, ele lembrará dessa rede.')}</p>
+                </div>
+            </div>
         </CardContent>
       </Card>
 
@@ -370,31 +364,7 @@ export default function HardwareAssemblyPage() {
                 </Button>
             </CardContent>
         </Card>
-
-        <Card className="shadow-lg border-primary/50">
-            <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <Usb className="h-5 w-5 text-primary"/>
-                {t('hardwareAssembly.webFlasherCard.title', 'Instale o Firmware Facilmente')}
-            </CardTitle>
-            <CardDescription>
-                {t('hardwareAssembly.webFlasherCard.description', 'Use nosso instalador web para programar seu ESP32 diretamente pelo navegador com apenas um clique. É a maneira mais fácil de começar.')}
-            </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild>
-                    <Link href="/web-flasher">
-                        {t('hardwareAssembly.webFlasherCard.button', 'Abrir Instalador Web')}
-                    </Link>
-                </Button>
-            </CardContent>
-        </Card>
       </div>
-
     </div>
   );
 }
-
-    
-
-    
