@@ -67,7 +67,7 @@ const chartColors = [
 type TimePeriod = 'hour' | 'day' | 'week' | 'month';
 
 export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod = 'day' }: { sensors: Sensor[], initialTimePeriod?: TimePeriod }) {
-  const { temperatureUnit, t, activeKey } = useSettings();
+  const { temperatureUnit, t, storageKeys } = useSettings();
   const [currentTimePeriod, setCurrentTimePeriod] = useState<TimePeriod>(initialTimePeriod);
   const [selectedSensorIds, setSelectedSensorIds] = useState<string[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -93,7 +93,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   
   useEffect(() => {
     const fetchAndProcessData = async () => {
-        if (!activeKey || displayedSensors.length === 0) {
+        if (!storageKeys.sensors || displayedSensors.length === 0) {
             setChartData([]);
             return;
         }
@@ -102,7 +102,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
 
         const allSensorsData = await Promise.all(
             displayedSensors.map(async sensor => {
-                const history = await getHistoricalData(activeKey, sensor.id, currentTimePeriod);
+                const history = await getHistoricalData(storageKeys.sensors, sensor.id, currentTimePeriod);
                 const aggregated = aggregateData(history, currentTimePeriod);
                 return {
                     sensorId: sensor.id,
@@ -136,7 +136,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     };
 
     fetchAndProcessData();
-  }, [displayedSensors, currentTimePeriod, temperatureUnit, activeKey]);
+  }, [displayedSensors, currentTimePeriod, temperatureUnit, storageKeys.sensors]);
 
 
   const timeFormatOptions: Intl.DateTimeFormatOptions = 

@@ -24,22 +24,22 @@ const mockDiscoveredDevices = [
 type DiscoveredDevice = typeof mockDiscoveredDevices[0];
 
 export default function WifiDiscoveryPage() {
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<DiscoveredDevice[]>([]);
   const [addedMacs, setAddedMacs] = useState<Set<string>>(new Set());
   
   const fetchExistingSensors = useCallback(async () => {
-    if (!activeKey) return;
+    if (!storageKeys.sensors) return;
     try {
-        const existingSensors = await getSensors(activeKey);
+        const existingSensors = await getSensors(storageKeys.sensors);
         const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => !!mac));
         setAddedMacs(existingMacs);
     } catch (error) {
         console.error("Could not fetch existing sensors:", error);
     }
-  }, [activeKey]);
+  }, [storageKeys.sensors]);
 
   useEffect(() => {
     fetchExistingSensors();
@@ -70,7 +70,7 @@ export default function WifiDiscoveryPage() {
   };
   
   const handleAddSensor = async (device: DiscoveredDevice) => {
-    if (!activeKey) {
+    if (!storageKeys.sensors) {
         toast({
             title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
             description: "Chave de acesso não encontrada. Não é possível adicionar o sensor.",
@@ -99,7 +99,7 @@ export default function WifiDiscoveryPage() {
     };
 
     try {
-        const newSensor = await addSensor(activeKey, newSensorData);
+        const newSensor = await addSensor(storageKeys.sensors, newSensorData);
         setAddedMacs(prev => new Set(prev).add(device.macAddress));
         toast({
             title: t('wifiDiscoveryPage.toast.sensorAdded.title', 'Sensor Adicionado'),

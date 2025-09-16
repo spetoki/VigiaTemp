@@ -15,22 +15,22 @@ import { getAlerts } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 
 export default function DataAnalysisPage() {
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!activeKey) {
+    if (!storageKeys.sensors || !storageKeys.alerts) {
         setIsLoading(false);
         return;
     }
     setIsLoading(true);
     try {
       const [fetchedSensors, fetchedAlerts] = await Promise.all([
-        getSensors(activeKey),
-        getAlerts(activeKey)
+        getSensors(storageKeys.sensors),
+        getAlerts(storageKeys.alerts)
       ]);
       setSensors(fetchedSensors);
       setAlerts(fetchedAlerts);
@@ -46,7 +46,7 @@ export default function DataAnalysisPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeKey, toast]);
+  }, [storageKeys, toast]);
 
   useEffect(() => {
     fetchData();
@@ -136,8 +136,7 @@ export default function DataAnalysisPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-primary" />
-              {t('dataAnalysis.heatmap.title', 'Calendário de Atividade de Alertas (Heatmap)')}
-            </CardTitle>
+              {t('dataAnalysis.heatmap.title', 'Calendário de Atividade de Alertas (Heatmap)')}</CardTitle>
             <CardDescription>{t('dataAnalysis.heatmap.description', 'Visualize a intensidade de alertas ao longo do ano. Dias mais escuros indicam uma maior ocorrência de alertas.')}</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] flex items-center justify-center">

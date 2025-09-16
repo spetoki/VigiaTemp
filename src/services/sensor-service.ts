@@ -38,13 +38,13 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
     };
 };
 
-export async function getSensors(accessKey: string): Promise<Sensor[]> {
-    if (!db) {
-        console.warn("Firestore is not configured. Returning empty sensor list.");
+export async function getSensors(collectionPath: string): Promise<Sensor[]> {
+    if (!db || !collectionPath.startsWith('users/')) {
+        console.warn("Firestore is not configured or collection path is invalid. Returning empty sensor list.");
         return [];
     }
     try {
-        const sensorsCol = collection(db, `users/${accessKey}/sensors`);
+        const sensorsCol = collection(db, collectionPath);
         const q = query(sensorsCol, orderBy("name", "asc"));
         const sensorSnapshot = await getDocs(q);
         return sensorSnapshot.docs.map(sensorFromDoc);
@@ -55,14 +55,14 @@ export async function getSensors(accessKey: string): Promise<Sensor[]> {
 }
 
 export async function addSensor(
-    accessKey: string, 
+    collectionPath: string, 
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
-    if (!db) {
-      throw new Error("Firestore não está configurado. Não é possível adicionar o sensor.");
+    if (!db || !collectionPath.startsWith('users/')) {
+      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível adicionar o sensor.");
     }
 
-    const sensorsCol = collection(db, `users/${accessKey}/sensors`);
+    const sensorsCol = collection(db, collectionPath);
     const newSensorPayload = {
         ...sensorData,
         currentTemperature: 25, // Default starting temperature
@@ -78,39 +78,39 @@ export async function addSensor(
 }
 
 export async function updateSensor(
-    accessKey: string,
+    collectionPath: string,
     sensorId: string,
     sensorData: Partial<Sensor>
 ): Promise<void> {
-    if (!db) {
-      throw new Error("Firestore não está configurado. Não é possível atualizar o sensor.");
+    if (!db || !collectionPath.startsWith('users/')) {
+      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível atualizar o sensor.");
     }
-    const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
+    const sensorDoc = doc(db, collectionPath, sensorId);
     await updateDoc(sensorDoc, sensorData as DocumentData);
 }
 
-export async function deleteSensor(accessKey: string, sensorId: string): Promise<void> {
-    if (!db) {
-      throw new Error("Firestore não está configurado. Não é possível excluir o sensor.");
+export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
+    if (!db || !collectionPath.startsWith('users/')) {
+      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível excluir o sensor.");
     }
-    const sensorDoc = doc(db, `users/${accessKey}/sensors`, sensorId);
+    const sensorDoc = doc(db, collectionPath, sensorId);
     await deleteDoc(sensorDoc);
 }
 
 
-export async function addHistoricalData(accessKey: string, sensorId: string, dataPoint: HistoricalDataPoint): Promise<void> {
-    if (!db) {
-      throw new Error("Firestore não está configurado. Não é possível salvar o histórico.");
+export async function addHistoricalData(collectionPath: string, sensorId: string, dataPoint: HistoricalDataPoint): Promise<void> {
+    if (!db || !collectionPath.startsWith('users/')) {
+      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível salvar o histórico.");
     }
-    const historyCollection = collection(db, `users/${accessKey}/sensors/${sensorId}/historicalData`);
+    const historyCollection = collection(db, `${collectionPath}/${sensorId}/historicalData`);
     await addDoc(historyCollection, {
         ...dataPoint,
         timestamp: Timestamp.fromMillis(dataPoint.timestamp),
     });
 }
 
-export async function getHistoricalData(accessKey: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    if (!db) {
+export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
+    if (!db || !collectionPath.startsWith('users/')) {
         return [];
     }
 
@@ -134,7 +134,8 @@ export async function getHistoricalData(accessKey: string, sensorId: string, tim
     }
 
     try {
-        const historyCollection = collection(db, `users/${accessKey}/sensors/${sensorId}/historicalData`);
+        const historyCollectionPath = `${collectionPath}/${sensorId}/historicalData`;
+        const historyCollection = collection(db, historyCollectionPath);
         const q = query(
             historyCollection, 
             orderBy("timestamp", "desc"),

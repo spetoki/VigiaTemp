@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AlertsPage() {
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,13 +32,13 @@ export default function AlertsPage() {
   const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
 
   const loadAlerts = useCallback(async () => {
-    if (!activeKey) {
+    if (!storageKeys.alerts) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     try {
-      const fetchedAlerts = await getAlerts(activeKey);
+      const fetchedAlerts = await getAlerts(storageKeys.alerts);
       setAlerts(fetchedAlerts);
     } catch (error) {
       console.error("Failed to fetch alerts from Firestore:", error);
@@ -51,7 +51,7 @@ export default function AlertsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeKey, toast]);
+  }, [storageKeys.alerts, toast]);
 
   useEffect(() => {
     loadAlerts();
@@ -63,9 +63,9 @@ export default function AlertsPage() {
   }, [activeTab]);
 
   const handleAcknowledge = async (alertId: string) => {
-    if (!activeKey) return;
+    if (!storageKeys.alerts) return;
     try {
-      await updateAlert(activeKey, alertId, { acknowledged: true });
+      await updateAlert(storageKeys.alerts, alertId, { acknowledged: true });
       const updatedAlerts = alerts.map(alert =>
         alert.id === alertId ? { ...alert, acknowledged: true } : alert
       );
@@ -80,14 +80,14 @@ export default function AlertsPage() {
   };
 
   const handleAcknowledgeAll = async () => {
-    if (!activeKey || unacknowledgedCount === 0) return;
+    if (!storageKeys.alerts || unacknowledgedCount === 0) return;
     
     const unacknowledgedIds = alerts
       .filter(alert => !alert.acknowledged)
       .map(alert => alert.id);
 
     try {
-      await updateMultipleAlerts(activeKey, unacknowledgedIds, { acknowledged: true });
+      await updateMultipleAlerts(storageKeys.alerts, unacknowledgedIds, { acknowledged: true });
       const updatedAlerts = alerts.map(alert => ({ ...alert, acknowledged: true }));
       setAlerts(updatedAlerts);
     } catch (error) {
@@ -100,9 +100,9 @@ export default function AlertsPage() {
   };
   
   const handleDeleteSelected = async () => {
-    if (!activeKey || selectedAlerts.length === 0) return;
+    if (!storageKeys.alerts || selectedAlerts.length === 0) return;
     try {
-      await deleteMultipleAlerts(activeKey, selectedAlerts);
+      await deleteMultipleAlerts(storageKeys.alerts, selectedAlerts);
       setAlerts(prev => prev.filter(alert => !selectedAlerts.includes(alert.id)));
       toast({
         title: 'Alertas Excluídos',

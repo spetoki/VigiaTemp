@@ -26,16 +26,16 @@ export default function SensorsPage() {
   const [editingSensor, setEditingSensor] = useState<Sensor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
 
   const fetchSensors = useCallback(async () => {
-    if (!activeKey) {
+    if (!storageKeys.sensors) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     try {
-      const fetchedSensors = await getSensors(activeKey);
+      const fetchedSensors = await getSensors(storageKeys.sensors);
       setSensors(fetchedSensors);
     } catch (error) {
       console.error("Failed to fetch sensors:", error);
@@ -48,7 +48,7 @@ export default function SensorsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeKey, t, toast]);
+  }, [storageKeys.sensors, t, toast]);
 
   useEffect(() => {
     fetchSensors();
@@ -65,9 +65,9 @@ export default function SensorsPage() {
   };
 
   const handleDeleteSensor = async (sensorId: string) => {
-    if (!activeKey) return;
+    if (!storageKeys.sensors) return;
     try {
-      await deleteSensor(activeKey, sensorId);
+      await deleteSensor(storageKeys.sensors, sensorId);
       setSensors(prevSensors => prevSensors.filter(s => s.id !== sensorId));
       toast({
         title: t('sensorsPage.toast.deleted.title', "Sensor Excluído"),
@@ -84,12 +84,12 @@ export default function SensorsPage() {
   };
 
   const handleFormSubmit = async (data: SensorFormData) => {
-    if (!activeKey) return;
+    if (!storageKeys.sensors) return;
 
     if (editingSensor) {
       // Update existing sensor
       try {
-        await updateSensor(activeKey, editingSensor.id, data);
+        await updateSensor(storageKeys.sensors, editingSensor.id, data);
         setSensors(prevSensors => 
           prevSensors.map(s => s.id === editingSensor.id ? { ...s, ...data } : s)
         );
@@ -107,7 +107,7 @@ export default function SensorsPage() {
     } else {
       // Add new sensor
       try {
-        const newSensor = await addSensor(activeKey, data);
+        const newSensor = await addSensor(storageKeys.sensors, data);
         setSensors(prevSensors => [newSensor, ...prevSensors]);
         toast({
           title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),

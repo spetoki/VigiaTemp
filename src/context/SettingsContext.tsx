@@ -88,11 +88,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
 
   const storageKeys = {
-    sensors: activeKey ? `${activeKey}_demo_sensors` : 'demo_sensors',
-    alerts: activeKey ? `${activeKey}_demo_alerts` : 'demo_alerts',
-    lots: activeKey ? `${activeKey}_demo_traceability_lots` : 'demo_traceability_lots',
-    components: activeKey ? `${activeKey}_hardware_components` : 'hardware_components',
-    diagram: activeKey ? `${activeKey}_hardware_diagram` : 'hardware_diagram'
+    sensors: `users/${activeKey}/sensors`,
+    alerts: `users/${activeKey}/alerts`,
+    lots: `users/${activeKey}/lots`,
+    components: activeKey ? `hardware_components_${activeKey}` : 'hardware_components',
+    diagram: activeKey ? `hardware_diagram_${activeKey}` : 'hardware_diagram'
   };
 
   useEffect(() => {

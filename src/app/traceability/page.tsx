@@ -30,7 +30,7 @@ const initialFormData: TraceabilityFormData = {
 };
 
 export default function TraceabilityPage() {
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
   
   type View = 'list' | 'form' | 'details';
@@ -44,13 +44,13 @@ export default function TraceabilityPage() {
   const pdfRef = useRef<HTMLDivElement>(null);
   
   const fetchLots = useCallback(async () => {
-    if (!activeKey) {
+    if (!storageKeys.lots) {
         setIsLoading(false);
         return;
     }
     setIsLoading(true);
     try {
-        const fetchedLots = await getLots(activeKey);
+        const fetchedLots = await getLots(storageKeys.lots);
         setLots(fetchedLots);
     } catch (error) {
         toast({
@@ -61,7 +61,7 @@ export default function TraceabilityPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [activeKey, t, toast]);
+  }, [storageKeys.lots, t, toast]);
 
   useEffect(() => {
     fetchLots();
@@ -104,7 +104,7 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeKey) {
+    if (!storageKeys.lots) {
         toast({
             title: t('traceability.saveErrorTitle', "Erro ao Salvar"),
             description: t('traceability.saveErrorNoUser', "Chave de acesso não encontrada. Não é possível salvar o lote."),
@@ -115,7 +115,7 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
     setIsSubmitting(true);
 
     try {
-        const newLot = await addLot(activeKey, formData);
+        const newLot = await addLot(storageKeys.lots, formData);
         
         setLots(prevLots => [newLot, ...prevLots]);
         setSelectedLot(newLot);

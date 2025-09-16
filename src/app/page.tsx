@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const [ambientTemp, setAmbientTemp] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingAmbientTemp, setIsLoadingAmbientTemp] = useState(true);
-  const { t, temperatureUnit, activeKey } = useSettings();
+  const { t, temperatureUnit, storageKeys } = useSettings();
   const { toast } = useToast();
   
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
@@ -85,13 +85,13 @@ export default function DashboardPage() {
   }, []);
 
   const fetchInitialData = useCallback(async () => {
-      if (!activeKey) {
+      if (!storageKeys.sensors) {
         setIsLoading(false);
         return;
       };
       setIsLoading(true);
       try {
-          const fetchedSensors = await getSensors(activeKey);
+          const fetchedSensors = await getSensors(storageKeys.sensors);
           setSensors(fetchedSensors);
       } catch (error) {
           console.error("Failed to load initial sensor data from Firestore:", error);
@@ -104,7 +104,7 @@ export default function DashboardPage() {
       } finally {
           setIsLoading(false);
       }
-  }, [activeKey, toast]);
+  }, [storageKeys.sensors, toast]);
 
   useEffect(() => {
     fetchInitialData();
@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-    if (!activeKey || sensors.length === 0) return;
+    if (!storageKeys.sensors || sensors.length === 0) return;
 
     const intervalId = setInterval(async () => {
         let hasChanged = false;
@@ -127,7 +127,7 @@ export default function DashboardPage() {
                         if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
                             hasChanged = true;
                             // Save the new reading to the historical data in Firestore
-                            await addHistoricalData(activeKey, sensor.id, {
+                            await addHistoricalData(storageKeys.sensors, sensor.id, {
                                 timestamp: Date.now(),
                                 temperature: data.temperature
                             });
@@ -149,7 +149,7 @@ export default function DashboardPage() {
       // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
       let currentAlerts: Alert[] = [];
       try {
-          currentAlerts = await getAlerts(activeKey);
+          currentAlerts = await getAlerts(storageKeys.alerts);
       } catch (e) {
           console.warn("Could not fetch alerts, proceeding without them for this check.");
           currentAlerts = [];
@@ -184,7 +184,7 @@ export default function DashboardPage() {
                       acknowledged: false,
                       reason: isHigh ? 'high' : 'low',
                   };
-                  newAlertPromises.push(addAlert(activeKey, newAlert));
+                  newAlertPromises.push(addAlert(storageKeys.alerts, newAlert));
               }
           }
 
@@ -203,7 +203,7 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [activeKey, sensors, t, temperatureUnit, toast]);
+  }, [storageKeys, sensors, t, temperatureUnit, toast]);
 
   if (isLoading) {
     return (

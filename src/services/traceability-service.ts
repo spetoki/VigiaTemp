@@ -54,13 +54,13 @@ const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData 
     };
 };
 
-export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
-    if (!db) {
-        console.warn("Firestore is not configured. Returning empty lots list.");
+export async function getLots(collectionPath: string): Promise<TraceabilityData[]> {
+    if (!db || !collectionPath.startsWith('users/')) {
+        console.warn("Firestore is not configured or collection path is invalid. Returning empty lots list.");
         return [];
     }
     try {
-        const lotsCol = collection(db, `users/${accessKey}/lots`);
+        const lotsCol = collection(db, collectionPath);
         const q = query(lotsCol, orderBy("createdAt", "desc"));
         const lotSnapshot = await getDocs(q);
         return lotSnapshot.docs.map(lotFromDoc);
@@ -70,12 +70,12 @@ export async function getLots(accessKey: string): Promise<TraceabilityData[]> {
     }
 }
 
-export async function addLot(accessKey: string, lotData: TraceabilityFormData): Promise<TraceabilityData> {
-    if (!db) {
-        throw new Error("Firestore não está configurado. Não é possível adicionar o lote.");
+export async function addLot(collectionPath: string, lotData: TraceabilityFormData): Promise<TraceabilityData> {
+    if (!db || !collectionPath.startsWith('users/')) {
+        throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível adicionar o lote.");
     }
 
-    const lotsCol = collection(db, `users/${accessKey}/lots`);
+    const lotsCol = collection(db, collectionPath);
     
     // Create a clean data object to be saved, converting strings to numbers
     const dataToSave: Omit<TraceabilityData, 'id' | 'createdAt'> & { createdAt: Timestamp } = {

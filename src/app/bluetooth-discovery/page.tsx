@@ -12,14 +12,14 @@ import Link from 'next/link';
 import { addSensor } from '@/services/sensor-service';
 
 export default function BluetoothDiscoveryPage() {
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleScan = async () => {
-    if (!activeKey) {
+    if (!storageKeys.sensors) {
         toast({
             title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
             description: "Chave de acesso não encontrada. Não é possível adicionar o sensor.",
@@ -54,7 +54,7 @@ export default function BluetoothDiscoveryPage() {
         macAddress: device.id, // Using device.id as a stand-in for MAC
       };
       
-      const newSensor = await addSensor(activeKey, newSensorData);
+      const newSensor = await addSensor(storageKeys.sensors, newSensorData);
       
       toast({
           title: t('bluetoothPage.toast.sensorAdded.title', 'Sensor Adicionado'),

@@ -14,11 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 export default function SensorChartsPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { t, activeKey } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
 
   const fetchSensors = useCallback(async () => {
-    if (!activeKey) {
+    if (!storageKeys.sensors) {
         setIsLoading(false);
         return;
     }
@@ -29,7 +29,7 @@ export default function SensorChartsPage() {
         // fetch it on-demand inside the MultiSensorTemperatureChart component
         // based on the selected time period. For this prototype, fetching
         // all data upfront is acceptable.
-      const fetchedSensors = await getSensors(activeKey);
+      const fetchedSensors = await getSensors(storageKeys.sensors);
       setSensors(fetchedSensors);
     } catch (error) {
       console.error("Failed to load sensors for charts, defaulting to empty.", error);
@@ -42,7 +42,7 @@ export default function SensorChartsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeKey, toast]);
+  }, [storageKeys.sensors, toast]);
 
   useEffect(() => {
     fetchSensors();

@@ -34,13 +34,13 @@ const alertFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Alert => {
     };
 };
 
-export async function getAlerts(accessKey: string): Promise<Alert[]> {
-    if (!db) {
-        console.warn("Firestore is not configured. Returning empty alerts list.");
+export async function getAlerts(collectionPath: string): Promise<Alert[]> {
+    if (!db || !collectionPath.startsWith('users/')) {
+        console.warn("Firestore is not configured or collection path is invalid. Returning empty alerts list.");
         return [];
     }
     try {
-        const alertsCol = collection(db, `users/${accessKey}/alerts`);
+        const alertsCol = collection(db, collectionPath);
         // Order by most recent and limit to the last 100 to avoid performance issues
         const q = query(alertsCol, orderBy("timestamp", "desc"), limit(100));
         const alertSnapshot = await getDocs(q);
@@ -52,12 +52,12 @@ export async function getAlerts(accessKey: string): Promise<Alert[]> {
 }
 
 
-export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-    if (!db) {
-        throw new Error("Firestore não está configurado. Não é possível adicionar alerta.");
+export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
+    if (!db || !collectionPath.startsWith('users/')) {
+        throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível adicionar alerta.");
     }
     
-    const alertsCol = collection(db, `users/${accessKey}/alerts`);
+    const alertsCol = collection(db, collectionPath);
     const newAlertData = {
       ...alertData,
       timestamp: Timestamp.fromMillis(alertData.timestamp)
@@ -72,21 +72,21 @@ export async function addAlert(accessKey: string, alertData: Omit<Alert, 'id'>):
 }
 
 
-export async function updateAlert(accessKey: string, alertId: string, updateData: Partial<Alert>) {
-    if (!db) {
-      throw new Error("Firestore não está configurado. Não é possível atualizar alerta.");
+export async function updateAlert(collectionPath: string, alertId: string, updateData: Partial<Alert>) {
+    if (!db || !collectionPath.startsWith('users/')) {
+      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível atualizar alerta.");
     }
-    const alertDoc = doc(db, `users/${accessKey}/alerts`, alertId);
+    const alertDoc = doc(db, collectionPath, alertId);
     await updateDoc(alertDoc, updateData as DocumentData);
 }
 
-export async function updateMultipleAlerts(accessKey: string, alertIds: string[], updateData: Partial<Alert>) {
-    if (!db || alertIds.length === 0) {
+export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>) {
+    if (!db || alertIds.length === 0 || !collectionPath.startsWith('users/')) {
       return;
     }
     const batch = writeBatch(db);
     alertIds.forEach(id => {
-        const alertDoc = doc(db, `users/${accessKey}/alerts`, id);
+        const alertDoc = doc(db, collectionPath, id);
         batch.update(alertDoc, updateData as DocumentData);
     });
 
@@ -94,14 +94,14 @@ export async function updateMultipleAlerts(accessKey: string, alertIds: string[]
 }
 
 
-export async function deleteMultipleAlerts(accessKey: string, alertIds: string[]): Promise<void> {
-  if (!db || alertIds.length === 0) {
+export async function deleteMultipleAlerts(collectionPath: string, alertIds: string[]): Promise<void> {
+  if (!db || alertIds.length === 0 || !collectionPath.startsWith('users/')) {
     return;
   }
   
   const batch = writeBatch(db);
   alertIds.forEach(id => {
-    const alertDoc = doc(db, `users/${accessKey}/alerts`, id);
+    const alertDoc = doc(db, collectionPath, id);
     batch.delete(alertDoc);
   });
   
