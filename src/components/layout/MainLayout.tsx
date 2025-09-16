@@ -18,7 +18,7 @@ function LayoutContent({ children }: MainLayoutProps) {
 
   useEffect(() => {
     const year = new Date().getFullYear();
-    setFooterText(t('footer.copyright', '© {year} VigiaTemp. Todos os direitos reservados a Irineu Marcos Bartnik', { year }));
+    setFooterText(t('footer.copyright', '© 2025 VigiaTemp. Todos os direitos reservados a Irineu Marcos Bartnik', { year: 2025 }));
   }, [t]);
   
   if (isLocked) {
@@ -34,7 +34,8 @@ function LayoutContent({ children }: MainLayoutProps) {
         </div>
       </main>
       <footer className="bg-primary text-primary-foreground text-center p-4 text-sm">
-        {footerText || <>&nbsp;</>}
+        <p>{footerText || <>&nbsp;</>}</p>
+        <p className="mt-2 italic">"Sabedoria é construir sistemas que permaneçam úteis mesmo após o criador partir."   *&gt;&gt;I.M.B.&lt;&lt;*</p>
       </footer>
       <Toaster />
     </div>
