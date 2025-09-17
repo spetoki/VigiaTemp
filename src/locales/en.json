@@ -25,6 +25,7 @@
   "nav.chat": "AI Assistant",
   "nav.esphome": "ESPHome Configurator",
   "nav.hardwareMenu": "Hardware",
+  "nav.about": "About",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
@@ -287,7 +288,7 @@
   "systemSettings.installApp.title": "Install Application",
   "systemSettings.installApp.description": "For a better experience, install VigiaTemp on your device's home screen.",
   "systemSettings.installApp.button": "Install Application",
-
+  
   "localeCode": "en-US",
 
   "footer.copyright": "© {year} VigiaTemp. All rights reserved to Irineu Marcos Bartnik",

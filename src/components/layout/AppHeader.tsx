@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, LogOut, Usb, FileCode2, Puzzle } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, LogOut, Usb, FileCode2, Puzzle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -79,6 +79,10 @@ export default function AppHeader() {
     { href: '/device-configurator', labelKey: 'nav.deviceConfigurator', icon: FileCode2, defaultLabel: 'Configurar Dispositivo' },
   ];
 
+  const appInfoNavItems = [
+      { href: '/about', labelKey: 'nav.about', icon: Info, defaultLabel: 'Sobre o App' },
+  ]
+
   const settingsAndLogout = [
      { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
   ];
@@ -148,6 +152,11 @@ export default function AppHeader() {
                     <div className="flex flex-col space-y-1">
                       <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.hardwareMenu', 'Hardware')}</p>
                       {hardwareNavItems.map(item => <MobileNavLink key={item.href} {...item} />)}
+                    </div>
+                    <Separator />
+                    <div className="flex flex-col space-y-1">
+                      <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">App</p>
+                      {appInfoNavItems.map(item => <MobileNavLink key={item.href} {...item} />)}
                     </div>
                     <Separator />
                     <div className="flex flex-col space-y-1">

@@ -25,6 +25,7 @@
   "nav.chat": "Asistente de IA",
   "nav.esphome": "Configurador ESPHome",
   "nav.hardwareMenu": "Hardware",
+  "nav.about": "Sobre la App",
 
   "temperatureUnitSelection": "Selección de unidad de temperatura",
   "openMenu": "Abrir menú",
