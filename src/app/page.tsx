@@ -14,6 +14,9 @@ import { getSensors, updateSensor, addHistoricalData } from '@/services/sensor-s
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -84,126 +87,103 @@ export default function DashboardPage() {
     fetchAmbientTemp();
   }, []);
 
-  const fetchInitialData = useCallback(async () => {
-      if (!storageKeys.sensors) {
+  // This effect now sets up a real-time listener on the sensors collection
+  useEffect(() => {
+    if (!db || !storageKeys.sensors || !storageKeys.sensors.startsWith('users/')) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    const sensorsCol = collection(db, storageKeys.sensors);
+    const q = query(sensorsCol, orderBy("name", "asc"));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const fetchedSensors: Sensor[] = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as Sensor));
+        
+        setSensors(fetchedSensors);
         setIsLoading(false);
-        return;
-      };
-      setIsLoading(true);
-      try {
-          const fetchedSensors = await getSensors(storageKeys.sensors);
-          setSensors(fetchedSensors);
-      } catch (error) {
-          console.error("Failed to load initial sensor data from Firestore:", error);
-          toast({
-            title: "Erro ao Carregar Sensores",
-            description: "Não foi possível buscar os sensores. Verifique sua conexão e configuração do Firebase.",
-            variant: "destructive",
-          });
-          setSensors([]);
-      } finally {
-          setIsLoading(false);
-      }
+    }, (error) => {
+        console.error("Failed to listen to sensor data from Firestore:", error);
+        toast({
+          title: "Erro ao Carregar Sensores",
+          description: "Não foi possível conectar para receber atualizações em tempo real.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        setSensors([]);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on component unmount
   }, [storageKeys.sensors, toast]);
 
+
+  // This effect runs whenever the sensor data changes to check for new alerts.
   useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
+    if (isLoading || sensors.length === 0 || !storageKeys.alerts) return;
 
-
-  useEffect(() => {
-    if (!storageKeys.sensors || sensors.length === 0) return;
-
-    const intervalId = setInterval(async () => {
-        let hasChanged = false;
-        
-        // Create a new array to hold the updated sensors
-        const updatedSensors = await Promise.all(sensors.map(async (sensor) => {
-            if (sensor.macAddress) {
-                try {
-                    const res = await fetch(`/api/sensor/${sensor.macAddress}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.temperature !== null && data.temperature !== sensor.currentTemperature) {
-                            hasChanged = true;
-                            // Save the new reading to the historical data in Firestore
-                            await addHistoricalData(storageKeys.sensors, sensor.id, {
-                                timestamp: Date.now(),
-                                temperature: data.temperature
-                            });
-                            // Return a new sensor object with the updated temperature
-                            return { ...sensor, currentTemperature: data.temperature };
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Error fetching sensor data for ${sensor.macAddress}:`, error);
-                }
-            }
-            return sensor; // Return the original sensor if no update
-        }));
-
-        if (hasChanged) {
-            setSensors(updatedSensors);
+    const checkAlerts = async () => {
+        let currentAlerts: Alert[] = [];
+        try {
+            currentAlerts = await getAlerts(storageKeys.alerts);
+        } catch (e) {
+            console.warn("Could not fetch alerts, proceeding without them for this check.");
+            currentAlerts = [];
         }
 
-      // --- Lógica de alerta permanece, mas agora opera sobre os dados potencialmente atualizados ---
-      let currentAlerts: Alert[] = [];
-      try {
-          currentAlerts = await getAlerts(storageKeys.alerts);
-      } catch (e) {
-          console.warn("Could not fetch alerts, proceeding without them for this check.");
-          currentAlerts = [];
-      }
+        const soundsToQueueForThisInterval: (string | undefined)[] = [];
+        const newAlertPromises: Promise<any>[] = [];
+        
+        sensors.forEach(sensor => {
+            const status = getSensorStatus(sensor);
+            if (status === 'critical' || status === 'warning') {
+                const hasRecentUnacknowledgedAlert = currentAlerts.some(
+                    alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
+                );
 
-      const soundsToQueueForThisInterval: (string | undefined)[] = [];
-      const newAlertPromises: Promise<any>[] = [];
-      
-      updatedSensors.forEach(sensor => {
-          const status = getSensorStatus(sensor);
-          if (status === 'critical' || status === 'warning') {
-              const hasRecentUnacknowledgedAlert = currentAlerts.some(
-                  alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
-              );
+                if (!hasRecentUnacknowledgedAlert) {
+                    const isHigh = sensor.currentTemperature > sensor.highThreshold;
+                    const message = t('alert.message.template', 
+                        'Temperatura de {temp} está {direction} do limite de {limit}', 
+                        {
+                            temp: formatTemperature(sensor.currentTemperature, temperatureUnit),
+                            direction: isHigh ? t('alert.message.above', 'acima') : t('alert.message.below', 'abaixo'),
+                            limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
+                        }
+                    );
+                    const newAlert: Omit<Alert, 'id'> = {
+                        sensorId: sensor.id,
+                        sensorName: sensor.name,
+                        timestamp: Date.now(),
+                        level: status,
+                        message: message,
+                        acknowledged: false,
+                        reason: isHigh ? 'high' : 'low',
+                    };
+                    newAlertPromises.push(addAlert(storageKeys.alerts, newAlert));
+                }
+            }
 
-              if (!hasRecentUnacknowledgedAlert) {
-                  const isHigh = sensor.currentTemperature > sensor.highThreshold;
-                  const message = t('alert.message.template', 
-                      'Temperatura de {temp} está {direction} do limite de {limit}', 
-                      {
-                          temp: formatTemperature(sensor.currentTemperature, temperatureUnit),
-                          direction: isHigh ? t('alert.message.above', 'acima') : t('alert.message.below', 'abaixo'),
-                          limit: formatTemperature(isHigh ? sensor.highThreshold : sensor.lowThreshold, temperatureUnit)
-                      }
-                  );
-                  const newAlert: Omit<Alert, 'id'> = {
-                      sensorId: sensor.id,
-                      sensorName: sensor.name,
-                      timestamp: Date.now(),
-                      level: status,
-                      message: message,
-                      acknowledged: false,
-                      reason: isHigh ? 'high' : 'low',
-                  };
-                  newAlertPromises.push(addAlert(storageKeys.alerts, newAlert));
-              }
-          }
+            if (status === 'critical') {
+                soundsToQueueForThisInterval.push(defaultCriticalSound);
+            }
+        });
+        
+        if (newAlertPromises.length > 0) {
+            await Promise.all(newAlertPromises);
+        }
 
-          if (status === 'critical') {
-              soundsToQueueForThisInterval.push(defaultCriticalSound);
-          }
-      });
-      
-      if (newAlertPromises.length > 0) {
-          await Promise.all(newAlertPromises);
-      }
+        if (soundsToQueueForThisInterval.length > 0) {
+            setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
+        }
+    };
 
-      if (soundsToQueueForThisInterval.length > 0) {
-          setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
-      }
-    }, 5000);
-
-    return () => clearInterval(intervalId);
-  }, [storageKeys, sensors, t, temperatureUnit, toast]);
+    checkAlerts();
+    
+  }, [sensors, isLoading, storageKeys.alerts, t, temperatureUnit]);
 
   if (isLoading) {
     return (
