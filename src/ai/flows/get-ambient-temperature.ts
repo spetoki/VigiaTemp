@@ -31,7 +31,7 @@ const getAmbientTemperatureFlow = ai.defineFlow(
       tools: [getRealTimeWeather],
     });
 
-    const toolRequests = llmResponse.toolRequests();
+    const toolRequests = llmResponse.toolRequests;
     
     if (toolRequests && toolRequests.length > 0) {
       // We only expect one tool request in this flow
