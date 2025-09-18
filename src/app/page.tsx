@@ -8,8 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
-import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
-import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,9 +17,7 @@ import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
-  const [ambientTemp, setAmbientTemp] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingAmbientTemp, setIsLoadingAmbientTemp] = useState(true);
   const { t, temperatureUnit, storageKeys } = useSettings();
   const { toast } = useToast();
   
@@ -69,22 +65,6 @@ export default function DashboardPage() {
     */
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound]);
-
-  useEffect(() => {
-    async function fetchAmbientTemp() {
-      setIsLoadingAmbientTemp(true);
-      try {
-        const result = await getAmbientTemperature();
-        setAmbientTemp(result.temperature);
-      } catch (error) {
-        console.error("Could not fetch ambient temperature:", error);
-        setAmbientTemp(null); // Set to null on error
-      } finally {
-        setIsLoadingAmbientTemp(false);
-      }
-    }
-    fetchAmbientTemp();
-  }, []);
 
   // This effect now sets up a real-time listener on the sensors collection
   useEffect(() => {
@@ -204,10 +184,6 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h1>
-        <AmbientWeatherCard
-          temperature={ambientTemp}
-          isLoading={isLoadingAmbientTemp}
-        />
       </div>
 
       {sensors.length > 0 ? (
@@ -241,5 +217,7 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
+
+    
 
     
