@@ -65,7 +65,7 @@ export default function DashboardPage() {
     
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
-
+  
   // This effect now sets up a real-time listener on the sensors collection
   useEffect(() => {
     if (!db || !storageKeys.sensors || !storageKeys.sensors.startsWith('users/')) {
@@ -113,7 +113,6 @@ export default function DashboardPage() {
             currentAlerts = [];
         }
 
-        const soundsToQueueForThisInterval: (string | undefined)[] = [];
         const newAlertPromises: Promise<any>[] = [];
         
         sensors.forEach(sensor => {
@@ -145,24 +144,39 @@ export default function DashboardPage() {
                     newAlertPromises.push(addAlert(storageKeys.alerts, newAlert));
                 }
             }
-
-            if (status === 'critical') {
-                soundsToQueueForThisInterval.push(defaultCriticalSound);
-            }
         });
         
         if (newAlertPromises.length > 0) {
             await Promise.all(newAlertPromises);
-        }
-
-        if (soundsToQueueForThisInterval.length > 0) {
-            setSoundQueue(prevQueue => [...prevQueue, ...soundsToQueueForThisInterval]);
         }
     };
 
     checkAlerts();
     
   }, [sensors, isLoading, storageKeys.alerts, t, temperatureUnit]);
+
+  // This effect handles the continuous sound alert for critical sensors.
+  useEffect(() => {
+    let soundInterval: NodeJS.Timeout | null = null;
+    
+    const hasCriticalSensor = sensors.some(sensor => getSensorStatus(sensor) === 'critical');
+
+    if (hasCriticalSensor && !isMuted) {
+      // Start an interval to play the sound every 5 seconds
+      soundInterval = setInterval(() => {
+        setSoundQueue(prevQueue => [...prevQueue, defaultCriticalSound]);
+      }, 5000);
+    }
+
+    // Cleanup function: this will be called when the component unmounts
+    // or when the dependencies (sensors, isMuted) change.
+    return () => {
+      if (soundInterval) {
+        clearInterval(soundInterval);
+      }
+    };
+  }, [sensors, isMuted]);
+
 
   if (isLoading) {
     return (
