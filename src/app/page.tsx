@@ -10,7 +10,6 @@ import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import AmbientWeatherCard from '@/components/dashboard/AmbientWeatherCard';
 import { getAmbientTemperature } from '@/ai/flows/get-ambient-temperature';
-import { getSensors, updateSensor, addHistoricalData } from '@/services/sensor-service';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
