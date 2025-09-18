@@ -78,9 +78,10 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   const [currentTimePeriod, setCurrentTimePeriod] = useState<TimePeriod>(initialTimePeriod);
   const [selectedSensorIds, setSelectedSensorIds] = useState<string[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Initially select all sensors
     setSelectedSensorIds(sensors.map(s => s.id));
   }, [sensors]);
 
@@ -102,6 +103,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     const fetchAndProcessData = async () => {
         if (!collectionPath || displayedSensors.length === 0) {
             setChartData([]);
+            setIsLoading(false); // Stop loading if no sensors are displayed
             return;
         }
 
@@ -186,18 +188,6 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   };
 
   const areAllSensorsSelected = selectedSensorIds.length === sensors.length && sensors.length > 0;
-
-
-  if (!sensors || sensors.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('multiSensorChart.noSensorTitle', 'Nenhum Sensor')}</CardTitle>
-          <CardDescription>{t('multiSensorChart.noSensors', 'Não há sensores cadastrados para exibir no gráfico.')}</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
   
   return (
     <Card className="shadow-lg w-full">
@@ -327,4 +317,3 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     </Card>
   );
 }
-

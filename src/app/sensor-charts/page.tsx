@@ -6,7 +6,7 @@ import type { Sensor } from '@/types';
 import MultiSensorTemperatureChart from '@/components/dashboard/MultiSensorTemperatureChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart } from 'lucide-react';
+import { LineChart, Loader2 } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensors } from '@/services/sensor-service';
 import { useToast } from '@/hooks/use-toast';
@@ -43,21 +43,44 @@ export default function SensorChartsPage() {
     fetchSensors();
   }, [fetchSensors]);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div className="flex items-center gap-2">
-          <LineChart className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold font-headline text-primary">{t('nav.sensorCharts', 'Gráficos dos Sensores')}</h1>
-        </div>
-        <p className="text-muted-foreground mt-1">
-          {t('sensorChartsPage.description', 'Visualize os dados históricos de temperatura para todos os seus sensores em um único gráfico.')}
-        </p>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
         <div className="space-y-6">
           <Skeleton className="h-[500px] w-full" /> 
         </div>
-      </div>
-    );
+      );
+    }
+
+    if (sensors.length === 0) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('sensorChartsPage.noSensorsCard.title', 'Nenhum Sensor Disponível')}</CardTitle>
+            <CardDescription>
+              {t('sensorChartsPage.noSensorsCard.description', 'Não há sensores cadastrados para exibir gráficos. Adicione sensores na página de Gerenciamento de Sensores.')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>{t('sensorChartsPage.noSensorsCard.content', 'Adicione sensores para visualizar seus dados aqui.')}</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (storageKeys.sensors) {
+      return (
+        <div className="space-y-6">
+          <MultiSensorTemperatureChart 
+            sensors={sensors} 
+            initialTimePeriod="day" 
+            collectionPath={storageKeys.sensors} 
+          />
+        </div>
+      );
+    }
+
+    return null;
   }
 
   return (
@@ -73,31 +96,9 @@ export default function SensorChartsPage() {
             </div>
         </div>
       </div>
+      
+      {renderContent()}
 
-      {sensors.length === 0 && !isLoading && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('sensorChartsPage.noSensorsCard.title', 'Nenhum Sensor Disponível')}</CardTitle>
-            <CardDescription>
-              {t('sensorChartsPage.noSensorsCard.description', 'Não há sensores cadastrados para exibir gráficos. Adicione sensores na página de Gerenciamento de Sensores.')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>{t('sensorChartsPage.noSensorsCard.content', 'Adicione sensores para visualizar seus dados aqui.')}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {sensors.length > 0 && storageKeys.sensors && (
-        <div className="space-y-6">
-          <MultiSensorTemperatureChart 
-            sensors={sensors} 
-            initialTimePeriod="day" 
-            collectionPath={storageKeys.sensors} 
-          />
-        </div>
-      )}
     </div>
   );
 }
-
