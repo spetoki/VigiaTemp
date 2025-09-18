@@ -2,36 +2,56 @@
 'use server';
 
 /**
- * @fileOverview A server action to get the current ambient temperature.
- * This has been converted from a Genkit flow to a standard Next.js Server Action.
- * This change prevents the server from crashing on startup if a Genkit-related
- * API key (like GOOGLE_API_KEY) is not configured in the environment,
- * as this function does not require AI capabilities.
+ * @fileOverview A Genkit flow to get the current ambient temperature for a given location.
+ * This flow now uses a tool to fetch weather data, making it more robust and extensible.
  *
  * - getAmbientTemperature - A function that returns the ambient temperature for a hardcoded location.
  * - AmbientTemperatureOutput - The return type for the getAmbientTemperature function.
  */
 
-import {z} from 'zod';
-import { fetchSimulatedWeather } from '@/services/weather-service';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { getRealTimeWeather } from '../tools/weather-tool';
 
 const AmbientTemperatureOutputSchema = z.object({
   temperature: z.number().describe('The current ambient temperature in Celsius.'),
 });
 export type AmbientTemperatureOutput = z.infer<typeof AmbientTemperatureOutputSchema>;
 
-/**
- * Gets the simulated ambient temperature by calling the weather service.
- * This is a server action and does not require Genkit to be initialized,
- * making the application's home page more resilient.
- * @returns {Promise<AmbientTemperatureOutput>} An object containing the temperature.
- */
+const getAmbientTemperatureFlow = ai.defineFlow(
+  {
+    name: 'getAmbientTemperatureFlow',
+    inputSchema: z.string(),
+    outputSchema: AmbientTemperatureOutputSchema,
+  },
+  async (location) => {
+    const llmResponse = await ai.generate({
+      prompt: `What is the current temperature in ${location}?`,
+      model: 'googleai/gemini-1.5-flash-latest',
+      tools: [getRealTimeWeather],
+    });
+
+    const toolResponse = llmResponse.toolRequest();
+    
+    if(toolResponse) {
+        const toolOutput = await toolResponse.function()
+        if (toolOutput) {
+            return { temperature: toolOutput.temperature };
+        }
+    }
+
+    // Fallback if the tool doesn't work
+    return { temperature: 22 };
+  }
+);
+
+
 export async function getAmbientTemperature(): Promise<AmbientTemperatureOutput> {
   // Simulate fetching ambient temperature from an external source
   try {
     // In a real application, you might use a location from the user's profile.
-    const weatherData = await fetchSimulatedWeather("Fazenda de Cacau, Bahia");
-    return { temperature: weatherData.temperature };
+    const location = "Fazenda de Cacau, Bahia";
+    return await getAmbientTemperatureFlow(location);
   } catch (e) {
     console.error("Feature failed (getAmbientTemperature):", e);
     // Provide a fallback temperature
