@@ -31,16 +31,18 @@ const getAmbientTemperatureFlow = ai.defineFlow(
       tools: [getRealTimeWeather],
     });
 
-    const toolResponse = llmResponse.toolRequest();
+    const toolRequests = llmResponse.toolRequests();
     
-    if(toolResponse) {
-        const toolOutput = await toolResponse.function()
-        if (toolOutput) {
-            return { temperature: toolOutput.temperature };
-        }
+    if (toolRequests && toolRequests.length > 0) {
+      // We only expect one tool request in this flow
+      const toolResponse = toolRequests[0];
+      const toolOutput = await toolResponse.function();
+      if (toolOutput) {
+          return { temperature: toolOutput.temperature };
+      }
     }
 
-    // Fallback if the tool doesn't work
+    // Fallback if the tool doesn't work or is not called
     return { temperature: 22 };
   }
 );
