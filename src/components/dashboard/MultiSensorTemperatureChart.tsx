@@ -5,83 +5,62 @@ import type { Sensor, HistoricalDataPoint } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { convertTemperature } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { ListFilter, Loader2 } from 'lucide-react';
 import { getHistoricalData } from '@/services/sensor-service';
 
-
+// Helper function to aggregate data points to avoid over-plotting on large time scales
 const aggregateData = (data: HistoricalDataPoint[], timePeriod: 'hour' | 'day' | 'week' | 'month'): HistoricalDataPoint[] => {
-  if (data.length === 0) return [];
+  if (data.length < 200) return data; // No need to aggregate if data is not dense
 
-  if (timePeriod === 'hour' || (timePeriod === 'day' && data.length <= 100)) {
-    return data;
-  }
-  
-  let numPointsToAimFor = 100;
-  if (timePeriod === 'week') numPointsToAimFor = 100;
-  if (timePeriod === 'month') numPointsToAimFor = 150;
+  const aggregated: Record<string, { sum: number, count: number, timestamp: number }> = {};
+  let interval = 60 * 1000; // 1 minute default
+  if (timePeriod === 'week') interval = 15 * 60 * 1000; // 15 minutes
+  if (timePeriod === 'month') interval = 60 * 60 * 1000; // 1 hour
 
-  if (data.length > numPointsToAimFor) {
-    const aggregated: Record<string, { sum: number, count: number, timestamp: number }> = {};
-    const firstTimestamp = data[0].timestamp;
-    const lastTimestamp = data[data.length - 1].timestamp;
-    const totalDuration = lastTimestamp - firstTimestamp;
-    
-    const minInterval = 60 * 1000; 
-    const calculatedInterval = Math.max(minInterval, totalDuration / numPointsToAimFor);
+  data.forEach(point => {
+    const key = Math.floor(point.timestamp / interval).toString();
+    if (!aggregated[key]) {
+      aggregated[key] = { sum: 0, count: 0, timestamp: point.timestamp };
+    }
+    aggregated[key].sum += point.temperature;
+    aggregated[key].count += 1;
+  });
 
-    data.forEach(point => {
-      const key = Math.floor((point.timestamp - firstTimestamp) / calculatedInterval).toString();
-      if (!aggregated[key]) {
-        aggregated[key] = { sum: 0, count: 0, timestamp: firstTimestamp + (parseInt(key) * calculatedInterval) };
-      }
-      aggregated[key].sum += point.temperature;
-      aggregated[key].count += 1;
-    });
-
-    return Object.values(aggregated).map(agg => ({
-      timestamp: agg.timestamp,
-      temperature: agg.sum / agg.count,
-    })).sort((a,b) => a.timestamp - b.timestamp);
-  }
-  
-  return data;
+  return Object.values(aggregated).map(agg => ({
+    timestamp: agg.timestamp,
+    temperature: agg.sum / agg.count,
+  })).sort((a,b) => a.timestamp - b.timestamp);
 };
 
+
 const chartColors = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-  "hsl(200 80% 50%)",
-  "hsl(300 70% 50%)",
-  "hsl(50 90% 50%)",
+  "hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(200 80% 50%)",
+  "hsl(300 70% 50%)", "hsl(50 90% 50%)",
 ];
 
 type TimePeriod = 'hour' | 'day' | 'week' | 'month';
 
 interface MultiSensorTemperatureChartProps {
   sensors: Sensor[];
-  initialTimePeriod?: TimePeriod;
-  collectionPath: string; // Explicitly require the collection path
+  collectionPath: string;
 }
 
-
-export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod = 'day', collectionPath }: MultiSensorTemperatureChartProps) {
+export default function MultiSensorTemperatureChart({ sensors, collectionPath }: MultiSensorTemperatureChartProps) {
   const { temperatureUnit, t } = useSettings();
-  const [currentTimePeriod, setCurrentTimePeriod] = useState<TimePeriod>(initialTimePeriod);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('day');
   const [selectedSensorIds, setSelectedSensorIds] = useState<string[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Initially select all available sensors
   useEffect(() => {
-    // Initially select all sensors
     setSelectedSensorIds(sensors.map(s => s.id));
   }, [sensors]);
 
@@ -99,105 +78,80 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     }, {} as ChartConfig);
   }, [sensors]);
   
-  useEffect(() => {
-    const fetchAndProcessData = async () => {
-        if (!collectionPath || displayedSensors.length === 0) {
-            setChartData([]);
-            setIsLoading(false); // Stop loading if no sensors are displayed
-            return;
-        }
+  const fetchAndProcessData = useCallback(async () => {
+    if (!collectionPath || displayedSensors.length === 0) {
+      setChartData([]);
+      setIsLoading(false);
+      return;
+    }
 
-        setIsLoading(true);
+    setIsLoading(true);
 
-        const allSensorsData = await Promise.all(
-            displayedSensors.map(async sensor => {
-                const history = await getHistoricalData(collectionPath, sensor.id, currentTimePeriod);
-                const aggregated = aggregateData(history, currentTimePeriod);
-                return {
-                    sensorId: sensor.id,
-                    data: aggregated.map(p => ({
-                        timestamp: p.timestamp,
-                        temperature: parseFloat(convertTemperature(p.temperature, temperatureUnit).toFixed(1))
-                    }))
-                };
-            })
-        );
-        
-        const allTimestamps = [...new Set(allSensorsData.flatMap(s => s.data.map(p => p.timestamp)))].sort((a, b) => a - b);
+    try {
+      const allSensorsDataPromises = displayedSensors.map(async (sensor) => {
+        const history = await getHistoricalData(collectionPath, sensor.id, timePeriod);
+        const aggregated = aggregateData(history, timePeriod);
+        return {
+          sensorId: sensor.id,
+          data: aggregated.map(p => ({
+            timestamp: p.timestamp,
+            temperature: parseFloat(convertTemperature(p.temperature, temperatureUnit).toFixed(1))
+          }))
+        };
+      });
 
-        const combinedData = allTimestamps.map(ts => {
-            const dataPoint: { timestamp: number; [key: string]: number | null } = { timestamp: ts };
-            allSensorsData.forEach(sensorSeries => {
-                let pointForSensor = sensorSeries.data.find(p => p.timestamp === ts);
-                if (!pointForSensor) {
-                    const previousPoints = sensorSeries.data.filter(p => p.timestamp <= ts);
-                    if (previousPoints.length > 0) {
-                        pointForSensor = previousPoints[previousPoints.length - 1];
-                    }
-                }
-                dataPoint[`sensor_${sensorSeries.sensorId}`] = pointForSensor ? pointForSensor.temperature : null;
-            });
-            return dataPoint;
-        });
+      const allSensorsData = await Promise.all(allSensorsDataPromises);
+      
+      const allTimestamps = [...new Set(allSensorsData.flatMap(s => s.data.map(p => p.timestamp)))].sort((a, b) => a - b);
 
-        setChartData(combinedData);
+      if(allTimestamps.length === 0) {
+        setChartData([]);
         setIsLoading(false);
-    };
+        return;
+      }
+      
+      const combinedData = allTimestamps.map(ts => {
+        const dataPoint: { timestamp: number; [key: string]: number | null } = { timestamp: ts };
+        for (const sensorSeries of allSensorsData) {
+          const pointForSensor = sensorSeries.data.find(p => p.timestamp === ts);
+          dataPoint[`sensor_${sensorSeries.sensorId}`] = pointForSensor ? pointForSensor.temperature : null;
+        }
+        return dataPoint;
+      });
 
+      setChartData(combinedData);
+    } catch (error) {
+      console.error("Failed to process chart data:", error);
+      setChartData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [collectionPath, displayedSensors, timePeriod, temperatureUnit]);
+
+  useEffect(() => {
     fetchAndProcessData();
-  }, [displayedSensors, currentTimePeriod, temperatureUnit, collectionPath]);
-
+  }, [fetchAndProcessData]);
 
   const timeFormatOptions: Intl.DateTimeFormatOptions = 
-    currentTimePeriod === 'hour' || currentTimePeriod === 'day' ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' };
-
-  const translatedTimePeriod = t(`temperatureChart.timePeriod.${currentTimePeriod}`);
-  
-  const cardDescriptionText = useMemo(() => {
-    if (displayedSensors.length === 1) {
-        return t('multiSensorChart.desc.single', '{sensorName} - Última(o) {timePeriod}', {
-            sensorName: displayedSensors[0].name,
-            timePeriod: translatedTimePeriod
-        });
-    }
-    if (displayedSensors.length < sensors.length && displayedSensors.length > 0) {
-        return t('multiSensorChart.desc.multiple', 'Comparativo de {count} sensores - Última(o) {timePeriod}', {
-            count: displayedSensors.length,
-            timePeriod: translatedTimePeriod
-        });
-    }
-    if (displayedSensors.length === 0) {
-        return t('multiSensorChart.desc.none', 'Nenhum sensor selecionado - Última(o) {timePeriod}', {
-            timePeriod: translatedTimePeriod
-        });
-    }
-    return t('multiSensorChart.desc.all', 'Todos os Sensores - Última(o) {timePeriod}', {
-        timePeriod: translatedTimePeriod
-    });
-  }, [displayedSensors, sensors.length, t, translatedTimePeriod]);
-
-
-  const handleSensorSelectionChange = (sensorId: string, checked: boolean) => {
-    setSelectedSensorIds(prevIds =>
-      checked ? [...prevIds, sensorId] : prevIds.filter(id => id !== sensorId)
-    );
-  };
+    timePeriod === 'hour' || timePeriod === 'day' ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' };
 
   const handleSelectAllToggle = (selectAll: boolean) => {
     setSelectedSensorIds(selectAll ? sensors.map(s => s.id) : []);
   };
-
-  const areAllSensorsSelected = selectedSensorIds.length === sensors.length && sensors.length > 0;
   
+  const areAllSensorsSelected = selectedSensorIds.length === sensors.length && sensors.length > 0;
+
   return (
     <Card className="shadow-lg w-full">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
         <div>
           <CardTitle className="text-lg font-headline">{t('multiSensorChart.title', 'Tendência de Temperatura dos Sensores')}</CardTitle>
-          <CardDescription>{cardDescriptionText}</CardDescription>
+          <CardDescription>
+             {t('multiSensorChart.desc.multiple', 'Comparativo de {count} sensores - Última(o) {timePeriod}', { count: displayedSensors.length, timePeriod: t(`temperatureChart.timePeriod.${timePeriod}`) })}
+          </CardDescription>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Select value={currentTimePeriod} onValueChange={(value) => setCurrentTimePeriod(value as TimePeriod)}>
+          <Select value={timePeriod} onValueChange={(value) => setTimePeriod(value as TimePeriod)}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder={t('temperatureChart.selectPeriod', 'Período')} />
             </SelectTrigger>
@@ -218,18 +172,15 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
             <DropdownMenuContent align="end" className="w-[250px]">
               <DropdownMenuLabel>{t('multiSensorChart.filterSensorsLabel', 'Exibir Sensores')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-               <DropdownMenuCheckboxItem
-                checked={areAllSensorsSelected}
-                onCheckedChange={(checked) => handleSelectAllToggle(Boolean(checked))}
-              >
-                {t(areAllSensorsSelected ? 'multiSensorChart.deselectAll' : 'multiSensorChart.selectAll', areAllSensorsSelected ? 'Desmarcar Todos' : 'Selecionar Todos')}
+               <DropdownMenuCheckboxItem checked={areAllSensorsSelected} onCheckedChange={(checked) => handleSelectAllToggle(Boolean(checked))}>
+                {t(areAllSensorsSelected ? 'multiSensorChart.deselectAll' : 'multiSensorChart.selectAll')}
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               {sensors.map(sensor => (
                 <DropdownMenuCheckboxItem
                   key={sensor.id}
                   checked={selectedSensorIds.includes(sensor.id)}
-                  onCheckedChange={(checked) => handleSensorSelectionChange(sensor.id, Boolean(checked))}
+                  onCheckedChange={(checked) => setSelectedSensorIds(prev => checked ? [...prev, sensor.id] : prev.filter(id => id !== sensor.id))}
                 >
                   {sensor.name}
                 </DropdownMenuCheckboxItem>
@@ -243,18 +194,9 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
         <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      ) : displayedSensors.length > 0 && chartData.length > 1 ? (
+      ) : chartData.length > 1 ? (
         <ChartContainer config={chartConfig} className="w-full h-full">
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 0,
-              right: 20,
-              top: 10,
-              bottom: 10,
-            }}
-          >
+          <LineChart data={chartData} margin={{ left: 0, right: 20, top: 10, bottom: 10 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
@@ -272,40 +214,20 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
             />
             <ChartTooltip
               cursor={true}
-              content={
-                <ChartTooltipContent
-                  indicator="line"
-                  labelFormatter={(value) => new Date(value).toLocaleString(t('localeCode', 'pt-BR'))}
-                  formatter={(value, name) => {
-                    const configEntry = chartConfig[name as keyof typeof chartConfig];
-                    return (
-                       <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center gap-2">
-                           <div className="h-2.5 w-2.5 rounded-full" style={{backgroundColor: configEntry?.color}}/>
-                           <span style={{color: configEntry?.color}}>{configEntry?.label || name}</span>
-                        </div>
-                        <span className="font-medium text-right text-foreground">
-                          {value}°{temperatureUnit}
-                        </span>
-                      </div>
-                    );
-                  }}
-                />
-              }
+              content={<ChartTooltipContent indicator="line" labelFormatter={(value) => new Date(value).toLocaleString(t('localeCode', 'pt-BR'))} />}
             />
             {displayedSensors.map(sensor => (
               <Line
                 key={sensor.id}
                 dataKey={`sensor_${sensor.id}`}
+                name={sensor.name}
                 type="monotone"
-                stroke={chartConfig[`sensor_${sensor.id}`]?.color || "#8884d8"}
+                stroke={chartConfig[`sensor_${sensor.id}`]?.color}
                 strokeWidth={2}
                 dot={false}
-                name={`sensor_${sensor.id}`}
                 connectNulls={true}
               />
             ))}
-             <ChartLegend content={<ChartLegendContent />} />
           </LineChart>
         </ChartContainer>
          ) : (

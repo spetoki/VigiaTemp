@@ -47,7 +47,7 @@ export default function SensorChartsPage() {
     if (isLoading) {
       return (
         <div className="space-y-6">
-          <Skeleton className="h-[500px] w-full" /> 
+           <Skeleton className="h-[500px] w-full" />
         </div>
       );
     }
@@ -67,20 +67,29 @@ export default function SensorChartsPage() {
         </Card>
       );
     }
-
-    if (storageKeys.sensors) {
-      return (
-        <div className="space-y-6">
-          <MultiSensorTemperatureChart 
-            sensors={sensors} 
-            initialTimePeriod="day" 
-            collectionPath={storageKeys.sensors} 
-          />
-        </div>
-      );
+    
+    // Ensure storageKeys.sensors is valid before rendering the chart component
+    if (!storageKeys.sensors) {
+        return (
+             <Card>
+              <CardHeader>
+                <CardTitle className="text-destructive">Erro de Configuração</CardTitle>
+                <CardDescription>
+                    A chave de acesso do usuário não foi encontrada. Não é possível carregar os dados dos gráficos.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+        );
     }
 
-    return null;
+    return (
+        <div className="space-y-6">
+            <MultiSensorTemperatureChart 
+                sensors={sensors} 
+                collectionPath={storageKeys.sensors} 
+            />
+        </div>
+    );
   }
 
   return (
