@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { Button } from '@/components/ui/button';
+import { Bell, BellOff } from 'lucide-react';
 
 
 export default function DashboardPage() {
@@ -23,14 +25,11 @@ export default function DashboardPage() {
   
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     // This effect is responsible for playing sounds from the queue.
-    // It's temporarily disabled to avoid potential issues with browser policies
-    // that require user interaction before playing audio.
-    // To re-enable, simply uncomment the code inside this effect.
-    /*
-    if (isPlayingSound || soundQueue.length === 0) {
+    if (isMuted || isPlayingSound || soundQueue.length === 0) {
       return;
     }
 
@@ -41,7 +40,7 @@ export default function DashboardPage() {
         setTimeout(() => {
             setSoundQueue(prev => prev.slice(1));
             setIsPlayingSound(false);
-        }, 500);
+        }, 500); // Small delay between sounds
     };
 
     if (!soundToPlay) {
@@ -60,11 +59,12 @@ export default function DashboardPage() {
     
     audio.play().catch(error => {
       console.error("Audio playback promise failed:", error);
+      // This can happen if the user hasn't interacted with the page yet.
       playNextSound();
     });
-    */
+    
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [soundQueue, isPlayingSound]);
+  }, [soundQueue, isPlayingSound, isMuted]);
 
   // This effect now sets up a real-time listener on the sensors collection
   useEffect(() => {
@@ -184,6 +184,18 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h1>
+         <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMuted(prev => !prev)}
+        >
+          {isMuted ? (
+            <BellOff className="mr-2 h-4 w-4" />
+          ) : (
+            <Bell className="mr-2 h-4 w-4" />
+          )}
+          {isMuted ? t('dashboard.unmuteButton', 'Ativar Som') : t('dashboard.muteButton', 'Silenciar Alarme')}
+        </Button>
       </div>
 
       {sensors.length > 0 ? (
