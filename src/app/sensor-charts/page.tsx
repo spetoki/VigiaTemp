@@ -24,11 +24,6 @@ export default function SensorChartsPage() {
     }
     setIsLoading(true);
     try {
-        // NOTE: In a production app with a lot of historical data,
-        // you would not fetch all historical data here. Instead, you'd
-        // fetch it on-demand inside the MultiSensorTemperatureChart component
-        // based on the selected time period. For this prototype, fetching
-        // all data upfront is acceptable.
       const fetchedSensors = await getSensors(storageKeys.sensors);
       setSensors(fetchedSensors);
     } catch (error) {
@@ -93,11 +88,16 @@ export default function SensorChartsPage() {
         </Card>
       )}
 
-      {sensors.length > 0 && (
+      {sensors.length > 0 && storageKeys.sensors && (
         <div className="space-y-6">
-          <MultiSensorTemperatureChart sensors={sensors} initialTimePeriod="day" />
+          <MultiSensorTemperatureChart 
+            sensors={sensors} 
+            initialTimePeriod="day" 
+            collectionPath={storageKeys.sensors} 
+          />
         </div>
       )}
     </div>
   );
 }
+

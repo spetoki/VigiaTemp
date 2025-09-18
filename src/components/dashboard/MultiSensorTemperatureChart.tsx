@@ -66,8 +66,15 @@ const chartColors = [
 
 type TimePeriod = 'hour' | 'day' | 'week' | 'month';
 
-export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod = 'day' }: { sensors: Sensor[], initialTimePeriod?: TimePeriod }) {
-  const { temperatureUnit, t, storageKeys } = useSettings();
+interface MultiSensorTemperatureChartProps {
+  sensors: Sensor[];
+  initialTimePeriod?: TimePeriod;
+  collectionPath: string; // Explicitly require the collection path
+}
+
+
+export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod = 'day', collectionPath }: MultiSensorTemperatureChartProps) {
+  const { temperatureUnit, t } = useSettings();
   const [currentTimePeriod, setCurrentTimePeriod] = useState<TimePeriod>(initialTimePeriod);
   const [selectedSensorIds, setSelectedSensorIds] = useState<string[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -93,7 +100,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
   
   useEffect(() => {
     const fetchAndProcessData = async () => {
-        if (!storageKeys.sensors || displayedSensors.length === 0) {
+        if (!collectionPath || displayedSensors.length === 0) {
             setChartData([]);
             return;
         }
@@ -102,7 +109,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
 
         const allSensorsData = await Promise.all(
             displayedSensors.map(async sensor => {
-                const history = await getHistoricalData(storageKeys.sensors, sensor.id, currentTimePeriod);
+                const history = await getHistoricalData(collectionPath, sensor.id, currentTimePeriod);
                 const aggregated = aggregateData(history, currentTimePeriod);
                 return {
                     sensorId: sensor.id,
@@ -136,7 +143,7 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     };
 
     fetchAndProcessData();
-  }, [displayedSensors, currentTimePeriod, temperatureUnit, storageKeys.sensors]);
+  }, [displayedSensors, currentTimePeriod, temperatureUnit, collectionPath]);
 
 
   const timeFormatOptions: Intl.DateTimeFormatOptions = 
@@ -320,3 +327,4 @@ export default function MultiSensorTemperatureChart({ sensors, initialTimePeriod
     </Card>
   );
 }
+
