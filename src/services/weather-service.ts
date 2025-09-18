@@ -54,4 +54,3 @@ export async function fetchSimulatedWeather(
     return { temperature: 22 };
   }
 }
-
