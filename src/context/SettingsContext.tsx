@@ -88,9 +88,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
 
   const storageKeys = {
-    sensors: `users/${activeKey}/sensors`,
-    alerts: `users/${activeKey}/alerts`,
-    lots: `users/${activeKey}/lots`,
+    sensors: activeKey ? `users/${activeKey}/sensors` : '',
+    alerts: activeKey ? `users/${activeKey}/alerts` : '',
+    lots: activeKey ? `users/${activeKey}/lots` : '',
     components: activeKey ? `hardware_components_${activeKey}` : 'hardware_components',
     diagram: activeKey ? `hardware_diagram_${activeKey}` : 'hardware_diagram'
   };
@@ -100,13 +100,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const savedActiveKey = localStorage.getItem(ACTIVE_KEY_STORAGE);
     
     if (savedActiveKey) {
-        // If there's an active key, check if it has an unlock flag
         const unlockedStatus = localStorage.getItem(`${UNLOCKED_KEY_PREFIX}_${savedActiveKey}`);
         if (unlockedStatus === 'true') {
-            setIsLocked(false);
-            setActiveKey(savedActiveKey);
+            setActiveKey(savedActiveKey); // Set key first
+            setIsLocked(false); // Then unlock
         } else {
-            // Key is present but not marked as unlocked, force lock
             setIsLocked(true);
             setActiveKey(null);
             localStorage.removeItem(ACTIVE_KEY_STORAGE);
@@ -115,7 +113,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         setIsLocked(true);
     }
     
-    // Load other user preferences
     const storedUnit = localStorage.getItem('temperatureUnit') as TemperatureUnit | null;
     if (storedUnit) setTemperatureUnitState(storedUnit);
 
@@ -124,21 +121,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setLanguageState(initialLang);
     loadTranslations(initialLang);
 
-    const storedTheme = localStorage.getItem('theme') as Theme | null;
-    if (storedTheme) {
-      setThemeState(storedTheme);
-    }
+    const storedTheme = localStorage.getItem('theme') as Theme | null || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setThemeState(storedTheme);
+    
   }, []);
 
   useEffect(() => {
     // This effect handles applying the theme to the document
     if (typeof window !== 'undefined') {
         const root = window.document.documentElement;
-        if (theme === 'dark') {
-          root.classList.add('dark');
-        } else {
-          root.classList.remove('dark');
-        }
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
         localStorage.setItem('theme', theme);
     }
   }, [theme]);
@@ -174,8 +167,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     if (ACCESS_KEYS.includes(key)) {
       localStorage.setItem(`${UNLOCKED_KEY_PREFIX}_${key}`, 'true');
       localStorage.setItem(ACTIVE_KEY_STORAGE, key);
-      setIsLocked(false);
-      setActiveKey(key);
+      setActiveKey(key); // Set key first
+      setIsLocked(false); // Then unlock
       return true;
     }
     return false;

@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs, updateDoc, addDoc, Timestamp, collection } from 'firebase/firestore';
 
 /**
  * @fileoverview API endpoint para receber dados de temperatura de sensores IoT (como ESP32) e
@@ -23,7 +23,6 @@ interface SensorData {
  * Esta função agora faz duas coisas:
  * 1. Atualiza o campo `currentTemperature` no documento principal do sensor.
  * 2. Adiciona um novo registro na subcoleção `historicalData` do sensor.
- * Isso elimina o cache intermediário e garante a persistência dos dados em ambientes serverless.
  *
  * @param {Request} request A requisição recebida.
  * @returns {Promise<NextResponse>} Uma resposta JSON.
@@ -45,47 +44,35 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'Erro interno do servidor: banco de dados não configurado.' }, { status: 500 });
     }
 
-    // Acessa a coleção de usuários para encontrar o sensor em todos os usuários
-    const usersCollection = collection(db, 'users');
-    const usersSnapshot = await getDocs(usersCollection);
-
-    let sensorFound = false;
+    // Procura na coleção 'sensors' de todos os usuários pelo MAC address
+    const sensorsCollectionGroup = collectionGroup(db, 'sensors');
+    const q = query(sensorsCollectionGroup, where("macAddress", "==", macAddress));
     
-    // Itera por todos os documentos de usuário
-    for (const userDoc of usersSnapshot.docs) {
-        const sensorsCollectionPath = `users/${userDoc.id}/sensors`;
-        const sensorsCol = collection(db, sensorsCollectionPath);
-        const q = query(sensorsCol, where("macAddress", "==", macAddress));
-        
-        const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-            sensorFound = true;
-            const sensorDoc = querySnapshot.docs[0];
-            
-            // 1. Atualizar a temperatura atual no documento principal do sensor
-            await updateDoc(sensorDoc.ref, {
-              currentTemperature: temperature
-            });
-
-            // 2. Adicionar à subcoleção de dados históricos
-            const historyCollection = collection(db, `${sensorsCollectionPath}/${sensorDoc.id}/historicalData`);
-            await addDoc(historyCollection, {
-                temperature: temperature,
-                timestamp: Timestamp.now()
-            });
-
-            console.log(`Dados do sensor (${macAddress}) atualizados para o usuário ${userDoc.id}: Temperatura = ${temperature}°C`);
-            
-            // Uma vez que o MAC address é único, podemos parar após encontrar o primeiro.
-            break; 
-        }
-    }
-    
-    if (!sensorFound) {
+    if (querySnapshot.empty) {
       console.warn(`Nenhum sensor encontrado com o MAC Address: ${macAddress}`);
       return NextResponse.json({ message: 'Sensor não encontrado no sistema.' }, { status: 404 });
     }
+
+    // Pega o primeiro sensor encontrado (MACs devem ser únicos)
+    const sensorDoc = querySnapshot.docs[0];
+    
+    // 1. Atualizar a temperatura atual no documento principal do sensor
+    await updateDoc(sensorDoc.ref, {
+      currentTemperature: temperature
+    });
+
+    // 2. Adicionar à subcoleção de dados históricos
+    const historyCollection = collection(sensorDoc.ref, 'historicalData');
+    await addDoc(historyCollection, {
+        temperature: temperature,
+        timestamp: Timestamp.now()
+    });
+
+    // O path do documento do sensor é algo como 'users/USER_KEY/sensors/SENSOR_ID'
+    const userKey = sensorDoc.ref.parent.parent?.id; 
+    console.log(`Dados do sensor (${macAddress}) atualizados para o usuário ${userKey}: Temperatura = ${temperature}°C`);
 
     return NextResponse.json({ message: 'Dados recebidos e salvos com sucesso!' });
   } catch (error) {
