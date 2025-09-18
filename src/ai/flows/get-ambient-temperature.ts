@@ -35,14 +35,16 @@ const getAmbientTemperatureFlow = ai.defineFlow(
     
     if (toolRequests && toolRequests.length > 0) {
       // We only expect one tool request in this flow
-      const toolResponse = toolRequests[0];
-      const toolOutput = await toolResponse.function();
-      if (toolOutput) {
+      const toolRequest = toolRequests[0];
+      const toolOutput = await toolRequest.function();
+      
+      if (toolOutput && typeof toolOutput.temperature === 'number') {
           return { temperature: toolOutput.temperature };
       }
     }
 
     // Fallback if the tool doesn't work or is not called
+    console.warn("AI did not use the weather tool, or tool returned invalid data. Falling back to default temperature.");
     return { temperature: 22 };
   }
 );
