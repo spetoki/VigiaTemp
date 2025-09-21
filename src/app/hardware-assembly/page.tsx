@@ -110,7 +110,7 @@ export default function HardwareAssemblyPage() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [components, setComponents] = useState<Component[]>(defaultComponents);
-  const [mainDiagramUrl, setMainDiagramUrl] = useState("https://placehold.co/800x600.png");
+  const [mainDiagramUrl, setMainDiagramUrl] = useState("https://storage.googleapis.com/gen-studio-dev-images-prod/6c04620b-a631-4e4f-b673-8d26425d57b2/projects/1d711d51-c020-410a-a0f0-c5185d263085/07f4339199d941198c62c8e31002e1c3_v0.jpeg");
   
   const isAdmin = true;
 
@@ -246,7 +246,7 @@ export default function HardwareAssemblyPage() {
               width={800}
               height={600}
               className="rounded-lg border"
-              data-ai-hint="esp32 ds18b20 module"
+              data-ai-hint="esp32 multiple ds18b20"
               key={mainDiagramUrl}
             />
             {isEditing && (
@@ -429,3 +429,5 @@ export default function HardwareAssemblyPage() {
     </div>
   );
 }
+
+    
