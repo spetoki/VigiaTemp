@@ -139,7 +139,7 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
         const q = query(
             historyCollection, 
             orderBy("timestamp", "desc"),
-            limit(1000) // Limit to the last 1000 entries to manage performance
+            limit(5000) // Limit to the last 5000 entries to manage performance
         );
         const snapshot = await getDocs(q);
         
