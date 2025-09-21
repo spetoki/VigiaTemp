@@ -161,7 +161,11 @@ void printAddress(DeviceAddress deviceAddress) {
 
   if (config.configType === 'hardcoded') {
     return `
-${commonIncludes}
+#include <WiFi.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
 
 // --- Credenciais de WiFi (Fixas) ---
 const char* ssid = "${config.ssid}";
@@ -184,9 +188,7 @@ void connectWiFi() {
     Serial.print("Endereço IP: ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("\\nFalha ao conectar. Reiniciando em 10 segundos...");
-    delay(10000);
-    ESP.restart();
+    Serial.println("\\nFalha ao conectar. Verifique as credenciais e o sinal.");
   }
 }
 ${commonSetupAndLoop}
@@ -200,7 +202,11 @@ ${commonIncludes}
 
 void connectWiFi() {
   WiFiManager wm;
-  // wm.resetSettings(); // Descomente para forçar a reconfiguração
+  
+  // ATENÇÃO: A linha abaixo força o ESP a esquecer as credenciais salvas.
+  // Depois de configurar o WiFi pela primeira vez, comente (adicione // no início) 
+  // esta linha e grave o código novamente para que ele possa se reconectar automaticamente.
+  wm.resetSettings();
   
   bool res = wm.autoConnect("VigiaTemp-Config", "senha123");
 
@@ -422,3 +428,5 @@ export default function DeviceConfiguratorPage() {
     </div>
   );
 }
+
+    
