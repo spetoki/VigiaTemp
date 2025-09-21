@@ -40,6 +40,7 @@ interface SettingsContextType {
     sensors: string;
     alerts: string;
     lots: string;
+    stock: string;
     components: string;
     diagram: string;
   };
@@ -91,6 +92,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     sensors: activeKey ? `users/${activeKey}/sensors` : '',
     alerts: activeKey ? `users/${activeKey}/alerts` : '',
     lots: activeKey ? `users/${activeKey}/lots` : '',
+    stock: activeKey ? `users/${activeKey}/stock` : '',
     components: activeKey ? `hardware_components_${activeKey}` : 'hardware_components',
     diagram: activeKey ? `hardware_diagram_${activeKey}` : 'hardware_diagram'
   };
@@ -225,5 +227,3 @@ export const useSettings = () => {
   }
   return context;
 };
-
-    
