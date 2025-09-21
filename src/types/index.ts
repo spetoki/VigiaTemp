@@ -32,21 +32,3 @@ export interface Alert {
   acknowledged: boolean;
   reason?: 'high' | 'low';
 }
-
-export interface StockItem {
-    id: string;
-    name: string;
-    category: string;
-    quantity: number;
-    unit: string; // e.g., 'kg', 'sacos', 'litros', 'unidades'
-    supplier?: string;
-    lastUpdated: string; // ISO date string
-}
-
-export interface StockItemFormData {
-    name: string;
-    category: string;
-    quantity: number;
-    unit: string;
-    supplier?: string;
-}
