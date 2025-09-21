@@ -142,30 +142,43 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
   };
 
   const handleGeneratePdf = async () => {
-    const elementToCapture = pdfRef.current;
-    if (!elementToCapture || !selectedLot) return;
+    const input = pdfRef.current;
+    if (!input || !selectedLot) return;
 
     try {
-        const canvas = await html2canvas(elementToCapture, {
-            scale: 2, // Aumenta a resolução para melhor qualidade
-            backgroundColor: '#ffffff', // Garante o fundo branco
+        const canvas = await html2canvas(input, {
+            scale: 2,
+            backgroundColor: '#ffffff',
             useCORS: true,
-            // Informa ao html2canvas para usar as dimensões reais do elemento
-            width: elementToCapture.scrollWidth,
-            height: elementToCapture.scrollHeight,
         });
 
         const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
+        
+        let finalWidth, finalHeight;
 
-        // Cria o PDF com as dimensões da imagem capturada
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
+        // Fit image to page width
+        finalWidth = pdfWidth;
+        finalHeight = pdfWidth / canvasAspectRatio;
 
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        // If scaled height is greater than page height, scale to page height instead
+        if (finalHeight > pdfHeight) {
+            finalHeight = pdfHeight;
+            finalWidth = pdfHeight * canvasAspectRatio;
+        }
+        
+        // Center the image
+        const xPos = (pdfWidth - finalWidth) / 2;
+        const yPos = (pdfHeight - finalHeight) / 2;
+        
+        pdf.addImage(imgData, 'PNG', xPos, yPos, finalWidth, finalHeight);
         pdf.save(`Lote_${selectedLot.name.replace(/ /g, '_')}.pdf`);
+
     } catch (error) {
         console.error("PDF generation failed:", error);
         toast({
@@ -174,7 +187,7 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
             description: "Não foi possível gerar o PDF. Tente novamente.",
         });
     }
-  };
+};
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
