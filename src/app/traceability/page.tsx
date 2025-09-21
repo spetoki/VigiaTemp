@@ -9,14 +9,25 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSettings } from '@/context/SettingsContext';
-import { ClipboardList, Leaf, Save, FileDown, PlusCircle, QrCode, List, Eye, Loader2 } from 'lucide-react';
+import { ClipboardList, Leaf, Save, FileDown, PlusCircle, QrCode, List, Eye, Loader2, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TraceabilityData, addLot, getLots, TraceabilityFormData } from '@/services/traceability-service';
+import { TraceabilityData, addLot, getLots, TraceabilityFormData, deleteLot } from '@/services/traceability-service';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
 const initialFormData: TraceabilityFormData = {
@@ -140,6 +151,33 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
     setSelectedLot(lot);
     setView('details');
   };
+
+  const handleDeleteLot = async (lotId: string) => {
+    if (!storageKeys.lots) {
+        toast({
+            title: "Erro ao Excluir",
+            description: "Chave de acesso não encontrada.",
+            variant: "destructive"
+        });
+        return;
+    }
+    try {
+        await deleteLot(storageKeys.lots, lotId);
+        setLots(prevLots => prevLots.filter(l => l.id !== lotId));
+        toast({
+            title: "Lote Excluído",
+            description: "O registro de rastreabilidade foi excluído com sucesso.",
+            variant: "destructive"
+        });
+    } catch (error) {
+        toast({
+            title: "Erro ao Excluir",
+            description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido.",
+            variant: "destructive"
+        });
+    }
+  };
+
 
   const handleGeneratePdf = async () => {
     const input = pdfRef.current;
@@ -317,6 +355,27 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
                                                     <Eye className="mr-2 h-4 w-4" />
                                                     {t('traceability.viewDetailsButton', 'Ver Detalhes')}
                                                 </Button>
+                                                <AlertDialog>
+                                                  <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                  </AlertDialogTrigger>
+                                                  <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                      <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                                      <AlertDialogDescription>
+                                                        Esta ação não pode ser desfeita. O lote "{lot.name}" será permanentemente excluído.
+                                                      </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                      <AlertDialogAction onClick={() => handleDeleteLot(lot.id)} className="bg-destructive hover:bg-destructive/90">
+                                                        Excluir
+                                                      </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                  </AlertDialogContent>
+                                                </AlertDialog>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -373,3 +432,5 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
     </div>
   );
 }
+
+    

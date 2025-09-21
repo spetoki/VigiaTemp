@@ -11,6 +11,8 @@ import {
   Timestamp,
   query,
   orderBy,
+  doc,
+  deleteDoc,
 } from 'firebase/firestore';
 
 
@@ -111,3 +113,14 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
         isoClassification: dataToSave.isoClassification,
     };
 }
+
+
+export async function deleteLot(collectionPath: string, lotId: string): Promise<void> {
+    if (!db || !collectionPath.startsWith('users/')) {
+        throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível excluir o lote.");
+    }
+    const lotDoc = doc(db, collectionPath, lotId);
+    await deleteDoc(lotDoc);
+}
+
+    
