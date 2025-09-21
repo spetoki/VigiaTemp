@@ -14,6 +14,52 @@ import OptimizationResultCard from './OptimizationResultCard';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensors, getHistoricalData } from '@/services/sensor-service';
 import { useToast } from '@/hooks/use-toast';
+import type { HistoricalDataPoint } from '@/types';
+import { getWeek } from 'date-fns';
+
+
+// Função para remover outliers usando o método IQR (Interquartile Range)
+const removeOutliers = (data: HistoricalDataPoint[]): HistoricalDataPoint[] => {
+    if (data.length < 10) return data; // Não faz sentido para poucos dados
+
+    const temperatures = data.map(p => p.temperature).sort((a, b) => a - b);
+    const q1 = temperatures[Math.floor(temperatures.length * 0.25)];
+    const q3 = temperatures[Math.floor(temperatures.length * 0.75)];
+    const iqr = q3 - q1;
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+
+    return data.filter(p => p.temperature >= lowerBound && p.temperature <= upperBound);
+};
+
+// Função para calcular médias semanais
+const calculateWeeklyAverages = (data: HistoricalDataPoint[]): { week: string; averageTemperature: number }[] => {
+    const weeklyData: Record<string, { sum: number; count: number }> = {};
+
+    data.forEach(point => {
+        const date = new Date(point.timestamp);
+        const year = date.getFullYear();
+        const weekNumber = getWeek(date, { weekStartsOn: 1 }); // Padrão ISO 8601
+        const weekKey = `${weekNumber}/${year}`;
+
+        if (!weeklyData[weekKey]) {
+            weeklyData[weekKey] = { sum: 0, count: 0 };
+        }
+        weeklyData[weekKey].sum += point.temperature;
+        weeklyData[weekKey].count++;
+    });
+
+    return Object.keys(weeklyData).map(weekKey => ({
+        week: weekKey,
+        averageTemperature: parseFloat((weeklyData[weekKey].sum / weeklyData[weekKey].count).toFixed(2)),
+    })).sort((a, b) => {
+        const [weekA, yearA] = a.week.split('/').map(Number);
+        const [weekB, yearB] = b.week.split('/').map(Number);
+        if (yearA !== yearB) return yearA - yearB;
+        return weekA - weekB;
+    });
+};
+
 
 export default function OptimizeAlarmsForm() {
   const [state, setState] = useState<Partial<OptimizeFormState>>({});
@@ -59,6 +105,7 @@ export default function OptimizeAlarmsForm() {
                 description: "Adicione sensores primeiro para poder gerar dados históricos.",
                 variant: "destructive",
             });
+            setIsGeneratingJson(false);
             return;
         }
 
@@ -66,7 +113,7 @@ export default function OptimizeAlarmsForm() {
             sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'month'))
         );
 
-        const combinedData = allHistoricalData.flat().sort((a, b) => a.timestamp - b.timestamp);
+        let combinedData = allHistoricalData.flat();
         
         if (combinedData.length === 0) {
             toast({
@@ -75,21 +122,28 @@ export default function OptimizeAlarmsForm() {
                 variant: "destructive",
             });
             setHistoricalData("[]");
+            setIsGeneratingJson(false);
             return;
         }
         
-        const jsonString = JSON.stringify(combinedData, null, 2);
+        // 1. Remover outliers
+        const cleanedData = removeOutliers(combinedData);
+        
+        // 2. Calcular médias semanais
+        const weeklyAverages = calculateWeeklyAverages(cleanedData);
+
+        const jsonString = JSON.stringify(weeklyAverages, null, 2);
         setHistoricalData(jsonString);
         toast({
-            title: "JSON Gerado com Sucesso",
-            description: `Foram coletados ${combinedData.length} pontos de dados do último mês.`,
+            title: "JSON com Médias Semanais Gerado",
+            description: `${cleanedData.length} pontos de dados (após limpeza) foram agregados em ${weeklyAverages.length} semanas.`,
         });
 
     } catch (error) {
         console.error("Failed to generate historical data JSON:", error);
         toast({
             title: "Erro ao Gerar JSON",
-            description: "Não foi possível buscar os dados históricos dos sensores.",
+            description: "Não foi possível buscar e processar os dados históricos dos sensores.",
             variant: "destructive",
         });
     } finally {
@@ -177,13 +231,13 @@ export default function OptimizeAlarmsForm() {
                 name="historicalData"
                 value={historicalData}
                 onChange={(e) => setHistoricalData(e.target.value)}
-                placeholder='Clique em "Gerar JSON" ou cole os dados aqui. Ex: [{"timestamp": 1672531200000, "temperature": 25.5}, ...]'
+                placeholder='Clique em "Gerar JSON" para criar um resumo das médias semanais ou cole os dados aqui.'
                 rows={6}
                 required
                 className="bg-background font-code text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                Forneça um array JSON de objetos, cada um com os campos "timestamp" (milissegundos Unix) e "temperature" (Celsius).
+                Forneça um array JSON de objetos com as médias de temperatura. O botão "Gerar JSON" faz isso por você.
               </p>
             </div>
           </CardContent>
