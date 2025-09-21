@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
 
 /**
  * @fileoverview API endpoint para receber dados de temperatura de sensores IoT (como ESP32) e
@@ -12,7 +12,6 @@ import { collection, query, where, getDocs, updateDoc, addDoc, Timestamp } from 
 interface SensorData {
   macAddress: string;
   temperature: number;
-  accessKey: string; // A chave de acesso do usuário, enviada pelo dispositivo.
 }
 
 // Helper para criar uma resposta com os headers de CORS corretos
@@ -39,7 +38,7 @@ export async function OPTIONS(request: Request) {
 /**
  * Lida com requisições POST para receber e salvar dados de sensores.
  * O dispositivo IoT (ESP32) envia um POST para /api/sensor com um corpo JSON
- * contendo o endereço MAC, a temperatura e a chave de acesso.
+ * contendo o endereço MAC e a temperatura.
  *
  * @param {Request} request A requisição recebida.
  * @returns {Promise<Response>} Uma resposta JSON com headers de CORS.
@@ -47,14 +46,14 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request) {
   try {
     const data: SensorData = await request.json();
-    const { macAddress, temperature, accessKey } = data;
+    const { macAddress, temperature } = data;
     
-    console.log(`[VigiaTemp API] Requisição recebida: MAC=${macAddress}, Temp=${temperature}, Key=${accessKey}`);
+    console.log(`[VigiaTemp API] Requisição recebida: MAC=${macAddress}, Temp=${temperature}`);
 
-    if (!macAddress || typeof temperature === 'undefined' || !accessKey) {
+    if (!macAddress || typeof temperature === 'undefined') {
       console.warn('[VigiaTemp API] Requisição inválida: dados ausentes.');
       return createCorsResponse(
-        { message: 'Dados ausentes: macAddress, temperature e accessKey são obrigatórios.' },
+        { message: 'Dados ausentes: macAddress e temperature são obrigatórios.' },
         400
       );
     }
@@ -64,20 +63,18 @@ export async function POST(request: Request) {
         return createCorsResponse({ message: 'Erro interno do servidor: banco de dados não configurado.' }, 500);
     }
 
-    // O caminho para a coleção de sensores agora é específico do usuário.
-    const collectionPath = `users/${accessKey}/sensors`;
-    const sensorsCollection = collection(db, collectionPath);
+    // Procura em todas as coleções 'sensors' de todos os usuários
+    const sensorsCollectionGroup = collectionGroup(db, 'sensors');
     
-    // Procura na coleção específica do usuário pelo MAC address
-    const q = query(sensorsCollection, where("macAddress", "==", macAddress));
+    const q = query(sensorsCollectionGroup, where("macAddress", "==", macAddress));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      console.warn(`[VigiaTemp API] Nenhum sensor encontrado com o MAC Address: ${macAddress} para a chave ${accessKey}`);
-      return createCorsResponse({ message: 'Sensor não encontrado para esta chave de acesso.' }, 404);
+      console.warn(`[VigiaTemp API] Nenhum sensor encontrado com o MAC Address: ${macAddress} em nenhuma conta.`);
+      return createCorsResponse({ message: 'Sensor não encontrado.' }, 404);
     }
 
-    // Pega o primeiro sensor encontrado (MACs devem ser únicos por usuário)
+    // Pega o primeiro sensor encontrado (assume que MAC é único em todo o sistema)
     const sensorDoc = querySnapshot.docs[0];
     
     // 1. Atualizar a temperatura atual no documento principal do sensor
@@ -92,7 +89,7 @@ export async function POST(request: Request) {
         timestamp: Timestamp.now()
     });
 
-    console.log(`[VigiaTemp API] Dados do sensor (${macAddress}) atualizados para o usuário ${accessKey}: Temp = ${temperature}°C`);
+    console.log(`[VigiaTemp API] Dados do sensor (${macAddress}) atualizados com sucesso: Temp = ${temperature}°C`);
 
     return createCorsResponse({ message: 'Dados recebidos e salvos com sucesso!' }, 200);
   } catch (error) {

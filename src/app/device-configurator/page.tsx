@@ -38,7 +38,6 @@ const generateCppCode = (config: {
   interval?: string;
   ssid?: string;
   password?: string;
-  accessKey?: string;
 }) => {
 
   if (config.configType === 'webserial') {
@@ -61,7 +60,6 @@ const generateCppCode = (config: {
   const commonSetupAndLoop = `
 // --- Configurações Editáveis ---
 const char* app_url = "${config.appUrl}/api/sensor"; // URL do seu aplicativo VigiaTemp
-const char* access_key = "${config.accessKey}";     // Chave de acesso para identificar a conta
 const int SENSOR_PIN = ${config.pin};           // Pino de dados do sensor DS18B20
 const int SEND_INTERVAL_SEC = ${config.interval};  // Intervalo de envio em segundos
 
@@ -124,7 +122,6 @@ void sendTemperature(float temperature) {
     JsonDocument doc;
     doc["macAddress"] = WiFi.macAddress();
     doc["temperature"] = temperature;
-    doc["accessKey"] = access_key; // Adiciona a chave de acesso na requisição
 
     String requestBody;
     serializeJson(doc, requestBody);
@@ -252,10 +249,6 @@ export default function DeviceConfiguratorPage() {
         setError(t('deviceConfigurator.errorDescription', 'Por favor, preencha a URL do Aplicativo.'));
         return;
       }
-      if (!activeKey) {
-        setError('Chave de acesso ativa não encontrada. Por favor, recarregue a página.');
-        return;
-      }
       if (configType === 'hardcoded' && (!ssid || !password)) {
         setError(t('deviceConfigurator.errorCredentials', 'Para credenciais fixas, o SSID e a senha são obrigatórios.'));
         return;
@@ -269,7 +262,6 @@ export default function DeviceConfiguratorPage() {
       interval: sendInterval,
       ssid,
       password,
-      accessKey: activeKey || '',
     });
     setGeneratedCode(code);
   };
@@ -361,16 +353,6 @@ export default function DeviceConfiguratorPage() {
           {configType !== 'webserial' && (
              <>
                 <div className="space-y-2">
-                    <Label htmlFor="access-key">Sua Chave de Acesso Atual</Label>
-                    <div className="flex items-center gap-2">
-                        <Input id="access-key" value={activeKey || ''} readOnly className="font-mono bg-muted" />
-                        <KeyRound className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                        Esta chave será gravada no seu dispositivo para que ele envie dados para a sua conta.
-                    </p>
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="app-url">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')}</Label>
                   <Input id="app-url" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} />
                   <p className="text-sm text-muted-foreground">
@@ -446,9 +428,3 @@ export default function DeviceConfiguratorPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
