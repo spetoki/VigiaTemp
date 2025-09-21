@@ -123,6 +123,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
     const storedTheme = localStorage.getItem('theme') as Theme | null || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     setThemeState(storedTheme);
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
     
   }, []);
 
@@ -135,19 +146,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('theme', theme);
     }
   }, [theme]);
-
-   useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPromptEvent(event as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
   
   const triggerInstallPrompt = () => {
     if (installPromptEvent) {
@@ -227,3 +225,5 @@ export const useSettings = () => {
   }
   return context;
 };
+
+    
