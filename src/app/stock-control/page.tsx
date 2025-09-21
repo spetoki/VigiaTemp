@@ -29,11 +29,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Edit, Trash2, Warehouse, Loader2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Warehouse, Loader2, ArrowLeftRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getStockItems, addStockItem, updateStockItem, deleteStockItem } from '@/services/stock-service';
+import { getStockItems, addStockItem, updateStockItem, deleteStockItem, adjustStockItemQuantity } from '@/services/stock-service';
+import StockAdjustmentDialog from '@/components/stock/StockAdjustmentDialog';
 
 const formSchema = z.object({
   name: z.string().min(1, "O nome do item é obrigatório"),
@@ -164,6 +165,7 @@ export default function StockControlPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<StockItem | null>(null);
+  const [itemToAdjust, setItemToAdjust] = useState<StockItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<StockItem | null>(null);
 
   const fetchItems = useCallback(async () => {
@@ -246,6 +248,29 @@ export default function StockControlPage() {
       setItemToDelete(null);
     }
   };
+  
+  const handleAdjustQuantity = async (amount: number) => {
+    if (!itemToAdjust || !storageKeys.stock) return;
+
+    try {
+      await adjustStockItemQuantity(storageKeys.stock, itemToAdjust.id, amount);
+      const direction = amount > 0 ? 'adicionada' : 'removida';
+      toast({
+        title: t('stock.toast.adjust_success.title', 'Estoque Atualizado'),
+        description: `Quantidade ${Math.abs(amount)} ${direction} para o item "${itemToAdjust.name}".`
+      });
+      fetchItems();
+    } catch (error) {
+       toast({
+        title: t('stock.toast.adjust_error.title', 'Erro ao Ajustar Estoque'),
+        description: error instanceof Error ? error.message : t('stock.toast.unknown_error', 'Ocorreu um erro desconhecido.'),
+        variant: 'destructive',
+      });
+    } finally {
+        setItemToAdjust(null);
+    }
+  };
+
 
   const defaultFormValues = editingItem
     ? {
@@ -317,10 +342,13 @@ export default function StockControlPage() {
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>{t(`stock.categories.${item.category.replace(/-/g, '_')}`, item.category)}</TableCell>
-                      <TableCell className="text-center">{item.quantity}</TableCell>
+                      <TableCell className="text-center font-bold text-lg">{item.quantity}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell>{new Date(item.lastUpdated).toLocaleDateString(t('localeCode', 'pt-BR'))}</TableCell>
                       <TableCell className="text-right">
+                         <Button variant="ghost" size="icon" onClick={() => setItemToAdjust(item)}>
+                            <ArrowLeftRight className="h-4 w-4 text-primary" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleOpenForm(item)}>
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -356,6 +384,14 @@ export default function StockControlPage() {
         </DialogContent>
       </Dialog>
       
+      {itemToAdjust && (
+        <StockAdjustmentDialog 
+            item={itemToAdjust}
+            onOpenChange={(isOpen) => !isOpen && setItemToAdjust(null)}
+            onAdjust={handleAdjustQuantity}
+        />
+      )}
+
       <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -375,3 +411,5 @@ export default function StockControlPage() {
     </div>
   );
 }
+
+    

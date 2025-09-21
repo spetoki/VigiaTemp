@@ -520,5 +520,9 @@
   "stock.delete_dialog.title": "Confirmar Exclusão",
   "stock.delete_dialog.description": "Tem certeza de que deseja excluir o item \"{name}\"? Esta ação não pode ser desfeita.",
   "stock.delete_dialog.cancel": "Cancelar",
-  "stock.delete_dialog.confirm": "Excluir"
+  "stock.delete_dialog.confirm": "Excluir",
+  "stock.toast.adjust_success.title": "Estoque Atualizado",
+  "stock.toast.adjust_error.title": "Erro ao Ajustar Estoque"
 }
+
+    

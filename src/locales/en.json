@@ -524,5 +524,9 @@
   "stock.delete_dialog.title": "Confirm Deletion",
   "stock.delete_dialog.description": "Are you sure you want to delete the item \"{name}\"? This action cannot be undone.",
   "stock.delete_dialog.cancel": "Cancel",
-  "stock.delete_dialog.confirm": "Delete"
+  "stock.delete_dialog.confirm": "Delete",
+  "stock.toast.adjust_success.title": "Stock Updated",
+  "stock.toast.adjust_error.title": "Error Adjusting Stock"
 }
+
+    

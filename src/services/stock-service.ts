@@ -15,6 +15,7 @@ import {
   Timestamp,
   query,
   orderBy,
+  runTransaction,
 } from 'firebase/firestore';
 
 const stockItemFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): StockItem => {
@@ -37,7 +38,7 @@ export async function getStockItems(collectionPath: string): Promise<StockItem[]
   }
   try {
     const stockCol = collection(db, collectionPath);
-    const q = query(stockCol, orderBy('name', 'asc'));
+    const q = query(stockCol, orderBy('lastUpdated', 'desc'));
     const stockSnapshot = await getDocs(q);
     return stockSnapshot.docs.map(stockItemFromDoc);
   } catch (error) {
@@ -81,3 +82,40 @@ export async function deleteStockItem(collectionPath: string, itemId: string): P
   const itemDoc = doc(db, collectionPath, itemId);
   await deleteDoc(itemDoc);
 }
+
+
+export async function adjustStockItemQuantity(collectionPath: string, itemId: string, amount: number): Promise<void> {
+  if (!db || !collectionPath.startsWith('users/')) {
+    throw new Error('Firestore não está configurado. Não é possível ajustar o estoque.');
+  }
+  const itemDocRef = doc(db, collectionPath, itemId);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const itemDoc = await transaction.get(itemDocRef);
+      if (!itemDoc.exists()) {
+        throw new Error("Item do estoque não encontrado.");
+      }
+      
+      const currentQuantity = itemDoc.data().quantity || 0;
+      const newQuantity = currentQuantity + amount;
+
+      if (newQuantity < 0) {
+        throw new Error("A quantidade em estoque não pode ser negativa.");
+      }
+
+      transaction.update(itemDocRef, { 
+        quantity: newQuantity,
+        lastUpdated: Timestamp.now() 
+      });
+    });
+  } catch (error) {
+     console.error("Transaction failed: ", error);
+     if (error instanceof Error) {
+        throw error;
+     }
+     throw new Error("Ocorreu um erro ao atualizar o estoque.");
+  }
+}
+
+    
