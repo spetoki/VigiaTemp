@@ -300,6 +300,67 @@ export default function HardwareAssemblyPage() {
         </CardContent>
       </Card>
       
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Guia Rápido: Como Soldar Componentes em PCBs</CardTitle>
+          <CardDescription>
+            Soldar é o processo de unir componentes eletrônicos a uma Placa de Circuito Impresso (PCB) de forma permanente. Siga estes passos para uma solda limpa e segura.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h3 className="font-semibold mb-2">Materiais Necessários:</h3>
+            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+              <li>**Ferro de Solda:** Um de 30W a 60W com ponta fina é ideal.</li>
+              <li>**Estanho para Solda:** Prefira um fino (0.5mm a 1mm) com fluxo interno.</li>
+              <li>**Suporte para Ferro de Solda:** Essencial para segurança, para apoiar o ferro quente.</li>
+              <li>**Esponja de Limpeza:** Pode ser uma esponja vegetal umedecida ou uma de latão para limpar a ponta do ferro.</li>
+              <li>**Sugador de Solda (Opcional):** Muito útil para corrigir erros.</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Passo a Passo da Soldagem:</h3>
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">1</div>
+                <div>
+                  <h4 className="font-semibold">Preparação</h4>
+                  <p className="text-muted-foreground">Ligue o ferro de solda e espere ele aquecer completamente. Enquanto isso, limpe a ponta do ferro na esponja úmida. Uma ponta limpa e brilhante transfere calor muito melhor.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">2</div>
+                <div>
+                  <h4 className="font-semibold">Posicione o Componente</h4>
+                  <p className="text-muted-foreground">Insira as pernas (terminais) do componente nos furos correspondentes da PCB. Dobre um pouco as pernas do outro lado para que ele não caia.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">3</div>
+                <div>
+                  <h4 className="font-semibold">Aqueça a Junção</h4>
+                  <p className="text-muted-foreground">Toque a ponta do ferro de solda na junção, de forma que ela encoste tanto na "ilha" de cobre da placa quanto na perna do componente. Mantenha por 2-3 segundos.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">4</div>
+                <div>
+                  <h4 className="font-semibold">Aplique a Solda</h4>
+                  <p className="text-muted-foreground">Com a junção aquecida, encoste a ponta do estanho na junção (e não na ponta do ferro). A solda deve derreter e fluir naturalmente, formando um pequeno "cone" brilhante.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">5</div>
+                <div>
+                  <h4 className="font-semibold">Remova o Ferro e Esfrie</h4>
+                  <p className="text-muted-foreground">Primeiro, remova o fio de estanho. Depois, remova o ferro de solda. Deixe a solda esfriar e solidificar por alguns segundos sem mexer. Uma boa solda fica brilhante e com formato de vulcão.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
        <Card className="shadow-lg border-amber-500/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-amber-600">
