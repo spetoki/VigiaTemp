@@ -50,14 +50,16 @@ const prompt = ai.definePrompt({
   name: 'optimizeAlarmSettingsPrompt',
   input: {schema: OptimizeAlarmSettingsInputSchema},
   output: {schema: OptimizeAlarmSettingsOutputSchema},
-  prompt: `You are an expert in agricultural science, specializing in optimizing environmental controls for cacao cultivation.
+  prompt: `Você é um especialista em ciências agrícolas, com especialização na otimização de controles ambientais para o cultivo de cacau.
 
-  Analyze the provided historical temperature data, cacao variety, and microclimate information to suggest optimized temperature thresholds for alerts in a fermentation greenhouse.
-  Explain your reasoning for the suggested thresholds, considering the specific needs of the cacao variety and the characteristics of the microclimate.
+  Analise os dados históricos de temperatura, a variedade de cacau e as informações do microclima fornecidas para sugerir limiares de temperatura otimizados para alertas em uma estufa de fermentação.
+  **A sua resposta deve ser inteiramente em português.**
+  
+  Explique seu raciocínio para os limiares sugeridos, considerando as necessidades específicas da variedade de cacau e as características do microclima.
 
-  Historical Data: {{{historicalData}}}
-  Cacao Variety: {{{cacaoVariety}}}
-  Microclimate Information: {{{microclimateInfo}}}
+  Dados Históricos: {{{historicalData}}}
+  Variedade do Cacau: {{{cacaoVariety}}}
+  Informações do Microclima: {{{microclimateInfo}}}
   `,
 });
 
