@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { handleOptimizeAlarms, OptimizeFormState } from '@/app/optimize-alarms/actions';
-import { BrainCircuit, AlertCircle, Loader2, FileJson } from 'lucide-react';
+import { BrainCircuit, AlertCircle, Loader2, FileJson, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import OptimizationResultCard from './OptimizationResultCard';
 import { useSettings } from '@/context/SettingsContext';
@@ -97,6 +97,10 @@ export default function OptimizeAlarmsForm() {
     }
   };
 
+  const handleClearJson = () => {
+    setHistoricalData('');
+  };
+
 
   return (
     <>
@@ -151,16 +155,22 @@ export default function OptimizeAlarmsForm() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-2 gap-2">
                   <Label htmlFor="historicalData">Dados Históricos de Temperatura (formato JSON)</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={handleGenerateJson} disabled={isGeneratingJson}>
-                    {isGeneratingJson ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <FileJson className="mr-2 h-4 w-4" />
-                    )}
-                    Gerar JSON
-                  </Button>
+                  <div className="flex gap-2">
+                     <Button type="button" variant="outline" size="sm" onClick={handleClearJson}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Limpar
+                     </Button>
+                     <Button type="button" variant="outline" size="sm" onClick={handleGenerateJson} disabled={isGeneratingJson}>
+                        {isGeneratingJson ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <FileJson className="mr-2 h-4 w-4" />
+                        )}
+                        Gerar JSON
+                      </Button>
+                  </div>
               </div>
               <Textarea
                 id="historicalData"
