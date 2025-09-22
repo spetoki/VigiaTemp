@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collectionGroup, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
 
 /**
  * @fileoverview API endpoint para receber dados de temperatura de sensores IoT (como ESP32) e
