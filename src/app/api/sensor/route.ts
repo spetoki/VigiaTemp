@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { collection, collectionGroup, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
 
 /**
@@ -58,10 +58,7 @@ export async function POST(request: Request) {
       );
     }
     
-    if (!db) {
-        console.error('[VigiaTemp API] Erro crítico: Firestore não está configurado.');
-        return createCorsResponse({ message: 'Erro interno do servidor: banco de dados não configurado.' }, 500);
-    }
+    const db = getDb();
 
     // Procura em todas as coleções 'sensors' de todos os usuários
     const sensorsCollectionGroup = collectionGroup(db, 'sensors');
