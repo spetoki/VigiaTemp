@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import {
   collection,
   getDocs,
@@ -57,8 +57,9 @@ const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData 
 };
 
 export async function getLots(collectionPath: string): Promise<TraceabilityData[]> {
-    if (!db || !collectionPath.startsWith('users/')) {
-        console.warn("Firestore is not configured or collection path is invalid. Returning empty lots list.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+        console.warn("Collection path is invalid. Returning empty lots list.");
         return [];
     }
     try {
@@ -73,8 +74,9 @@ export async function getLots(collectionPath: string): Promise<TraceabilityData[
 }
 
 export async function addLot(collectionPath: string, lotData: TraceabilityFormData): Promise<TraceabilityData> {
-    if (!db || !collectionPath.startsWith('users/')) {
-        throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível adicionar o lote.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+        throw new Error("Caminho da coleção é inválido. Não é possível adicionar o lote.");
     }
 
     const lotsCol = collection(db, collectionPath);
@@ -116,8 +118,9 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
 
 
 export async function deleteLot(collectionPath: string, lotId: string): Promise<void> {
-    if (!db || !collectionPath.startsWith('users/')) {
-        throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível excluir o lote.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+        throw new Error("Caminho da coleção é inválido. Não é possível excluir o lote.");
     }
     const lotDoc = doc(db, collectionPath, lotId);
     await deleteDoc(lotDoc);

@@ -15,55 +15,47 @@ const isConfigValid = (config: FirebaseOptions): boolean => {
     return !!config.apiKey && !!config.authDomain && !!config.projectId;
 };
 
-let app: FirebaseApp | null = null;
-let db: Firestore | null = null;
+let app: FirebaseApp;
+let db: Firestore;
 
-// Initialize Firebase only if the configuration is valid and we are in the browser or it hasn't been initialized yet.
-if (isConfigValid(firebaseConfig)) {
-    if (!getApps().length) {
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-        }
-    } else {
-        app = getApp();
-        db = getFirestore(app);
-    }
-} else {
-    // In a server environment, we might not have the NEXT_PUBLIC_ variables.
-    // However, the Firebase Admin SDK (used in server-side functions) might be configured differently.
-    // For the client-side, we issue a warning.
+function initializeDb() {
+  if (!isConfigValid(firebaseConfig)) {
     if (typeof window !== 'undefined') {
         console.warn("Firebase client configuration is missing or invalid. Firebase services will not be available on the client-side.");
     }
+    // Return null or handle as per your app's needs when config is invalid
+    return;
+  }
+
+  if (!getApps().length) {
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+    } catch (error) {
+      console.error("Firebase initialization failed:", error);
+    }
+  } else {
+    app = getApp();
+    db = getFirestore(app);
+  }
 }
 
+// Initialize on load.
+initializeDb();
+
 // Export a function to get the db instance, ensuring it's available.
-const getDb = () => {
+export const getDb = (): Firestore => {
     if (!db) {
-         if (isConfigValid(firebaseConfig) && getApps().length) {
-            db = getFirestore(getApp());
-        }
-        if (!db) {
-            // This is a fallback if initialization failed for some reason.
-            // It might happen in a serverless function cold start.
-            if(isConfigValid(firebaseConfig) && !getApps().length) {
-                 app = initializeApp(firebaseConfig);
-                 db = getFirestore(app);
-            } else if (isConfigValid(firebaseConfig)) {
-                 app = getApp();
-                 db = getFirestore(app);
-            }
-        }
+      // This might happen in a serverless function cold start or if config was initially invalid.
+      // Re-running initialization can safely resolve this.
+      initializeDb();
     }
     if (!db) {
          // If it's still null, throw an error to make the problem obvious.
-         throw new Error("Firestore database is not initialized. Check your Firebase configuration.");
+         throw new Error("Firestore database is not initialized. Check your Firebase configuration and environment variables.");
     }
     return db;
 }
 
 
-export { app, db, getDb };
+export { app, db };

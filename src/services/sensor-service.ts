@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import type { Sensor, HistoricalDataPoint } from '@/types';
 import {
   collection,
@@ -39,8 +39,9 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
 };
 
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
-    if (!db || !collectionPath.startsWith('users/')) {
-        console.warn("Firestore is not configured or collection path is invalid. Returning empty sensor list.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+        console.warn("Collection path is invalid. Returning empty sensor list.");
         return [];
     }
     try {
@@ -58,8 +59,9 @@ export async function addSensor(
     collectionPath: string, 
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
-    if (!db || !collectionPath.startsWith('users/')) {
-      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível adicionar o sensor.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+      throw new Error("Caminho da coleção é inválido. Não é possível adicionar o sensor.");
     }
 
     const sensorsCol = collection(db, collectionPath);
@@ -82,16 +84,18 @@ export async function updateSensor(
     sensorId: string,
     sensorData: Partial<Sensor>
 ): Promise<void> {
-    if (!db || !collectionPath.startsWith('users/')) {
-      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível atualizar o sensor.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+      throw new Error("Caminho da coleção é inválido. Não é possível atualizar o sensor.");
     }
     const sensorDoc = doc(db, collectionPath, sensorId);
     await updateDoc(sensorDoc, sensorData as DocumentData);
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
-    if (!db || !collectionPath.startsWith('users/')) {
-      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível excluir o sensor.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+      throw new Error("Caminho da coleção é inválido. Não é possível excluir o sensor.");
     }
     const sensorDoc = doc(db, collectionPath, sensorId);
     await deleteDoc(sensorDoc);
@@ -99,8 +103,9 @@ export async function deleteSensor(collectionPath: string, sensorId: string): Pr
 
 
 export async function addHistoricalData(collectionPath: string, sensorId: string, dataPoint: HistoricalDataPoint): Promise<void> {
-    if (!db || !collectionPath.startsWith('users/')) {
-      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível salvar o histórico.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+      throw new Error("Caminho da coleção é inválido. Não é possível salvar o histórico.");
     }
     const historyCollection = collection(db, `${collectionPath}/${sensorId}/historicalData`);
     await addDoc(historyCollection, {
@@ -110,7 +115,8 @@ export async function addHistoricalData(collectionPath: string, sensorId: string
 }
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    if (!db || !collectionPath.startsWith('users/')) {
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
         return [];
     }
 

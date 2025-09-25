@@ -11,7 +11,7 @@ import { defaultCriticalSound } from '@/lib/sounds';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
@@ -68,12 +68,13 @@ export default function DashboardPage() {
   
   // This effect now sets up a real-time listener on the sensors collection
   useEffect(() => {
-    if (!db || !storageKeys.sensors || !storageKeys.sensors.startsWith('users/')) {
+    if (!storageKeys.sensors || !storageKeys.sensors.startsWith('users/')) {
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
+    const db = getDb();
     const sensorsCol = collection(db, storageKeys.sensors);
     const q = query(sensorsCol, orderBy("name", "asc"));
 

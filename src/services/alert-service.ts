@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import type { Alert } from '@/types';
 import {
   collection,
@@ -35,8 +35,9 @@ const alertFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Alert => {
 };
 
 export async function getAlerts(collectionPath: string): Promise<Alert[]> {
-    if (!db || !collectionPath.startsWith('users/')) {
-        console.warn("Firestore is not configured or collection path is invalid. Returning empty alerts list.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+        console.warn("Collection path is invalid. Returning empty alerts list.");
         return [];
     }
     try {
@@ -53,8 +54,9 @@ export async function getAlerts(collectionPath: string): Promise<Alert[]> {
 
 
 export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-    if (!db || !collectionPath.startsWith('users/')) {
-        throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível adicionar alerta.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+        throw new Error("Caminho da coleção é inválido. Não é possível adicionar alerta.");
     }
     
     const alertsCol = collection(db, collectionPath);
@@ -73,15 +75,17 @@ export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'i
 
 
 export async function updateAlert(collectionPath: string, alertId: string, updateData: Partial<Alert>) {
-    if (!db || !collectionPath.startsWith('users/')) {
-      throw new Error("Firestore não está configurado ou o caminho da coleção é inválido. Não é possível atualizar alerta.");
+    const db = getDb();
+    if (!collectionPath.startsWith('users/')) {
+      throw new Error("Caminho da coleção é inválido. Não é possível atualizar alerta.");
     }
     const alertDoc = doc(db, collectionPath, alertId);
     await updateDoc(alertDoc, updateData as DocumentData);
 }
 
 export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>) {
-    if (!db || alertIds.length === 0 || !collectionPath.startsWith('users/')) {
+    const db = getDb();
+    if (alertIds.length === 0 || !collectionPath.startsWith('users/')) {
       return;
     }
     const batch = writeBatch(db);
@@ -95,7 +99,8 @@ export async function updateMultipleAlerts(collectionPath: string, alertIds: str
 
 
 export async function deleteMultipleAlerts(collectionPath: string, alertIds: string[]): Promise<void> {
-  if (!db || alertIds.length === 0 || !collectionPath.startsWith('users/')) {
+  const db = getDb();
+  if (alertIds.length === 0 || !collectionPath.startsWith('users/')) {
     return;
   }
   
