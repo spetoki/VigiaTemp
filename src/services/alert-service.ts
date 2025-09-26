@@ -35,12 +35,12 @@ const alertFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Alert => {
 };
 
 export async function getAlerts(collectionPath: string): Promise<Alert[]> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
-        console.warn("Collection path is invalid. Returning empty alerts list.");
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
+        console.warn("getAlerts: Collection path is invalid. Returning empty alerts list.", collectionPath);
         return [];
     }
     try {
+        const db = getDb();
         const alertsCol = collection(db, collectionPath);
         // Order by most recent and limit to the last 100 to avoid performance issues
         const q = query(alertsCol, orderBy("timestamp", "desc"), limit(100));
@@ -54,11 +54,11 @@ export async function getAlerts(collectionPath: string): Promise<Alert[]> {
 
 
 export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
         throw new Error("Caminho da coleção é inválido. Não é possível adicionar alerta.");
     }
     
+    const db = getDb();
     const alertsCol = collection(db, collectionPath);
     const newAlertData = {
       ...alertData,
@@ -75,17 +75,20 @@ export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'i
 
 
 export async function updateAlert(collectionPath: string, alertId: string, updateData: Partial<Alert>) {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
       throw new Error("Caminho da coleção é inválido. Não é possível atualizar alerta.");
     }
+    const db = getDb();
     const alertDoc = doc(db, collectionPath, alertId);
     await updateDoc(alertDoc, updateData as DocumentData);
 }
 
 export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
+      return;
+    }
     const db = getDb();
-    if (alertIds.length === 0 || !collectionPath.startsWith('users/')) {
+    if (alertIds.length === 0) {
       return;
     }
     const batch = writeBatch(db);
@@ -99,8 +102,11 @@ export async function updateMultipleAlerts(collectionPath: string, alertIds: str
 
 
 export async function deleteMultipleAlerts(collectionPath: string, alertIds: string[]): Promise<void> {
+  if (!collectionPath || !collectionPath.startsWith('users/')) {
+    return;
+  }
   const db = getDb();
-  if (alertIds.length === 0 || !collectionPath.startsWith('users/')) {
+  if (alertIds.length === 0) {
     return;
   }
   

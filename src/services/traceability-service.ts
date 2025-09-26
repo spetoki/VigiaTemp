@@ -57,12 +57,12 @@ const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData 
 };
 
 export async function getLots(collectionPath: string): Promise<TraceabilityData[]> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
-        console.warn("Collection path is invalid. Returning empty lots list.");
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
+        console.warn("getLots: Collection path is invalid. Returning empty lots list.", collectionPath);
         return [];
     }
     try {
+        const db = getDb();
         const lotsCol = collection(db, collectionPath);
         const q = query(lotsCol, orderBy("createdAt", "desc"));
         const lotSnapshot = await getDocs(q);
@@ -74,11 +74,11 @@ export async function getLots(collectionPath: string): Promise<TraceabilityData[
 }
 
 export async function addLot(collectionPath: string, lotData: TraceabilityFormData): Promise<TraceabilityData> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
         throw new Error("Caminho da coleção é inválido. Não é possível adicionar o lote.");
     }
 
+    const db = getDb();
     const lotsCol = collection(db, collectionPath);
     
     // Create a clean data object to be saved, converting strings to numbers
@@ -118,12 +118,10 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
 
 
 export async function deleteLot(collectionPath: string, lotId: string): Promise<void> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
         throw new Error("Caminho da coleção é inválido. Não é possível excluir o lote.");
     }
+    const db = getDb();
     const lotDoc = doc(db, collectionPath, lotId);
     await deleteDoc(lotDoc);
 }
-
-    

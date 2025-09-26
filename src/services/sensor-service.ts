@@ -27,7 +27,7 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
         id: doc.id,
         name: data.name,
         location: data.location,
-        currentTemperature: data.currentTemperature,
+        currentTemperature: data.currentTemperature || 0,
         highThreshold: data.highThreshold,
         lowThreshold: data.lowThreshold,
         model: data.model,
@@ -39,22 +39,20 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
 };
 
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
-        console.warn("Collection path is invalid. Returning empty sensor list.");
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
+        console.warn("getSensors: Collection path is invalid. Returning empty sensor list.", collectionPath);
         return [];
     }
     try {
+        const db = getDb();
         const sensorsCol = collection(db, collectionPath);
         const q = query(sensorsCol, orderBy("name", "asc"));
         const sensorSnapshot = await getDocs(q);
-        if (sensorSnapshot.empty) {
-          return [];
-        }
+        
         return sensorSnapshot.docs.map(sensorFromDoc);
     } catch (error) {
         console.error("Error fetching sensors from Firestore:", error);
-        // Em caso de erro (ex: permissões, offline), retorna array vazio para não quebrar a UI
+        // Retorna array vazio em caso de erro para não quebrar a UI
         return [];
     }
 }
@@ -63,11 +61,11 @@ export async function addSensor(
     collectionPath: string, 
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
       throw new Error("Caminho da coleção é inválido. Não é possível adicionar o sensor.");
     }
 
+    const db = getDb();
     const sensorsCol = collection(db, collectionPath);
     const newSensorPayload = {
         ...sensorData,
@@ -88,29 +86,29 @@ export async function updateSensor(
     sensorId: string,
     sensorData: Partial<Sensor>
 ): Promise<void> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
       throw new Error("Caminho da coleção é inválido. Não é possível atualizar o sensor.");
     }
+    const db = getDb();
     const sensorDoc = doc(db, collectionPath, sensorId);
     await updateDoc(sensorDoc, sensorData as DocumentData);
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
       throw new Error("Caminho da coleção é inválido. Não é possível excluir o sensor.");
     }
+    const db = getDb();
     const sensorDoc = doc(db, collectionPath, sensorId);
     await deleteDoc(sensorDoc);
 }
 
 
 export async function addHistoricalData(collectionPath: string, sensorId: string, dataPoint: HistoricalDataPoint): Promise<void> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
       throw new Error("Caminho da coleção é inválido. Não é possível salvar o histórico.");
     }
+    const db = getDb();
     const historyCollection = collection(db, `${collectionPath}/${sensorId}/historicalData`);
     await addDoc(historyCollection, {
         ...dataPoint,
@@ -119,11 +117,12 @@ export async function addHistoricalData(collectionPath: string, sensorId: string
 }
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    const db = getDb();
-    if (!collectionPath.startsWith('users/')) {
+    if (!collectionPath || !collectionPath.startsWith('users/')) {
+        console.warn("getHistoricalData: Collection path is invalid. Returning empty list.", collectionPath);
         return [];
     }
 
+    const db = getDb();
     const now = Date.now();
     let startTime: number;
 

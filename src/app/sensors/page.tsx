@@ -29,6 +29,7 @@ export default function SensorsPage() {
   const { t, storageKeys } = useSettings();
 
   const fetchSensors = useCallback(async () => {
+    // Apenas busca se a chave de armazenamento estiver pronta
     if (!storageKeys.sensors) {
       setIsLoading(false);
       return;
@@ -51,6 +52,7 @@ export default function SensorsPage() {
   }, [storageKeys.sensors, t, toast]);
 
   useEffect(() => {
+    // O fetch é chamado apenas quando storageKeys.sensors muda (de nulo para um valor)
     fetchSensors();
   }, [fetchSensors]);
 
