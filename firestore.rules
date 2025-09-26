@@ -1,13 +1,36 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permite acesso de leitura e escrita a qualquer documento
-    // dentro do caminho de um usuário específico (definido pela chave de acesso).
-    // Isso garante que os dados de cada chave sejam isolados,
-    // ao mesmo tempo que permite que o app e a API do sensor funcionem.
+
+    // Regra Padrão: Bloqueia todo o acesso por padrão para maior segurança.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Permite que a API do sensor (usada pelo ESP32) encontre um sensor
+    // pelo MAC Address em qualquer conta e atualize seus dados.
+    // É crucial para o funcionamento do hardware.
+    match /users/{accessKey}/sensors/{sensorId} {
+      // allow read: Permite que a API de rota do sensor pesquise em todas as contas de usuário
+      // para encontrar um sensor pelo seu endereço MAC.
+      allow read: if true;
+
+      // allow update: Permite que a API de rota do sensor atualize a 'currentTemperature'
+      // de um documento de sensor existente. Isso é mais seguro do que um 'allow write' genérico.
+      allow update: if request.resource.data.keys().hasOnly(['currentTemperature']);
+
+      // Permite que a API de rota do sensor crie novos documentos (leituras de temperatura)
+      // na subcoleção 'historicalData'.
+      match /historicalData/{dataId} {
+        allow create: if true;
+      }
+    }
+
+    // Permite acesso total (leitura e escrita) a todos os outros dados
+    // (alertas, lotes, etc.) dentro do caminho de um usuário específico,
+    // desde que a requisição venha do seu aplicativo.
     match /users/{accessKey}/{documents=**} {
-      allow read, write: if true;
+        allow read, write: if true;
     }
   }
 }
