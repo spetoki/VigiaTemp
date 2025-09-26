@@ -48,10 +48,14 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
         const sensorsCol = collection(db, collectionPath);
         const q = query(sensorsCol, orderBy("name", "asc"));
         const sensorSnapshot = await getDocs(q);
+        if (sensorSnapshot.empty) {
+          return [];
+        }
         return sensorSnapshot.docs.map(sensorFromDoc);
     } catch (error) {
         console.error("Error fetching sensors from Firestore:", error);
-        throw new Error("Não foi possível carregar os sensores do banco de dados.");
+        // Em caso de erro (ex: permissões, offline), retorna array vazio para não quebrar a UI
+        return [];
     }
 }
 
