@@ -16,14 +16,14 @@ const isConfigValid = (config: FirebaseOptions): boolean => {
 };
 
 let app: FirebaseApp;
-let db: Firestore;
+let db: Firestore | null = null; // Allow db to be null initially
 
 function initializeDb() {
   if (!isConfigValid(firebaseConfig)) {
     if (typeof window !== 'undefined') {
         console.warn("Firebase client configuration is missing or invalid. Firebase services will not be available on the client-side.");
     }
-    // Return null or handle as per your app's needs when config is invalid
+    // Do not proceed with initialization if config is invalid
     return;
   }
 
@@ -33,6 +33,7 @@ function initializeDb() {
       db = getFirestore(app);
     } catch (error) {
       console.error("Firebase initialization failed:", error);
+      db = null; // Ensure db is null on failure
     }
   } else {
     app = getApp();
@@ -48,14 +49,15 @@ export const getDb = (): Firestore => {
     if (!db) {
       // This might happen in a serverless function cold start or if config was initially invalid.
       // Re-running initialization can safely resolve this.
+      console.log("Firestore not initialized. Attempting re-initialization...");
       initializeDb();
     }
     if (!db) {
          // If it's still null, throw an error to make the problem obvious.
-         throw new Error("Firestore database is not initialized. Check your Firebase configuration and environment variables.");
+         throw new Error("Firestore database is not initialized. Check your Firebase configuration and environment variables are correctly set in your hosting environment (e.g., Vercel).");
     }
     return db;
 }
 
 
-export { app, db };
+export { app }; // db is no longer exported directly to enforce usage of getDb()

@@ -74,28 +74,40 @@ export default function DashboardPage() {
     }
 
     setIsLoading(true);
-    const db = getDb();
-    const sensorsCol = collection(db, storageKeys.sensors);
-    const q = query(sensorsCol, orderBy("name", "asc"));
+    let unsubscribe = () => {};
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const fetchedSensors: Sensor[] = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as Sensor));
-        
-        setSensors(fetchedSensors);
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Failed to listen to sensor data from Firestore:", error);
+    try {
+        const db = getDb();
+        const sensorsCol = collection(db, storageKeys.sensors);
+        const q = query(sensorsCol, orderBy("name", "asc"));
+
+        unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const fetchedSensors: Sensor[] = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as Sensor));
+            
+            setSensors(fetchedSensors);
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Failed to listen to sensor data from Firestore:", error);
+            toast({
+              title: "Erro ao Carregar Sensores",
+              description: "Não foi possível conectar para receber atualizações em tempo real.",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            setSensors([]);
+        });
+    } catch (error) {
+        console.error("Error setting up Firestore listener:", error);
         toast({
-          title: "Erro ao Carregar Sensores",
-          description: "Não foi possível conectar para receber atualizações em tempo real.",
+          title: "Erro de Conexão com o Banco de Dados",
+          description: "Verifique sua configuração do Firebase e as variáveis de ambiente.",
           variant: "destructive",
         });
         setIsLoading(false);
-        setSensors([]);
-    });
+    }
 
     return () => unsubscribe(); // Cleanup listener on component unmount
   }, [storageKeys.sensors, toast]);
