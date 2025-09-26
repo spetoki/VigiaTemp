@@ -1,0 +1,32 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regra Padrão: Nega todo o acesso por padrão para garantir a segurança.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Permite que a API pública de sensores encontre um sensor pelo MAC address
+    // e atualize sua temperatura.
+    // Também permite que a API adicione dados à subcoleção de histórico.
+    match /users/{accessKey}/sensors/{sensorId} {
+      allow read: if true; // Permite a consulta via collectionGroup
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentTemperature']); // Permite apenas a atualização da temperatura
+      
+      match /historicalData/{any} {
+        allow create: if true; // Permite que a API adicione dados históricos
+      }
+    }
+    
+    // Regra principal para o aplicativo web.
+    // Permite acesso total (leitura e escrita) a todos os documentos e subcoleções
+    // dentro do caminho de um usuário específico, simulando um "workspace"
+    // baseado na chave de acesso.
+    match /users/{accessKey}/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
