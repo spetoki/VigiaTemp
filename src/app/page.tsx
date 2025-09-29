@@ -68,12 +68,17 @@ export default function DashboardPage() {
   
   // This effect now sets up a real-time listener on the sensors collection
   useEffect(() => {
+    // **GUARD CLAUSE:** Do not proceed if the collection path is not valid.
+    // This is the key fix to prevent connection errors on initial load.
     if (!storageKeys.sensors || !storageKeys.sensors.startsWith('users/')) {
       setIsLoading(false);
+      setSensors([]); // Ensure sensors are cleared if the key becomes invalid
       return;
     }
 
     setIsLoading(true);
+    
+    // Define the unsubscribe function at this scope.
     let unsubscribe = () => {};
 
     try {
@@ -81,6 +86,7 @@ export default function DashboardPage() {
         const sensorsCol = collection(db, storageKeys.sensors);
         const q = query(sensorsCol, orderBy("name", "asc"));
 
+        // onSnapshot returns the unsubscribe function.
         unsubscribe = onSnapshot(q, (querySnapshot) => {
             const fetchedSensors: Sensor[] = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -109,7 +115,11 @@ export default function DashboardPage() {
         setIsLoading(false);
     }
 
-    return () => unsubscribe(); // Cleanup listener on component unmount
+    // Return the cleanup function. This will be called when the component unmounts
+    // OR when the storageKeys.sensors dependency changes, ensuring the old listener is removed.
+    return () => {
+      unsubscribe();
+    };
   }, [storageKeys.sensors, toast]);
 
 
@@ -256,7 +266,3 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
-
-    
-
-    
