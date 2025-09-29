@@ -31,13 +31,16 @@ export default function WifiDiscoveryPage() {
   const [addedMacs, setAddedMacs] = useState<Set<string>>(new Set());
   
   const fetchExistingSensors = useCallback(async () => {
-    if (!storageKeys.sensors) return;
+    if (!storageKeys.sensors) {
+        setAddedMacs(new Set());
+        return;
+    };
     try {
         const existingSensors = await getSensors(storageKeys.sensors);
         const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => !!mac));
         setAddedMacs(existingMacs);
     } catch (error) {
-        console.error("Could not fetch existing sensors:", error);
+        console.error("Não foi possível buscar sensores existentes:", error);
     }
   }, [storageKeys.sensors]);
 

@@ -40,7 +40,7 @@ const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
 
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
     if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getSensors: Collection path is invalid. Returning empty sensor list.", collectionPath);
+        console.warn("getSensors: Caminho da coleção inválido. Retornando lista de sensores vazia.", collectionPath);
         return [];
     }
     try {
@@ -51,7 +51,8 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
         
         return sensorSnapshot.docs.map(sensorFromDoc);
     } catch (error) {
-        console.error("Error fetching sensors from Firestore:", error);
+        // Se o erro for 'permission-denied' ou similar, o ideal é logar e retornar vazio.
+        console.error("Erro ao buscar sensores do Firestore:", error);
         // Retorna array vazio em caso de erro para não quebrar a UI
         return [];
     }
@@ -118,7 +119,7 @@ export async function addHistoricalData(collectionPath: string, sensorId: string
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
     if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getHistoricalData: Collection path is invalid. Returning empty list.", collectionPath);
+        console.warn("getHistoricalData: Caminho da coleção inválido. Retornando lista vazia.", collectionPath);
         return [];
     }
 
@@ -163,7 +164,7 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
             .filter(point => point.timestamp >= startTime) // Filter by time period after fetching
             .sort((a, b) => a.timestamp - b.timestamp); // Sort ascending for the chart
     } catch (error) {
-        console.error(`Error fetching historical data for sensor ${sensorId}:`, error);
+        console.error(`Erro ao buscar dados históricos para o sensor ${sensorId}:`, error);
         return [];
     }
 }

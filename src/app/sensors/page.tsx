@@ -29,9 +29,10 @@ export default function SensorsPage() {
   const { t, storageKeys } = useSettings();
 
   const fetchSensors = useCallback(async () => {
-    // Apenas busca se a chave de armazenamento estiver pronta
+    // Apenas busca se a chave de armazenamento estiver pronta e válida
     if (!storageKeys.sensors) {
       setIsLoading(false);
+      setSensors([]);
       return;
     }
     setIsLoading(true);
@@ -39,7 +40,7 @@ export default function SensorsPage() {
       const fetchedSensors = await getSensors(storageKeys.sensors);
       setSensors(fetchedSensors);
     } catch (error) {
-      console.error("Failed to fetch sensors:", error);
+      console.error("Falha ao buscar sensores:", error);
       toast({
         title: t('sensorsPage.toast.fetchError.title', "Erro ao Buscar Sensores"),
         description: t('sensorsPage.toast.fetchError.description', "Não foi possível carregar os sensores do banco de dados."),
@@ -86,7 +87,7 @@ export default function SensorsPage() {
       toast({
         title: t('sensorsPage.toast.deleteError.title', "Erro ao Excluir"),
         description: t('sensorsPage.toast.deleteError.description', "Não foi possível excluir o sensor."),
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };

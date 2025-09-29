@@ -57,6 +57,7 @@ export default function TraceabilityPage() {
   const fetchLots = useCallback(async () => {
     if (!storageKeys.lots) {
         setIsLoading(false);
+        setLots([]);
         return;
     }
     setIsLoading(true);
@@ -437,5 +438,3 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
     </div>
   );
 }
-
-    

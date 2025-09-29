@@ -20,6 +20,7 @@ export default function SensorChartsPage() {
   const fetchSensors = useCallback(async () => {
     if (!storageKeys.sensors) {
         setIsLoading(false);
+        setSensors([]);
         return;
     }
     setIsLoading(true);
@@ -27,7 +28,7 @@ export default function SensorChartsPage() {
       const fetchedSensors = await getSensors(storageKeys.sensors);
       setSensors(fetchedSensors);
     } catch (error) {
-      console.error("Failed to load sensors for charts, defaulting to empty.", error);
+      console.error("Falha ao carregar sensores para gráficos, usando valor padrão vazio.", error);
        toast({
         title: "Erro ao Carregar Sensores",
         description: "Não foi possível buscar os dados dos sensores para os gráficos.",

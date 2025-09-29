@@ -36,7 +36,7 @@ const alertFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Alert => {
 
 export async function getAlerts(collectionPath: string): Promise<Alert[]> {
     if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getAlerts: Collection path is invalid. Returning empty alerts list.", collectionPath);
+        console.warn("getAlerts: Caminho da coleção inválido. Retornando lista de alertas vazia.", collectionPath);
         return [];
     }
     try {
@@ -47,8 +47,9 @@ export async function getAlerts(collectionPath: string): Promise<Alert[]> {
         const alertSnapshot = await getDocs(q);
         return alertSnapshot.docs.map(alertFromDoc);
     } catch (error) {
-        console.error("Error fetching alerts from Firestore:", error);
-        throw new Error("Não foi possível carregar os alertas do banco de dados.");
+        console.error("Erro ao buscar alertas do Firestore:", error);
+        // Retorna array vazio em caso de erro para não quebrar a UI
+        return [];
     }
 }
 
@@ -85,7 +86,7 @@ export async function updateAlert(collectionPath: string, alertId: string, updat
 
 export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>) {
     if (!collectionPath || !collectionPath.startsWith('users/')) {
-      return;
+      throw new Error("Caminho da coleção inválido.");
     }
     const db = getDb();
     if (alertIds.length === 0) {
@@ -103,7 +104,7 @@ export async function updateMultipleAlerts(collectionPath: string, alertIds: str
 
 export async function deleteMultipleAlerts(collectionPath: string, alertIds: string[]): Promise<void> {
   if (!collectionPath || !collectionPath.startsWith('users/')) {
-    return;
+    throw new Error("Caminho da coleção inválido.");
   }
   const db = getDb();
   if (alertIds.length === 0) {

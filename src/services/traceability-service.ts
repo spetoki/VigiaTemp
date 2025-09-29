@@ -58,7 +58,7 @@ const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData 
 
 export async function getLots(collectionPath: string): Promise<TraceabilityData[]> {
     if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getLots: Collection path is invalid. Returning empty lots list.", collectionPath);
+        console.warn("getLots: Caminho da coleção inválido. Retornando lista de lotes vazia.", collectionPath);
         return [];
     }
     try {
@@ -68,8 +68,8 @@ export async function getLots(collectionPath: string): Promise<TraceabilityData[
         const lotSnapshot = await getDocs(q);
         return lotSnapshot.docs.map(lotFromDoc);
     } catch (error) {
-        console.error("Error fetching lots from Firestore:", error);
-        throw new Error("Não foi possível carregar os lotes do banco de dados.");
+        console.error("Erro ao buscar lotes do Firestore:", error);
+        return [];
     }
 }
 

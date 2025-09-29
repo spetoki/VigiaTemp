@@ -34,6 +34,7 @@ export default function AlertsPage() {
   const loadAlerts = useCallback(async () => {
     if (!storageKeys.alerts) {
       setIsLoading(false);
+      setAlerts([]);
       return;
     }
     setIsLoading(true);
@@ -41,7 +42,7 @@ export default function AlertsPage() {
       const fetchedAlerts = await getAlerts(storageKeys.alerts);
       setAlerts(fetchedAlerts);
     } catch (error) {
-      console.error("Failed to fetch alerts from Firestore:", error);
+      console.error("Falha ao buscar alertas do Firestore:", error);
       toast({
         title: "Erro ao carregar alertas",
         description: "Não foi possível buscar os alertas do banco de dados.",

@@ -24,6 +24,8 @@ export default function DataAnalysisPage() {
   const fetchData = useCallback(async () => {
     if (!storageKeys.sensors || !storageKeys.alerts) {
         setIsLoading(false);
+        setSensors([]);
+        setAlerts([]);
         return;
     }
     setIsLoading(true);
@@ -35,7 +37,7 @@ export default function DataAnalysisPage() {
       setSensors(fetchedSensors);
       setAlerts(fetchedAlerts);
     } catch (error) {
-      console.error("Failed to load data for analysis page:", error);
+      console.error("Falha ao carregar dados para a página de análise:", error);
       toast({
         title: "Erro ao Carregar Dados",
         description: "Não foi possível buscar os dados para análise.",
