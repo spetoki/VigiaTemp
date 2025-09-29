@@ -2,42 +2,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Regra Padrão: Bloqueia todo o acesso por padrão.
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Permite que a API do sensor (usada pelo ESP32) encontre um sensor
-    // pelo MAC Address em qualquer conta e atualize seus dados.
-    // É crucial para o funcionamento do hardware.
-    
-    // Permite que QUALQUER UM obtenha um único documento de sensor.
-    match /users/{userId}/sensors/{sensorId} {
-      allow get: if true;
-    }
-
-    // Permite que QUALQUER UM liste a coleção de sensores.
-    // Isso é necessário para o onSnapshot funcionar no painel.
+    // Regra #1: Permite que a API do sensor LISTE os sensores de qualquer usuário.
+    // Isso é crucial para a API encontrar o sensor pelo endereço MAC e para o
+    // painel principal receber atualizações em tempo real (`onSnapshot`).
     match /users/{userId}/sensors {
-       allow list: if true;
+      allow list, get: if true;
     }
-    
-    // Permite que a API de rota do sensor atualize a 'currentTemperature'
-    // de um documento de sensor existente.
-    match /users/{accessKey}/sensors/{sensorId} {
-      allow update: if request.resource.data.keys().hasOnly(['currentTemperature']);
 
-      // Permite que a API de rota do sensor crie novos documentos (leituras de temperatura)
-      // na subcoleção 'historicalData'.
+    // Regra #2: Permite que a API do sensor ATUALIZE a temperatura
+    // e ADICIONE dados ao histórico de um sensor específico.
+    match /users/{userId}/sensors/{sensorId} {
+      allow update: if request.resource.data.keys().hasOnly(['currentTemperature']);
       match /historicalData/{dataId} {
         allow create: if true;
       }
     }
 
-    // Permite acesso total (leitura e escrita) a todos os outros dados
-    // (alertas, lotes, etc.) dentro do caminho de um usuário específico.
-    match /users/{accessKey}/{documents=**} {
-        allow read, write: if true;
+    // Regra #3: Permite que o aplicativo web tenha acesso total
+    // a QUALQUER outra coleção (alertas, lotes, etc.) dentro do
+    // caminho de um usuário específico.
+    match /users/{accessKey}/{document=**} {
+      allow read, write: if true;
     }
   }
 }
