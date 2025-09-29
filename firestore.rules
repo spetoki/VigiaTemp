@@ -2,16 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Permite que qualquer pessoa leia a coleção 'sensors' de todos os usuários.
-    // Isso é NECESSÁRIO para a API do sensor encontrar o dispositivo pelo MAC address.
-    match /users/{userId}/sensors/{sensorId} {
-      allow read: if true;
+    // Regra Padrão: Bloqueia todo o acesso por padrão.
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    // Permite que o aplicativo e a API façam qualquer outra operação
-    // (escrever temperaturas, ler alertas, etc.) dentro do caminho de um usuário.
+    // Permite que a API do sensor (usada pelo ESP32) encontre um sensor
+    // pelo MAC Address em qualquer conta e atualize seus dados.
+    // É crucial para o funcionamento do hardware.
+    
+    // Permite que QUALQUER UM obtenha um único documento de sensor.
+    match /users/{userId}/sensors/{sensorId} {
+      allow get: if true;
+    }
+
+    // Permite que QUALQUER UM liste a coleção de sensores.
+    // Isso é necessário para o onSnapshot funcionar no painel.
+    match /users/{userId}/sensors {
+       allow list: if true;
+    }
+    
+    // Permite que a API de rota do sensor atualize a 'currentTemperature'
+    // de um documento de sensor existente.
+    match /users/{accessKey}/sensors/{sensorId} {
+      allow update: if request.resource.data.keys().hasOnly(['currentTemperature']);
+
+      // Permite que a API de rota do sensor crie novos documentos (leituras de temperatura)
+      // na subcoleção 'historicalData'.
+      match /historicalData/{dataId} {
+        allow create: if true;
+      }
+    }
+
+    // Permite acesso total (leitura e escrita) a todos os outros dados
+    // (alertas, lotes, etc.) dentro do caminho de um usuário específico.
     match /users/{accessKey}/{documents=**} {
-      allow read, write: if true;
+        allow read, write: if true;
     }
   }
 }
