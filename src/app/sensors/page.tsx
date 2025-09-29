@@ -53,8 +53,14 @@ export default function SensorsPage() {
 
   useEffect(() => {
     // O fetch é chamado apenas quando storageKeys.sensors muda (de nulo para um valor)
-    fetchSensors();
-  }, [fetchSensors]);
+    if (storageKeys.sensors) {
+        fetchSensors();
+    } else {
+        // Se a chave não estiver disponível (por exemplo, no carregamento inicial), não faça nada.
+        setIsLoading(false);
+        setSensors([]);
+    }
+  }, [fetchSensors, storageKeys.sensors]);
 
   const handleAddSensor = () => {
     setEditingSensor(null);

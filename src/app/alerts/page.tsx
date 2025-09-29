@@ -54,8 +54,13 @@ export default function AlertsPage() {
   }, [storageKeys.alerts, toast]);
 
   useEffect(() => {
-    loadAlerts();
-  }, [loadAlerts]);
+    if (storageKeys.alerts) {
+        loadAlerts();
+    } else {
+        setIsLoading(false);
+        setAlerts([]);
+    }
+  }, [loadAlerts, storageKeys.alerts]);
   
   // Clear selection when tab changes
   useEffect(() => {

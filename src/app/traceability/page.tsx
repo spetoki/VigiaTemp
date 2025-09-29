@@ -75,8 +75,13 @@ export default function TraceabilityPage() {
   }, [storageKeys.lots, t, toast]);
 
   useEffect(() => {
-    fetchLots();
-  }, [fetchLots]);
+    if (storageKeys.lots) {
+        fetchLots();
+    } else {
+        setIsLoading(false);
+        setLots([]);
+    }
+  }, [fetchLots, storageKeys.lots]);
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {

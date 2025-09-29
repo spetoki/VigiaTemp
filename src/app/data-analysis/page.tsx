@@ -46,11 +46,17 @@ export default function DataAnalysisPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [storageKeys, toast]);
+  }, [storageKeys.sensors, storageKeys.alerts, toast]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (storageKeys.sensors && storageKeys.alerts) {
+        fetchData();
+    } else {
+        setIsLoading(false);
+        setSensors([]);
+        setAlerts([]);
+    }
+  }, [fetchData, storageKeys.sensors, storageKeys.alerts]);
   
   const alertsByDay = useMemo(() => {
     return alerts.reduce((acc, alert) => {

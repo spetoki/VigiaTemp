@@ -40,8 +40,13 @@ export default function SensorChartsPage() {
   }, [storageKeys.sensors, toast]);
 
   useEffect(() => {
-    fetchSensors();
-  }, [fetchSensors]);
+    if (storageKeys.sensors) {
+        fetchSensors();
+    } else {
+        setIsLoading(false);
+        setSensors([]);
+    }
+  }, [fetchSensors, storageKeys.sensors]);
 
   const renderContent = () => {
     if (isLoading) {
