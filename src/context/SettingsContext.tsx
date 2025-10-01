@@ -46,6 +46,7 @@ interface SettingsContextType {
     stock: string;
     components: string;
     diagram: string;
+    users: string;
   };
   installPromptEvent: BeforeInstallPromptEvent | null;
   triggerInstallPrompt: () => void;
@@ -179,6 +180,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     alerts: activeKey ? `users/${activeKey}/alerts` : '',
     lots: activeKey ? `users/${activeKey}/lots` : '',
     stock: activeKey ? `users/${activeKey}/stock` : '',
+    users: activeKey ? `users/${activeKey}/users` : '',
     components: 'global_hardware_components',
     diagram: 'global_hardware_diagram'
   };

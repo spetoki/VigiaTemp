@@ -56,3 +56,14 @@ export interface TraceabilityFormData {
   dryingTime: string;
   isoClassification: string;
 }
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'viewer';
+    status: 'active' | 'inactive';
+    createdAt: string; // ISO string
+}
+
+export type UserFormData = Omit<User, 'id' | 'createdAt'>;
