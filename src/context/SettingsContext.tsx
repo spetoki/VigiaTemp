@@ -19,6 +19,14 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+// --- CONFIGURAÇÃO DE ACESSO ---
+const ACCESS_KEYS: string[] = ["8352", "5819", "2743", "9067", "1482", "7539", "4201", "6915", "0378", "9254"];
+const MASTER_UNLOCK_KEY = '6894';
+const UNLOCKED_KEY_PREFIX = 'vigiatemp_unlocked';
+const ACTIVE_KEY_STORAGE = 'vigiatemp_active_key';
+const FAILED_ATTEMPTS_KEY = 'vigiatemp_failed_attempts';
+const LOCKOUT_END_TIME_KEY = 'vigiatemp_lockout_end_time';
+
 interface SettingsContextType {
   temperatureUnit: TemperatureUnit;
   setTemperatureUnit: (unit: TemperatureUnit) => void;
@@ -59,10 +67,7 @@ async function importLocale(locale: LanguageCode): Promise<Translations> {
     }
   } catch (error) {
     console.error(`Could not load locale: ${locale}`, error);
-    if (locale !== 'pt-BR') {
-        return (await import('@/locales/pt.json')).default; // Fallback to PT if EN or ES fails
-    }
-    return {};
+    return (await import('@/locales/pt.json')).default; // Fallback para PT
   }
 }
 
@@ -71,22 +76,20 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<LanguageCode>('pt-BR');
   const [theme, setThemeState] = useState<Theme>('light');
   const [translations, setTranslations] = useState<Translations>({});
-  const [isLocked, setIsLocked] = useState<boolean>(false); // App starts unlocked in demo mode
-  const [activeKey, setActiveKey] = useState<string | null>('demo_user'); // Dummy key for demo mode
+  const [isLocked, setIsLocked] = useState<boolean>(true);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
-  // No-op storage keys since Firebase is removed.
-  const storageKeys = {
-    sensors: 'demo',
-    alerts: 'demo',
-    lots: 'demo',
-    stock: 'demo',
-    components: 'demo_hardware_components',
-    diagram: 'demo_hardware_diagram'
-  };
-
   useEffect(() => {
-    // This effect runs once on mount to check initial state from localStorage
+    const savedActiveKey = localStorage.getItem(ACTIVE_KEY_STORAGE);
+    if (savedActiveKey) {
+        const unlockedStatus = localStorage.getItem(`${UNLOCKED_KEY_PREFIX}_${savedActiveKey}`);
+        if (unlockedStatus === 'true') {
+            setActiveKey(savedActiveKey);
+            setIsLocked(false);
+        }
+    }
+
     const storedUnit = localStorage.getItem('temperatureUnit') as TemperatureUnit | null;
     if (storedUnit) setTemperatureUnitState(storedUnit);
 
@@ -97,22 +100,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
     const storedTheme = localStorage.getItem('theme') as Theme | null || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     setThemeState(storedTheme);
-
+    
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPromptEvent(event as BeforeInstallPromptEvent);
     };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-    
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   useEffect(() => {
-    // This effect handles applying the theme to the document
     if (typeof window !== 'undefined') {
         const root = window.document.documentElement;
         root.classList.remove('light', 'dark');
@@ -124,28 +121,27 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const triggerInstallPrompt = () => {
     if (installPromptEvent) {
       installPromptEvent.prompt();
-      installPromptEvent.userChoice.then(choiceResult => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the install prompt');
-        } else {
-          console.log('User dismissed the install prompt');
-        }
-        setInstallPromptEvent(null);
-      });
     }
   };
   
-  // Dummy auth functions
   const unlockApp = (key: string): boolean => {
-    console.log("Modo Demo: Acesso direto, chave ignorada.");
-    setIsLocked(false);
-    return true;
+    if (ACCESS_KEYS.includes(key)) {
+      localStorage.setItem(`${UNLOCKED_KEY_PREFIX}_${key}`, 'true');
+      localStorage.setItem(ACTIVE_KEY_STORAGE, key);
+      setActiveKey(key);
+      setIsLocked(false);
+      return true;
+    }
+    return false;
   };
 
   const lockApp = () => {
-     console.log("Modo Demo: Função de bloqueio desativada.");
-     // In demo mode, we might not want to re-lock the app, or we can just set it to locked
-     // For now, let's make it do nothing to prevent being locked out.
+    if (activeKey) {
+        localStorage.removeItem(`${UNLOCKED_KEY_PREFIX}_${activeKey}`);
+    }
+    localStorage.removeItem(ACTIVE_KEY_STORAGE);
+    setIsLocked(true);
+    setActiveKey(null);
   };
 
   const loadTranslations = useCallback(async (lang: LanguageCode) => {
@@ -171,12 +167,21 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const t = useCallback((key: string, fallback?: string, replacements?: Record<string, string | number>): string => {
     let text = translations[key] || fallback || key;
     if (replacements) {
-      for (const rKey in replacements) {
-        text = text.replace(new RegExp(`\\{${rKey}\\}`, 'g'), String(replacements[rKey]));
-      }
+      Object.entries(replacements).forEach(([rKey, value]) => {
+        text = text.replace(new RegExp(`\\{${rKey}\\}`, 'g'), String(value));
+      });
     }
     return text;
   }, [translations]);
+
+  const storageKeys = {
+    sensors: activeKey ? `users/${activeKey}/sensors` : '',
+    alerts: activeKey ? `users/${activeKey}/alerts` : '',
+    lots: activeKey ? `users/${activeKey}/lots` : '',
+    stock: activeKey ? `users/${activeKey}/stock` : '',
+    components: 'global_hardware_components',
+    diagram: 'global_hardware_diagram'
+  };
 
   return (
     <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp, lockApp, activeKey, storageKeys, installPromptEvent, triggerInstallPrompt }}>

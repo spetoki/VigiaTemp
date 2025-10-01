@@ -1,128 +1,117 @@
 
 'use server';
 
+import { getDb } from '@/lib/firebase';
 import type { Sensor, HistoricalDataPoint } from '@/types';
-import { simulateTemperatureUpdate } from '@/lib/mockData';
-import { v4 as uuidv4 } from 'uuid';
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 
-// Helper function to simulate network delay.
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// --- In-Memory Store for Demonstration ---
-let localSensors: Sensor[] = [
-    {
-        id: '1',
-        name: 'Estufa de Fermentação A',
-        location: 'Bloco 1, Nível Superior',
-        currentTemperature: 28.5,
-        highThreshold: 32,
-        lowThreshold: 25,
-        historicalData: [],
-        model: 'TermoX 5000',
-        macAddress: 'AB:CD:EF:12:34:56'
-    },
-    {
-        id: '2',
-        name: 'Secador de Sementes B',
-        location: 'Área de Secagem',
-        currentTemperature: 45.2,
-        highThreshold: 50,
-        lowThreshold: 40,
-        historicalData: [],
-        model: 'AgriSense X1'
-    },
-    {
-        id: '3',
-        name: 'Câmara Fria C',
-        location: 'Armazenamento',
-        currentTemperature: 5.1,
-        highThreshold: 8,
-        lowThreshold: 2,
-        historicalData: [],
-        model: 'TempGuard Standard'
-    },
-];
-
-// This function now uses the in-memory store and simulates real-time updates.
+// Função para obter sensores uma única vez
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
-    await sleep(200); // Simulate network delay
-    // Apply real-time simulation to the local data
-    localSensors = localSensors.map(s => ({
-        ...s,
-        currentTemperature: simulateTemperatureUpdate(s)
-    }));
-    return Promise.resolve(localSensors);
+    if (!collectionPath) return [];
+    try {
+        const db = getDb();
+        const sensorsCol = collection(db, collectionPath);
+        const sensorSnapshot = await getDocs(sensorsCol);
+        const sensorList = sensorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Sensor));
+        return sensorList;
+    } catch (error) {
+        console.error("Erro ao buscar sensores: ", error);
+        return [];
+    }
 }
 
 export async function addSensor(
     collectionPath: string, 
-    sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
+    sensorData: Omit<Sensor, 'id' | 'historicalData'>
 ): Promise<Sensor> {
-    await sleep(100);
-    const newSensor: Sensor = {
-        id: uuidv4(),
+    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    const db = getDb();
+    
+    // Converte campos que podem ser vazios para null antes de salvar
+    const dataToSave = {
         ...sensorData,
-        currentTemperature: 25, // Default starting temp
-        historicalData: []
+        ipAddress: sensorData.ipAddress || null,
+        macAddress: sensorData.macAddress || null,
+        model: sensorData.model || null,
     };
-    localSensors.push(newSensor);
-    return Promise.resolve(newSensor);
+
+    const docRef = await addDoc(collection(db, collectionPath), dataToSave);
+    
+    // Retorna o objeto completo, incluindo o novo ID
+    return {
+        id: docRef.id,
+        ...sensorData,
+        historicalData: [] // Inicia com dados históricos vazios
+    };
 }
 
 export async function updateSensor(
     collectionPath: string,
     sensorId: string,
-    sensorData: Partial<Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>>
+    sensorData: Partial<Omit<Sensor, 'id' | 'historicalData'>>
 ): Promise<void> {
-    await sleep(100);
-    const sensorIndex = localSensors.findIndex(s => s.id === sensorId);
-    if (sensorIndex !== -1) {
-        localSensors[sensorIndex] = { ...localSensors[sensorIndex], ...sensorData };
-    }
-    return Promise.resolve();
+    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    const db = getDb();
+    const sensorRef = doc(db, collectionPath, sensorId);
+    
+    // Converte campos que podem ser vazios para null antes de salvar
+    const dataToUpdate = {
+        ...sensorData,
+        ipAddress: sensorData.ipAddress || null,
+        macAddress: sensorData.macAddress || null,
+        model: sensorData.model || null,
+    };
+
+    await updateDoc(sensorRef, dataToUpdate);
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
-    await sleep(100);
-    localSensors = localSensors.filter(s => s.id !== sensorId);
-    return Promise.resolve();
+    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    const db = getDb();
+    await deleteDoc(doc(db, collectionPath, sensorId));
 }
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    const sensor = localSensors.find(s => s.id === sensorId);
-    if (!sensor) return Promise.resolve([]);
-
-    const data: HistoricalDataPoint[] = [];
-    const now = Date.now();
-    let steps;
-    let interval;
-
-    switch (timePeriod) {
-        case 'hour':
-            steps = 60;
-            interval = 60 * 1000;
-            break;
-        case 'week':
-            steps = 7 * 24;
-            interval = 60 * 60 * 1000;
-            break;
-        case 'month':
-            steps = 30 * 12; // every 2 hours
-            interval = 2 * 60 * 60 * 1000;
-            break;
-        case 'day':
-        default:
-            steps = 24 * 4; // every 15 minutes
-            interval = 15 * 60 * 1000;
-            break;
-    }
-
-    for (let i = 0; i < steps; i++) {
-        const timestamp = now - i * interval;
-        const dayCycle = Math.sin((timestamp % (24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000) * 2 * Math.PI);
-        const temperature = sensor.lowThreshold + ((sensor.highThreshold - sensor.lowThreshold) / 2) + (dayCycle * 5) + (Math.random() - 0.5) * 2;
-        data.push({ timestamp, temperature: parseFloat(temperature.toFixed(1)) });
-    }
+    if (!collectionPath) return [];
     
-    return Promise.resolve(data.reverse());
+    const db = getDb();
+    const historyCollectionRef = collection(db, `${collectionPath}/${sensorId}/historicalData`);
+    
+    try {
+        const querySnapshot = await getDocs(historyCollectionRef);
+        const data = querySnapshot.docs.map(doc => doc.data() as HistoricalDataPoint);
+        
+        // Simulação de dados se não houver dados reais
+        if (data.length === 0) {
+            console.log("Gerando dados históricos simulados pois não há dados reais.");
+            const sensorDoc = await getDoc(doc(db, collectionPath, sensorId));
+            if (!sensorDoc.exists()) return [];
+            const sensor = sensorDoc.data() as Sensor;
+
+            const simulatedData: HistoricalDataPoint[] = [];
+            const now = Date.now();
+            let steps;
+            let interval;
+
+            switch (timePeriod) {
+                case 'hour': steps = 60; interval = 60 * 1000; break;
+                case 'week': steps = 7 * 24; interval = 60 * 60 * 1000; break;
+                case 'month': steps = 30 * 12; interval = 2 * 60 * 60 * 1000; break;
+                case 'day': default: steps = 24 * 4; interval = 15 * 60 * 1000; break;
+            }
+
+            for (let i = 0; i < steps; i++) {
+                const timestamp = now - i * interval;
+                const dayCycle = Math.sin((timestamp % (24*60*60*1000)) / (24*60*60*1000) * 2 * Math.PI);
+                const temperature = sensor.lowThreshold + ((sensor.highThreshold - sensor.lowThreshold) / 2) + (dayCycle * 5) + (Math.random() - 0.5) * 2;
+                simulatedData.push({ timestamp, temperature });
+            }
+            return simulatedData.reverse();
+        }
+
+        return data.sort((a, b) => a.timestamp - b.timestamp);
+    } catch (error) {
+        console.error("Erro ao buscar dados históricos: ", error);
+        return [];
+    }
 }

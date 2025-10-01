@@ -1,49 +1,56 @@
 
 'use server';
 
+import { getDb } from '@/lib/firebase';
 import type { Alert } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
-
-// In-memory store for alerts, acting as a local database for demonstration purposes.
-let localAlerts: Alert[] = [];
-
-// Helper function to simulate network delay.
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 export async function getAlerts(collectionPath: string): Promise<Alert[]> {
-    await sleep(100); // Simulate async operation
-    return Promise.resolve(localAlerts.sort((a, b) => b.timestamp - a.timestamp));
+    if (!collectionPath) return [];
+    try {
+        const db = getDb();
+        const alertsCol = collection(db, collectionPath);
+        const alertSnapshot = await getDocs(alertsCol);
+        const alertList = alertSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alert));
+        return alertList.sort((a, b) => b.timestamp - a.timestamp);
+    } catch (error) {
+        console.error("Erro ao buscar alertas: ", error);
+        return [];
+    }
 }
 
 export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-    await sleep(50);
-    const newAlert: Alert = {
-        ...alertData,
-        id: uuidv4(),
-    };
-    localAlerts.push(newAlert);
-    return Promise.resolve(newAlert);
+    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    const db = getDb();
+    const docRef = await addDoc(collection(db, collectionPath), alertData);
+    return { id: docRef.id, ...alertData };
 }
 
 export async function updateAlert(collectionPath: string, alertId: string, updateData: Partial<Alert>): Promise<void> {
-    await sleep(50);
-    const alertIndex = localAlerts.findIndex(a => a.id === alertId);
-    if (alertIndex !== -1) {
-        localAlerts[alertIndex] = { ...localAlerts[alertIndex], ...updateData };
-    }
-    return Promise.resolve();
+    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    const db = getDb();
+    const alertRef = doc(db, collectionPath, alertId);
+    await updateDoc(alertRef, updateData);
 }
 
 export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>): Promise<void> {
-    await sleep(100);
-    localAlerts = localAlerts.map(alert => 
-        alertIds.includes(alert.id) ? { ...alert, ...updateData } : alert
-    );
-    return Promise.resolve();
+    if (!collectionPath || alertIds.length === 0) return;
+    const db = getDb();
+    const batch = writeBatch(db);
+    alertIds.forEach(id => {
+        const alertRef = doc(db, collectionPath, id);
+        batch.update(alertRef, updateData);
+    });
+    await batch.commit();
 }
 
 export async function deleteMultipleAlerts(collectionPath: string, alertIds: string[]): Promise<void> {
-    await sleep(100);
-    localAlerts = localAlerts.filter(alert => !alertIds.includes(alert.id));
-    return Promise.resolve();
+    if (!collectionPath || alertIds.length === 0) return;
+    const db = getDb();
+    const batch = writeBatch(db);
+    alertIds.forEach(id => {
+        const alertRef = doc(db, collectionPath, id);
+        batch.delete(alertRef);
+    });
+    await batch.commit();
 }

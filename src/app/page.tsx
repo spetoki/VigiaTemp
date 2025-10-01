@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SensorCard from '@/components/dashboard/SensorCard';
 import type { Sensor, Alert } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,10 +10,34 @@ import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { getSensors } from '@/services/sensor-service';
+import type { Unsubscribe } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
+
+// A função subscribeToSensors foi movida para este arquivo de cliente para resolver o erro de build.
+// Funções que estabelecem listeners em tempo real (onSnapshot) são inerentemente do lado do cliente.
+function subscribeToSensors(collectionPath: string, callback: (sensors: Sensor[]) => void): Unsubscribe | null {
+    if (!collectionPath) return null;
+    try {
+        const db = getDb();
+        const q = query(collection(db, collectionPath));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const sensors: Sensor[] = [];
+            querySnapshot.forEach((doc) => {
+                sensors.push({ id: doc.id, ...doc.data() } as Sensor);
+            });
+            callback(sensors);
+        });
+        return unsubscribe;
+    } catch (error) {
+        console.error("Erro ao se inscrever para atualizações de sensores:", error);
+        return null;
+    }
+}
 
 
 export default function DashboardPage() {
@@ -25,32 +49,34 @@ export default function DashboardPage() {
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
-  // Efeito para buscar os sensores e simular atualizações em tempo real
-  const fetchAndSetSensors = useCallback(async () => {
-      // Don't set loading to true on interval fetches
-      // setIsLoading(true); 
-      try {
-        const fetchedSensors = await getSensors(storageKeys.sensors);
-        setSensors(fetchedSensors);
-      } catch (error) {
-         toast({
-          title: "Erro ao Carregar Sensores",
-          description: "Não foi possível carregar os dados dos sensores.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }, [storageKeys.sensors, toast]);
-    
   useEffect(() => {
-    fetchAndSetSensors();
-    
-    const intervalId = setInterval(fetchAndSetSensors, 5000); // Busca por atualizações a cada 5 segundos
+    // Se a chave de armazenamento não estiver pronta, não faça nada.
+    if (!storageKeys.sensors) {
+        setIsLoading(true);
+        setSensors([]); // Limpa os sensores se a chave mudar (ex: logout)
+        return;
+    }
 
-    return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar o componente
-  }, [fetchAndSetSensors]);
+    // Se já houver uma inscrição, cancele-a antes de criar uma nova.
+    if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+    }
+
+    // Inicia o listener em tempo real
+    unsubscribeRef.current = subscribeToSensors(storageKeys.sensors, (updatedSensors) => {
+        setSensors(updatedSensors);
+        setIsLoading(false);
+    });
+
+    // Função de limpeza para cancelar a inscrição ao desmontar o componente
+    return () => {
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current();
+        }
+    };
+  }, [storageKeys.sensors]); // A dependência principal é storageKeys.sensors
 
 
   useEffect(() => {
@@ -99,6 +125,8 @@ export default function DashboardPage() {
     const checkAlerts = async () => {
         let currentAlerts: Alert[] = [];
         try {
+            // A busca de alertas agora é uma chamada única, não em tempo real,
+            // para evitar complexidade excessiva e chamadas desnecessárias ao DB.
             currentAlerts = await getAlerts(storageKeys.alerts);
         } catch (e) {
             console.warn("Could not fetch alerts, proceeding without them for this check.");
@@ -110,6 +138,7 @@ export default function DashboardPage() {
         sensors.forEach(sensor => {
             const status = getSensorStatus(sensor);
             if (status === 'critical' || status === 'warning') {
+                // Lógica para evitar alertas duplicados: verifica se já existe um alerta *não confirmado* para este sensor e nível.
                 const hasRecentUnacknowledgedAlert = currentAlerts.some(
                     alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
                 );
@@ -139,13 +168,25 @@ export default function DashboardPage() {
         });
         
         if (newAlertPromises.length > 0) {
-            await Promise.all(newAlertPromises);
+            try {
+                await Promise.all(newAlertPromises);
+                toast({
+                    title: 'Novos Alertas Gerados!',
+                    description: `${newAlertPromises.length} novo(s) alerta(s) foram criados.`,
+                });
+            } catch (error) {
+                 toast({
+                    title: 'Erro ao Criar Alerta',
+                    description: 'Não foi possível salvar os novos alertas no banco de dados.',
+                    variant: 'destructive',
+                });
+            }
         }
     };
 
     checkAlerts();
     
-  }, [sensors, isLoading, storageKeys.alerts, t, temperatureUnit]);
+  }, [sensors, isLoading, storageKeys.alerts, t, temperatureUnit, toast]);
 
   // This effect handles the continuous sound alert for critical sensors.
   useEffect(() => {
@@ -154,14 +195,11 @@ export default function DashboardPage() {
     const hasCriticalSensor = sensors.some(sensor => getSensorStatus(sensor) === 'critical');
 
     if (hasCriticalSensor && !isMuted) {
-      // Start an interval to play the sound every 5 seconds
       soundInterval = setInterval(() => {
         setSoundQueue(prevQueue => [...prevQueue, defaultCriticalSound]);
       }, 5000);
     }
 
-    // Cleanup function: this will be called when the component unmounts
-    // or when the dependencies (sensors, isMuted) change.
     return () => {
       if (soundInterval) {
         clearInterval(soundInterval);

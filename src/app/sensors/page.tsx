@@ -29,6 +29,11 @@ export default function SensorsPage() {
   const { t, storageKeys } = useSettings();
 
   const fetchSensors = useCallback(async () => {
+    if (!storageKeys.sensors) {
+        setIsLoading(false);
+        setSensors([]);
+        return;
+    };
     setIsLoading(true);
     try {
       const fetchedSensors = await getSensors(storageKeys.sensors);
@@ -78,16 +83,21 @@ export default function SensorsPage() {
     }
   };
 
-  const handleFormSubmit = async (data: SensorFormData) => {
+  const handleFormSubmit = async (data: Omit<Sensor, 'id' | 'historicalData'>) => {
+    const dataWithDefaults = {
+      ...data,
+      ipAddress: data.ipAddress || '',
+      macAddress: data.macAddress || '',
+      model: data.model || 'Não especificado',
+    };
+    
     if (editingSensor) {
-      // Update existing sensor
       try {
-        await updateSensor(storageKeys.sensors, editingSensor.id, data);
-        // We refetch all sensors to ensure the view is consistent with the in-memory store
-        fetchSensors();
+        await updateSensor(storageKeys.sensors, editingSensor.id, dataWithDefaults);
+        fetchSensors(); // Refetch
         toast({
           title: t('sensorsPage.toast.updated.title', "Sensor Atualizado"),
-          description: t('sensorsPage.toast.updated.description', "O sensor \"{sensorName}\" foi atualizado com sucesso.", { sensorName: data.name }),
+          description: t('sensorsPage.toast.updated.description', 'O sensor "{sensorName}" foi atualizado com sucesso.', { sensorName: data.name }),
         });
       } catch (error) {
         toast({
@@ -97,14 +107,12 @@ export default function SensorsPage() {
         });
       }
     } else {
-      // Add new sensor
       try {
-        await addSensor(storageKeys.sensors, data);
-        // We refetch all sensors to ensure the view is consistent with the in-memory store
-        fetchSensors();
+        await addSensor(storageKeys.sensors, dataWithDefaults);
+        fetchSensors(); // Refetch
         toast({
           title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),
-          description: t('sensorsPage.toast.added.description', "O sensor \"{sensorName}\" foi adicionado com sucesso.", { sensorName: data.name }),
+          description: t('sensorsPage.toast.added.description', 'O sensor "{sensorName}" foi adicionado com sucesso.', { sensorName: data.name }),
         });
       } catch (error) {
         toast({
