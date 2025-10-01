@@ -50,7 +50,6 @@ const formSchema = z.object({
   message: "O limite superior deve ser maior que o limite inferior",
   path: ["highThreshold"],
 }).refine(data => {
-    // Torna o macAddress obrigatório APENAS se o modelo for 'WiFi Generic'
     if (data.model === 'WiFi Generic' && (!data.macAddress || data.macAddress.trim() === '')) {
       return false;
     }
@@ -102,13 +101,10 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
     mode: "onChange",
   });
 
-  const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    const finalData = {
-      ...data,
-      lowThreshold: parseFloat(convertTemperature(data.lowThreshold, 'C', temperatureUnit).toFixed(1)),
-      highThreshold: parseFloat(convertTemperature(data.highThreshold, 'C', temperatureUnit).toFixed(1)),
-    };
-    onSubmit(finalData);
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
+    // A conversão para Celsius será feita na página principal,
+    // o serviço deve lidar com os dados brutos do formulário.
+    onSubmit(data);
   };
 
   const handleCheckConnection = async () => {

@@ -18,8 +18,8 @@ export interface Sensor {
   lowThreshold: number; // Always in Celsius
   historicalData: HistoricalDataPoint[];
   model?: string;
-  ipAddress?: string | null;
-  macAddress?: string | null;
+  ipAddress: string | null;
+  macAddress: string | null;
 }
 
 export interface Alert {
@@ -67,4 +67,3 @@ export interface User {
 }
 
 export type UserFormData = Omit<User, 'id' | 'createdAt'>;
-

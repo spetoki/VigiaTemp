@@ -4,6 +4,8 @@
 import { getDb } from '@/lib/firebase';
 import type { Sensor, HistoricalDataPoint } from '@/types';
 import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp } from 'firebase/firestore';
+import { SensorFormData } from '@/components/sensors/SensorForm';
+import { convertTemperature } from '@/lib/utils';
 
 // Função para obter sensores uma única vez
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
@@ -16,7 +18,6 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
             const data = doc.data();
             return { 
                 id: doc.id,
-                // Garantir que todos os campos esperados existam com valores padrão
                 name: data.name || 'Sensor Desconhecido',
                 location: data.location || 'Localização Desconhecida',
                 currentTemperature: data.currentTemperature ?? 0,
@@ -37,47 +38,56 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
 
 export async function addSensor(
     collectionPath: string, 
-    sensorData: Omit<Sensor, 'id' | 'currentTemperature' | 'historicalData'>
+    sensorData: SensorFormData
 ): Promise<Sensor> {
     if (!collectionPath) throw new Error("Caminho da coleção inválido.");
     const db = getDb();
     
-    // Converte campos que podem ser vazios para null antes de salvar
+    // Converte temperaturas do formulário para Celsius antes de salvar
+    const lowThresholdInC = convertTemperature(sensorData.lowThreshold, 'C', 'C');
+    const highThresholdInC = convertTemperature(sensorData.highThreshold, 'C', 'C');
+
     const dataToSave = {
-        ...sensorData,
-        // Garante que a temperatura inicial seja um número, o padrão é 25C
-        currentTemperature: 25,
-        // Garante que dados históricos sejam um array vazio
-        historicalData: [], 
+        name: sensorData.name,
+        location: sensorData.location,
+        model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        model: sensorData.model || 'Não especificado',
+        lowThreshold: lowThresholdInC,
+        highThreshold: highThresholdInC,
+        currentTemperature: 25, // Valor inicial padrão em Celsius
+        historicalData: [], 
     };
 
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
-    // Retorna o objeto completo, incluindo o novo ID e os padrões definidos
     return {
         id: docRef.id,
         ...dataToSave,
-    };
+    } as Sensor;
 }
 
 export async function updateSensor(
     collectionPath: string,
     sensorId: string,
-    sensorData: Partial<Omit<Sensor, 'id'>>
+    sensorData: Partial<SensorFormData>
 ): Promise<void> {
     if (!collectionPath) throw new Error("Caminho da coleção inválido.");
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
-    // Converte campos que podem ser vazios para null antes de salvar
-    const dataToUpdate = { ...sensorData };
-    if (dataToUpdate.ipAddress === '') {
+    const dataToUpdate: Partial<Sensor> = { ...sensorData };
+
+    if (sensorData.lowThreshold !== undefined) {
+        dataToUpdate.lowThreshold = convertTemperature(sensorData.lowThreshold, 'C', 'C');
+    }
+    if (sensorData.highThreshold !== undefined) {
+        dataToUpdate.highThreshold = convertTemperature(sensorData.highThreshold, 'C', 'C');
+    }
+    if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
     }
-    if (dataToUpdate.macAddress === '') {
+    if (sensorData.macAddress === '') {
         dataToUpdate.macAddress = null;
     }
 
@@ -101,13 +111,11 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
         const querySnapshot = await getDocs(historyCollectionRef);
         let data = querySnapshot.docs.map(doc => doc.data() as HistoricalDataPoint);
 
-        // Se não houver dados reais, gera dados simulados
         if (data.length === 0) {
             console.warn(`Gerando dados históricos SIMULADOS para o sensor ${sensorId} pois não há dados reais.`);
             const sensorDoc = await getDoc(doc(db, collectionPath, sensorId));
             if (!sensorDoc.exists()) return [];
             
-            // Força a tipagem aqui, pois sabemos que é um sensor se o documento existe
             const sensor = sensorDoc.data() as Omit<Sensor, 'id'>;
 
             const simulatedData: HistoricalDataPoint[] = [];
@@ -124,11 +132,10 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
 
             for (let i = 0; i < steps; i++) {
                 const timestamp = now - (steps - i) * interval;
-                // Simula um ciclo diário de temperatura
-                const dayCycle = Math.sin(((timestamp % 86400000) / 86400000) * 2 * Math.PI - Math.PI / 2); // Começa baixo, sobe, desce
+                const dayCycle = Math.sin(((timestamp % 86400000) / 86400000) * 2 * Math.PI - Math.PI / 2);
                 const baseTemp = (sensor.highThreshold + sensor.lowThreshold) / 2;
                 const amplitude = (sensor.highThreshold - sensor.lowThreshold) / 2;
-                const randomNoise = (Math.random() - 0.5) * 2; // ruído de +/- 1 grau
+                const randomNoise = (Math.random() - 0.5) * 2;
                 
                 const temperature = baseTemp + (dayCycle * amplitude * 0.7) + randomNoise;
                 
@@ -143,13 +150,3 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
         return [];
     }
 }
-
-// Esta função agora está movida para a página principal (src/app/page.tsx)
-// para funcionar corretamente no lado do cliente.
-/*
-export function subscribeToSensors(collectionPath: string, callback: (sensors: Sensor[]) => void): Unsubscribe | null {
-    // ...
-}
-*/
-
-    

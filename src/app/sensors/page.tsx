@@ -84,40 +84,32 @@ export default function SensorsPage() {
   };
 
   const handleFormSubmit = async (data: SensorFormData) => {
-    if (editingSensor) {
-      try {
+    try {
+      if (editingSensor) {
         await updateSensor(storageKeys.sensors, editingSensor.id, data);
-        fetchSensors(); // Refetch
         toast({
           title: t('sensorsPage.toast.updated.title', "Sensor Atualizado"),
           description: t('sensorsPage.toast.updated.description', 'O sensor "{sensorName}" foi atualizado com sucesso.', { sensorName: data.name }),
         });
-      } catch (error) {
-        toast({
-          title: t('sensorsPage.toast.updateError.title', "Erro ao Atualizar"),
-          description: t('sensorsPage.toast.updateError.description', "Não foi possível atualizar o sensor."),
-          variant: "destructive",
-        });
-      }
-    } else {
-      try {
-        // A função addSensor agora lida com os valores padrão e a limpeza dos dados
+      } else {
         await addSensor(storageKeys.sensors, data);
-        fetchSensors(); // Refetch
         toast({
           title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),
           description: t('sensorsPage.toast.added.description', 'O sensor "{sensorName}" foi adicionado com sucesso.', { sensorName: data.name }),
         });
-      } catch (error) {
-        toast({
-          title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
-          description: t('sensorsPage.toast.addError.description', "Não foi possível adicionar o sensor."),
-          variant: "destructive",
-        });
       }
+      fetchSensors();
+      setIsFormOpen(false);
+      setEditingSensor(null);
+    } catch (error) {
+        const title = editingSensor ? t('sensorsPage.toast.updateError.title', "Erro ao Atualizar") : t('sensorsPage.toast.addError.title', "Erro ao Adicionar");
+        const description = error instanceof Error ? error.message : (editingSensor ? t('sensorsPage.toast.updateError.description', "Não foi possível atualizar o sensor.") : t('sensorsPage.toast.addError.description', "Não foi possível adicionar o sensor."));
+        toast({
+            title,
+            description,
+            variant: "destructive",
+        });
     }
-    setIsFormOpen(false);
-    setEditingSensor(null);
   };
   
   if (isLoading) {
