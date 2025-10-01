@@ -24,8 +24,8 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 lowThreshold: data.lowThreshold ?? 0,
                 historicalData: data.historicalData || [],
                 model: data.model || 'Não especificado',
-                ipAddress: data.ipAddress || undefined,
-                macAddress: data.macAddress || undefined,
+                ipAddress: data.ipAddress || null,
+                macAddress: data.macAddress || null,
             } as Sensor
         });
         return sensorList;
@@ -59,7 +59,7 @@ export async function addSensor(
     // Retorna o objeto completo, incluindo o novo ID e os padrões definidos
     return {
         id: docRef.id,
-        ...dataToSave
+        ...dataToSave,
     };
 }
 
