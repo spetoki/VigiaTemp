@@ -50,13 +50,13 @@ const formSchema = z.object({
   message: "O limite superior deve ser maior que o limite inferior",
   path: ["highThreshold"],
 }).refine(data => {
-    // Make macAddress required if model is 'WiFi Generic'
+    // Torna o macAddress obrigatório APENAS se o modelo for 'WiFi Generic'
     if (data.model === 'WiFi Generic' && (!data.macAddress || data.macAddress.trim() === '')) {
       return false;
     }
     return true;
 }, {
-    message: "O endereço MAC é obrigatório para sensores do tipo WiFi.",
+    message: "O endereço MAC é obrigatório para sensores do tipo 'WiFi Generic'.",
     path: ["macAddress"],
 });
 
