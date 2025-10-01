@@ -3,6 +3,10 @@
 
 import type { TraceabilityData, TraceabilityFormData } from '@/types';
 
+// Export the types so they can be imported by other modules
+export type { TraceabilityData, TraceabilityFormData };
+
+
 // Emula um banco de dados de lotes na memória.
 let inMemoryLots: TraceabilityData[] = [];
 
