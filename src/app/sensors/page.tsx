@@ -83,17 +83,10 @@ export default function SensorsPage() {
     }
   };
 
-  const handleFormSubmit = async (data: Omit<Sensor, 'id' | 'historicalData'>) => {
-    const dataWithDefaults = {
-      ...data,
-      ipAddress: data.ipAddress || '',
-      macAddress: data.macAddress || '',
-      model: data.model || 'Não especificado',
-    };
-    
+  const handleFormSubmit = async (data: SensorFormData) => {
     if (editingSensor) {
       try {
-        await updateSensor(storageKeys.sensors, editingSensor.id, dataWithDefaults);
+        await updateSensor(storageKeys.sensors, editingSensor.id, data);
         fetchSensors(); // Refetch
         toast({
           title: t('sensorsPage.toast.updated.title', "Sensor Atualizado"),
@@ -108,7 +101,8 @@ export default function SensorsPage() {
       }
     } else {
       try {
-        await addSensor(storageKeys.sensors, dataWithDefaults);
+        // A função addSensor agora lida com os valores padrão e a limpeza dos dados
+        await addSensor(storageKeys.sensors, data);
         fetchSensors(); // Refetch
         toast({
           title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),
