@@ -10,11 +10,6 @@ interface Translations {
 
 type Theme = 'light' | 'dark';
 
-// This is the default key used if the text file isn't available.
-const DEFAULT_ACCESS_KEY = '8352'; 
-const UNLOCKED_KEY_PREFIX = 'vigiatemp_unlocked_status';
-const ACTIVE_KEY_STORAGE = 'vigiatemp_active_key';
-
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<{
@@ -71,50 +66,27 @@ async function importLocale(locale: LanguageCode): Promise<Translations> {
   }
 }
 
-// NOTE: ACCESS_KEYS are defined in a separate file (chaves-de-desbloqueio.txt) which is read server-side
-// and is not directly accessible here to avoid client-side fs module errors.
-// The unlockApp function now relies on a hardcoded list for demonstration.
-// In a real production scenario, this validation would happen on a server/API endpoint.
-const ACCESS_KEYS: string[] = ["8352", "5819", "2743", "9067", "1482", "7539", "4201", "6915", "0378", "9254", "3160", "5786", "8429", "1093", "7248", "4961", "0527", "6380", "9714", "2805", "5493", "8176", "1620", "7058", "4392", "0817", "6534", "9281", "3706", "5149", "8823", "2357", "7904", "4618", "0275", "6193", "9540", "3081", "5627", "8394", "1850", "7409", "4126", "0783", "6451", "9808", "3265", "5932", "8609", "2176", "7731", "4488", "0045", "6712", "9379", "2846", "5513", "8180", "1647", "7214", "4881", "0438", "6005", "9672", "3139", "5706", "8373", "1840", "7407", "4974", "0541", "6108", "9775", "3242", "5809", "8476", "1943", "7510", "4077", "0644", "6211", "9878", "3345", "5912", "8579", "2046", "7613", "4180", "0747", "6314", "9981", "3448", "5015", "8682", "2149", "7716", "4283", "0850", "6417", "9084", "1122"];
-
-
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [temperatureUnit, setTemperatureUnitState] = useState<TemperatureUnit>('C');
   const [language, setLanguageState] = useState<LanguageCode>('pt-BR');
   const [theme, setThemeState] = useState<Theme>('light');
   const [translations, setTranslations] = useState<Translations>({});
-  const [isLocked, setIsLocked] = useState<boolean>(true);
-  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState<boolean>(false); // App starts unlocked in demo mode
+  const [activeKey, setActiveKey] = useState<string | null>('demo_user'); // Dummy key for demo mode
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
-
+  // No-op storage keys since Firebase is removed.
   const storageKeys = {
-    sensors: activeKey ? `users/${activeKey}/sensors` : '',
-    alerts: activeKey ? `users/${activeKey}/alerts` : '',
-    lots: activeKey ? `users/${activeKey}/lots` : '',
-    stock: activeKey ? `users/${activeKey}/stock` : '',
-    components: activeKey ? `hardware_components_${activeKey}` : 'hardware_components',
-    diagram: activeKey ? `hardware_diagram_${activeKey}` : 'hardware_diagram'
+    sensors: 'demo',
+    alerts: 'demo',
+    lots: 'demo',
+    stock: 'demo',
+    components: 'demo_hardware_components',
+    diagram: 'demo_hardware_diagram'
   };
 
   useEffect(() => {
     // This effect runs once on mount to check initial state from localStorage
-    const savedActiveKey = localStorage.getItem(ACTIVE_KEY_STORAGE);
-    
-    if (savedActiveKey) {
-        const unlockedStatus = localStorage.getItem(`${UNLOCKED_KEY_PREFIX}_${savedActiveKey}`);
-        if (unlockedStatus === 'true') {
-            setActiveKey(savedActiveKey); // Set key first
-            setIsLocked(false); // Then unlock
-        } else {
-            setIsLocked(true);
-            setActiveKey(null);
-            localStorage.removeItem(ACTIVE_KEY_STORAGE);
-        }
-    } else {
-        setIsLocked(true);
-    }
-    
     const storedUnit = localStorage.getItem('temperatureUnit') as TemperatureUnit | null;
     if (storedUnit) setTemperatureUnitState(storedUnit);
 
@@ -163,24 +135,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
+  // Dummy auth functions
   const unlockApp = (key: string): boolean => {
-    if (ACCESS_KEYS.includes(key)) {
-      localStorage.setItem(`${UNLOCKED_KEY_PREFIX}_${key}`, 'true');
-      localStorage.setItem(ACTIVE_KEY_STORAGE, key);
-      setActiveKey(key); // Set key first
-      setIsLocked(false); // Then unlock
-      return true;
-    }
-    return false;
+    console.log("Modo Demo: Acesso direto, chave ignorada.");
+    setIsLocked(false);
+    return true;
   };
 
   const lockApp = () => {
-    if (activeKey) {
-        localStorage.removeItem(`${UNLOCKED_KEY_PREFIX}_${activeKey}`);
-    }
-    localStorage.removeItem(ACTIVE_KEY_STORAGE);
-    setIsLocked(true);
-    setActiveKey(null);
+     console.log("Modo Demo: Função de bloqueio desativada.");
+     // In demo mode, we might not want to re-lock the app, or we can just set it to locked
+     // For now, let's make it do nothing to prevent being locked out.
   };
 
   const loadTranslations = useCallback(async (lang: LanguageCode) => {

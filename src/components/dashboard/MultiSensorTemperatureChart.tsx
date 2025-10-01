@@ -79,7 +79,7 @@ export default function MultiSensorTemperatureChart({ sensors, collectionPath }:
   }, [sensors]);
   
   const fetchAndProcessData = useCallback(async () => {
-    if (!collectionPath || displayedSensors.length === 0) {
+    if (displayedSensors.length === 0) {
       setChartData([]);
       setIsLoading(false);
       return;

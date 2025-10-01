@@ -1,85 +1,56 @@
 
 'use server';
 
-import { getDb } from '@/lib/firebase';
 import type { Sensor, HistoricalDataPoint } from '@/types';
-import {
-  collection,
-  doc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  DocumentData,
-  QueryDocumentSnapshot,
-  Timestamp,
-  query,
-  orderBy,
-  limit,
-  getDoc,
-  writeBatch,
-} from 'firebase/firestore';
+import { demoSensors, simulateTemperatureUpdate } from '@/lib/mockData';
 
-// Helper function to convert a Firestore document to a Sensor object
-const sensorFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): Sensor => {
-    const data = doc.data();
-    return {
-        id: doc.id,
-        name: data.name,
-        location: data.location,
-        currentTemperature: data.currentTemperature || 0,
-        highThreshold: data.highThreshold,
-        lowThreshold: data.lowThreshold,
-        model: data.model,
-        ipAddress: data.ipAddress,
-        macAddress: data.macAddress,
-        // historicalData is now fetched from a subcollection
-        historicalData: [], 
-    };
-};
+// Emula um banco de dados na memória. Os dados são perdidos ao recarregar a página.
+let inMemorySensors: Sensor[] = [...demoSensors];
+
+// Inicializa dados históricos de demonstração
+inMemorySensors.forEach(sensor => {
+    const data = [];
+    const now = Date.now();
+    for (let i = 0; i < 24 * 7; i++) { // 7 dias de dados por hora
+      const timestamp = now - i * 60 * 60 * 1000;
+      const dayCycle = Math.sin((timestamp % (24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000) * 2 * Math.PI);
+      const temperature = sensor.lowThreshold + ((sensor.highThreshold - sensor.lowThreshold) / 2) + (dayCycle * 5) + (Math.random() - 0.5) * 2;
+      data.push({ timestamp, temperature: parseFloat(temperature.toFixed(1)) });
+    }
+    sensor.historicalData = data.reverse();
+});
+
+// Simula atualizações de temperatura em tempo real
+setInterval(() => {
+    inMemorySensors = inMemorySensors.map(sensor => ({
+        ...sensor,
+        currentTemperature: simulateTemperatureUpdate(sensor),
+        historicalData: [
+            ...sensor.historicalData.slice(1),
+            { timestamp: Date.now(), temperature: sensor.currentTemperature }
+        ]
+    }));
+}, 5000); // Atualiza a cada 5 segundos
 
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getSensors: Caminho da coleção inválido. Retornando lista de sensores vazia.", collectionPath);
-        return [];
-    }
-    try {
-        const db = getDb();
-        const sensorsCol = collection(db, collectionPath);
-        const q = query(sensorsCol, orderBy("name", "asc"));
-        const sensorSnapshot = await getDocs(q);
-        
-        return sensorSnapshot.docs.map(sensorFromDoc);
-    } catch (error) {
-        // Se o erro for 'permission-denied' ou similar, o ideal é logar e retornar vazio.
-        console.error("Erro ao buscar sensores do Firestore:", error);
-        // Retorna array vazio em caso de erro para não quebrar a UI
-        return [];
-    }
+    console.log("Modo Demo: Retornando sensores da memória.");
+    // Ignora collectionPath e retorna os dados em memória
+    return Promise.resolve(inMemorySensors);
 }
 
 export async function addSensor(
     collectionPath: string, 
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-      throw new Error("Caminho da coleção é inválido. Não é possível adicionar o sensor.");
-    }
-
-    const db = getDb();
-    const sensorsCol = collection(db, collectionPath);
-    const newSensorPayload = {
+    console.log("Modo Demo: Adicionando sensor na memória.");
+    const newSensor: Sensor = {
         ...sensorData,
-        currentTemperature: 25, // Default starting temperature
+        id: `sensor-${Date.now()}`,
+        currentTemperature: 25,
+        historicalData: []
     };
-    
-    const docRef = await addDoc(sensorsCol, newSensorPayload);
-
-    return {
-        ...newSensorPayload,
-        id: docRef.id,
-        historicalData: [],
-    };
+    inMemorySensors.unshift(newSensor);
+    return Promise.resolve(newSensor);
 }
 
 export async function updateSensor(
@@ -87,43 +58,24 @@ export async function updateSensor(
     sensorId: string,
     sensorData: Partial<Sensor>
 ): Promise<void> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-      throw new Error("Caminho da coleção é inválido. Não é possível atualizar o sensor.");
-    }
-    const db = getDb();
-    const sensorDoc = doc(db, collectionPath, sensorId);
-    await updateDoc(sensorDoc, sensorData as DocumentData);
+    console.log(`Modo Demo: Atualizando sensor ${sensorId} na memória.`);
+    inMemorySensors = inMemorySensors.map(sensor => 
+        sensor.id === sensorId ? { ...sensor, ...sensorData } : sensor
+    );
+    return Promise.resolve();
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-      throw new Error("Caminho da coleção é inválido. Não é possível excluir o sensor.");
-    }
-    const db = getDb();
-    const sensorDoc = doc(db, collectionPath, sensorId);
-    await deleteDoc(sensorDoc);
+    console.log(`Modo Demo: Deletando sensor ${sensorId} da memória.`);
+    inMemorySensors = inMemorySensors.filter(sensor => sensor.id !== sensorId);
+    return Promise.resolve();
 }
 
-
-export async function addHistoricalData(collectionPath: string, sensorId: string, dataPoint: HistoricalDataPoint): Promise<void> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-      throw new Error("Caminho da coleção é inválido. Não é possível salvar o histórico.");
-    }
-    const db = getDb();
-    const historyCollection = collection(db, `${collectionPath}/${sensorId}/historicalData`);
-    await addDoc(historyCollection, {
-        ...dataPoint,
-        timestamp: Timestamp.fromMillis(dataPoint.timestamp),
-    });
-}
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getHistoricalData: Caminho da coleção inválido. Retornando lista vazia.", collectionPath);
-        return [];
-    }
+    const sensor = inMemorySensors.find(s => s.id === sensorId);
+    if (!sensor) return [];
 
-    const db = getDb();
     const now = Date.now();
     let startTime: number;
 
@@ -143,28 +95,5 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
             break;
     }
 
-    try {
-        const historyCollectionPath = `${collectionPath}/${sensorId}/historicalData`;
-        const historyCollection = collection(db, historyCollectionPath);
-        const q = query(
-            historyCollection, 
-            orderBy("timestamp", "desc"),
-            limit(5000) // Limit to the last 5000 entries to manage performance
-        );
-        const snapshot = await getDocs(q);
-        
-        return snapshot.docs
-            .map(doc => {
-                const data = doc.data();
-                return {
-                    timestamp: (data.timestamp as Timestamp).toMillis(),
-                    temperature: data.temperature
-                } as HistoricalDataPoint;
-            })
-            .filter(point => point.timestamp >= startTime) // Filter by time period after fetching
-            .sort((a, b) => a.timestamp - b.timestamp); // Sort ascending for the chart
-    } catch (error) {
-        console.error(`Erro ao buscar dados históricos para o sensor ${sensorId}:`, error);
-        return [];
-    }
+    return sensor.historicalData.filter(point => point.timestamp >= startTime);
 }

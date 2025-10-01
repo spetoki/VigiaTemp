@@ -1,88 +1,22 @@
 
 'use server';
 
-import { getDb } from '@/lib/firebase';
-import {
-  collection,
-  getDocs,
-  addDoc,
-  DocumentData,
-  QueryDocumentSnapshot,
-  Timestamp,
-  query,
-  orderBy,
-  doc,
-  deleteDoc,
-} from 'firebase/firestore';
+import type { TraceabilityData, TraceabilityFormData } from '@/types';
 
-
-// The data structure used within the application
-export interface TraceabilityData {
-  id: string;
-  createdAt: string; // Stored as ISO string
-  lotDescription: string;
-  name: string;
-  wetCocoaWeight: number;
-  dryCocoaWeight: number;
-  fermentationTime: number;
-  dryingTime: number;
-  isoClassification: string;
-}
-
-// The data structure received from the form
-export interface TraceabilityFormData {
-  lotDescription: string;
-  name: string;
-  wetCocoaWeight: string;
-  dryCocoaWeight: string;
-  fermentationTime: string;
-  dryingTime: string;
-  isoClassification: string;
-}
-
-
-const lotFromDoc = (doc: QueryDocumentSnapshot<DocumentData>): TraceabilityData => {
-    const data = doc.data();
-    return {
-        id: doc.id,
-        createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
-        lotDescription: data.lotDescription || '',
-        name: data.name,
-        wetCocoaWeight: data.wetCocoaWeight || 0,
-        dryCocoaWeight: data.dryCocoaWeight || 0,
-        fermentationTime: data.fermentationTime || 0,
-        dryingTime: data.dryingTime || 0,
-        isoClassification: data.isoClassification,
-    };
-};
+// Emula um banco de dados de lotes na memória.
+let inMemoryLots: TraceabilityData[] = [];
 
 export async function getLots(collectionPath: string): Promise<TraceabilityData[]> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-        console.warn("getLots: Caminho da coleção inválido. Retornando lista de lotes vazia.", collectionPath);
-        return [];
-    }
-    try {
-        const db = getDb();
-        const lotsCol = collection(db, collectionPath);
-        const q = query(lotsCol, orderBy("createdAt", "desc"));
-        const lotSnapshot = await getDocs(q);
-        return lotSnapshot.docs.map(lotFromDoc);
-    } catch (error) {
-        console.error("Erro ao buscar lotes do Firestore:", error);
-        return [];
-    }
+    console.log("Modo Demo: Retornando lotes da memória.");
+    return Promise.resolve(inMemoryLots.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
 }
 
 export async function addLot(collectionPath: string, lotData: TraceabilityFormData): Promise<TraceabilityData> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-        throw new Error("Caminho da coleção é inválido. Não é possível adicionar o lote.");
-    }
-
-    const db = getDb();
-    const lotsCol = collection(db, collectionPath);
+    console.log("Modo Demo: Adicionando lote na memória.");
     
-    // Create a clean data object to be saved, converting strings to numbers
-    const dataToSave: Omit<TraceabilityData, 'id' | 'createdAt'> & { createdAt: Timestamp } = {
+    const newLot: TraceabilityData = {
+        id: `lot-${Date.now()}`,
+        createdAt: new Date().toISOString(),
         name: lotData.name,
         lotDescription: lotData.lotDescription,
         wetCocoaWeight: parseFloat(lotData.wetCocoaWeight) || 0,
@@ -90,38 +24,15 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
         fermentationTime: parseInt(lotData.fermentationTime, 10) || 0,
         dryingTime: parseInt(lotData.dryingTime, 10) || 0,
         isoClassification: lotData.isoClassification,
-        createdAt: Timestamp.now(),
     };
     
-    // Ensure no undefined values are sent to Firestore
-    Object.keys(dataToSave).forEach(key => {
-        const dataKey = key as keyof typeof dataToSave;
-        if (dataToSave[dataKey] === undefined) {
-            delete dataToSave[dataKey];
-        }
-    });
-
-    const docRef = await addDoc(lotsCol, dataToSave as DocumentData);
+    inMemoryLots.unshift(newLot);
     
-    return {
-        id: docRef.id,
-        createdAt: dataToSave.createdAt.toDate().toISOString(),
-        name: dataToSave.name,
-        lotDescription: dataToSave.lotDescription,
-        wetCocoaWeight: dataToSave.wetCocoaWeight,
-        dryCocoaWeight: dataToSave.dryCocoaWeight,
-        fermentationTime: dataToSave.fermentationTime,
-        dryingTime: dataToSave.dryingTime,
-        isoClassification: dataToSave.isoClassification,
-    };
+    return Promise.resolve(newLot);
 }
 
-
 export async function deleteLot(collectionPath: string, lotId: string): Promise<void> {
-    if (!collectionPath || !collectionPath.startsWith('users/')) {
-        throw new Error("Caminho da coleção é inválido. Não é possível excluir o lote.");
-    }
-    const db = getDb();
-    const lotDoc = doc(db, collectionPath, lotId);
-    await deleteDoc(lotDoc);
+    console.log(`Modo Demo: Deletando lote ${lotId} da memória.`);
+    inMemoryLots = inMemoryLots.filter(lot => lot.id !== lotId);
+    return Promise.resolve();
 }

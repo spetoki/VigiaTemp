@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import type { Sensor } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -19,15 +18,6 @@ export default function BluetoothDiscoveryPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleScan = async () => {
-    if (!storageKeys.sensors) {
-        toast({
-            title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
-            description: "Chave de acesso não encontrada. Não é possível adicionar o sensor.",
-            variant: "destructive",
-        });
-        return;
-    }
-
     if (typeof navigator === 'undefined' || !navigator.bluetooth) {
       setError(t('bluetoothPage.error.notSupported', 'A API de Bluetooth não é suportada neste navegador.'));
       setSuccessMessage(null);

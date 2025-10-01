@@ -6,7 +6,7 @@ import type { Sensor } from '@/types';
 import MultiSensorTemperatureChart from '@/components/dashboard/MultiSensorTemperatureChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart, Loader2 } from 'lucide-react';
+import { LineChart } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { getSensors } from '@/services/sensor-service';
 import { useToast } from '@/hooks/use-toast';
@@ -18,11 +18,6 @@ export default function SensorChartsPage() {
   const { toast } = useToast();
 
   const fetchSensors = useCallback(async () => {
-    if (!storageKeys.sensors) {
-        setIsLoading(false);
-        setSensors([]);
-        return;
-    }
     setIsLoading(true);
     try {
       const fetchedSensors = await getSensors(storageKeys.sensors);
@@ -41,13 +36,8 @@ export default function SensorChartsPage() {
   }, [storageKeys.sensors, toast]);
 
   useEffect(() => {
-    if (storageKeys.sensors) {
-        fetchSensors();
-    } else {
-        setIsLoading(false);
-        setSensors([]);
-    }
-  }, [fetchSensors, storageKeys.sensors]);
+    fetchSensors();
+  }, [fetchSensors]);
 
   const renderContent = () => {
     if (isLoading) {
@@ -72,20 +62,6 @@ export default function SensorChartsPage() {
           </CardContent>
         </Card>
       );
-    }
-    
-    // Ensure storageKeys.sensors is valid before rendering the chart component
-    if (!storageKeys.sensors) {
-        return (
-             <Card>
-              <CardHeader>
-                <CardTitle className="text-destructive">Erro de Configuração</CardTitle>
-                <CardDescription>
-                    A chave de acesso do usuário não foi encontrada. Não é possível carregar os dados dos gráficos.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-        );
     }
 
     return (

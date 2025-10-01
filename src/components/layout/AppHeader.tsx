@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, LogOut, Usb, FileCode2, Puzzle, Info } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, Info, FileCode2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -11,39 +11,24 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Separator } from '../ui/separator';
 
-const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, className }: {
+const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, className, onClick }: {
   href: string;
   labelKey: string;
   icon: React.ElementType;
   defaultLabel: string;
   isMobile?: boolean;
   className?: string;
+  onClick?: () => void;
 }) => {
   const { t } = useSettings();
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false); // Local state for mobile menu link clicks
 
   return (
     <Link
       href={href}
-      onClick={() => {
-        if (isMobile && isMobileMenuOpen) {
-          setIsMobileMenuOpen(false);
-        }
-      }}
+      onClick={onClick}
       className={cn(
         "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
         pathname === href
@@ -61,10 +46,9 @@ const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, className
 }
 
 export default function AppHeader() {
-  const { temperatureUnit, setTemperatureUnit, t, lockApp } = useSettings();
+  const { temperatureUnit, setTemperatureUnit, t } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  // Dashboard link is now handled separately
   const mainNavItems = [
     { href: '/alerts', labelKey: 'nav.alerts', icon: Bell, defaultLabel: 'Alertas' },
     { href: '/sensors', labelKey: 'nav.sensors', icon: Settings, defaultLabel: 'Sensores' },
@@ -81,56 +65,21 @@ export default function AppHeader() {
 
   const appInfoNavItems = [
       { href: '/about', labelKey: 'nav.about', icon: Info, defaultLabel: 'Sobre o App' },
-  ]
+  ];
 
-  const settingsAndLogout = [
+  const settingsItems = [
      { href: '/system-settings', labelKey: 'nav.systemSettings', icon: SlidersHorizontal, defaultLabel: 'Configurações' },
   ];
   
-  const MobileNavLink = ({ href, labelKey, icon: Icon, defaultLabel }: {
-    href: string;
-    labelKey: string;
-    icon: React.ElementType;
-    defaultLabel: string;
-  }) => (
+  const MobileNavLink = (props: React.ComponentProps<typeof NavLink>) => (
      <NavLink 
-      href={href}
-      labelKey={labelKey}
-      icon={Icon}
-      defaultLabel={defaultLabel}
+      {...props}
       isMobile
+      onClick={() => setIsMobileMenuOpen(false)}
       className="text-base w-full justify-start"
      />
   );
   
-  const LogoutButton = ({ isMobile }: { isMobile?: boolean }) => (
-     <AlertDialog>
-        <AlertDialogTrigger asChild>
-           <button className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors text-foreground/70 hover:text-foreground hover:bg-destructive/10",
-                 isMobile && "text-base w-full justify-start"
-            )}>
-              <LogOut className="h-5 w-5" />
-              {t('nav.logout', 'Sair')}
-            </button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>{t('logoutDialog.title', 'Confirmar Saída')}</AlertDialogTitle>
-                <AlertDialogDescription>
-                    {t('logoutDialog.description', 'Tem certeza de que deseja sair? Isso irá bloquear o aplicativo e você precisará inserir uma chave de acesso para entrar novamente.')}
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>{t('logoutDialog.cancel', 'Cancelar')}</AlertDialogCancel>
-                <AlertDialogAction onClick={lockApp} className="bg-destructive hover:bg-destructive/90">
-                    {t('nav.logout', 'Sair')}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
-  );
-
   const NavMenu = () => (
      <div>
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -160,8 +109,7 @@ export default function AppHeader() {
                     </div>
                     <Separator />
                     <div className="flex flex-col space-y-1">
-                       {settingsAndLogout.map(item => <MobileNavLink key={item.href} {...item} />)}
-                      <LogoutButton isMobile />
+                       {settingsItems.map(item => <MobileNavLink key={item.href} {...item} />)}
                     </div>
                 </div>
           </SheetContent>

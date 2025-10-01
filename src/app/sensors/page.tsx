@@ -29,12 +29,6 @@ export default function SensorsPage() {
   const { t, storageKeys } = useSettings();
 
   const fetchSensors = useCallback(async () => {
-    // Apenas busca se a chave de armazenamento estiver pronta e válida
-    if (!storageKeys.sensors) {
-      setIsLoading(false);
-      setSensors([]);
-      return;
-    }
     setIsLoading(true);
     try {
       const fetchedSensors = await getSensors(storageKeys.sensors);
@@ -43,7 +37,7 @@ export default function SensorsPage() {
       console.error("Falha ao buscar sensores:", error);
       toast({
         title: t('sensorsPage.toast.fetchError.title', "Erro ao Buscar Sensores"),
-        description: t('sensorsPage.toast.fetchError.description', "Não foi possível carregar os sensores do banco de dados."),
+        description: t('sensorsPage.toast.fetchError.description', "Não foi possível carregar os sensores."),
         variant: "destructive",
       });
       setSensors([]);
@@ -53,15 +47,8 @@ export default function SensorsPage() {
   }, [storageKeys.sensors, t, toast]);
 
   useEffect(() => {
-    // O fetch é chamado apenas quando storageKeys.sensors muda (de nulo para um valor)
-    if (storageKeys.sensors) {
-        fetchSensors();
-    } else {
-        // Se a chave não estiver disponível (por exemplo, no carregamento inicial), não faça nada.
-        setIsLoading(false);
-        setSensors([]);
-    }
-  }, [fetchSensors, storageKeys.sensors]);
+    fetchSensors();
+  }, [fetchSensors]);
 
   const handleAddSensor = () => {
     setEditingSensor(null);
@@ -74,7 +61,6 @@ export default function SensorsPage() {
   };
 
   const handleDeleteSensor = async (sensorId: string) => {
-    if (!storageKeys.sensors) return;
     try {
       await deleteSensor(storageKeys.sensors, sensorId);
       setSensors(prevSensors => prevSensors.filter(s => s.id !== sensorId));
@@ -93,15 +79,12 @@ export default function SensorsPage() {
   };
 
   const handleFormSubmit = async (data: SensorFormData) => {
-    if (!storageKeys.sensors) return;
-
     if (editingSensor) {
       // Update existing sensor
       try {
         await updateSensor(storageKeys.sensors, editingSensor.id, data);
-        setSensors(prevSensors => 
-          prevSensors.map(s => s.id === editingSensor.id ? { ...s, ...data } : s)
-        );
+        // We refetch all sensors to ensure the view is consistent with the in-memory store
+        fetchSensors();
         toast({
           title: t('sensorsPage.toast.updated.title', "Sensor Atualizado"),
           description: t('sensorsPage.toast.updated.description', "O sensor \"{sensorName}\" foi atualizado com sucesso.", { sensorName: data.name }),
@@ -116,8 +99,9 @@ export default function SensorsPage() {
     } else {
       // Add new sensor
       try {
-        const newSensor = await addSensor(storageKeys.sensors, data);
-        setSensors(prevSensors => [newSensor, ...prevSensors]);
+        await addSensor(storageKeys.sensors, data);
+        // We refetch all sensors to ensure the view is consistent with the in-memory store
+        fetchSensors();
         toast({
           title: t('sensorsPage.toast.added.title', "Sensor Adicionado"),
           description: t('sensorsPage.toast.added.description', "O sensor \"{sensorName}\" foi adicionado com sucesso.", { sensorName: data.name }),

@@ -22,12 +22,6 @@ export default function DataAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!storageKeys.sensors || !storageKeys.alerts) {
-        setIsLoading(false);
-        setSensors([]);
-        setAlerts([]);
-        return;
-    }
     setIsLoading(true);
     try {
       const [fetchedSensors, fetchedAlerts] = await Promise.all([
@@ -51,14 +45,8 @@ export default function DataAnalysisPage() {
   }, [storageKeys.sensors, storageKeys.alerts, toast]);
 
   useEffect(() => {
-    if (storageKeys.sensors && storageKeys.alerts) {
-        fetchData();
-    } else {
-        setIsLoading(false);
-        setSensors([]);
-        setAlerts([]);
-    }
-  }, [fetchData, storageKeys.sensors, storageKeys.alerts]);
+    fetchData();
+  }, [fetchData]);
   
   const alertsByDay = useMemo(() => {
     return alerts.reduce((acc, alert) => {

@@ -31,10 +31,6 @@ export default function WifiDiscoveryPage() {
   const [addedMacs, setAddedMacs] = useState<Set<string>>(new Set());
   
   const fetchExistingSensors = useCallback(async () => {
-    if (!storageKeys.sensors) {
-        setAddedMacs(new Set());
-        return;
-    };
     try {
         const existingSensors = await getSensors(storageKeys.sensors);
         const existingMacs = new Set(existingSensors.map(s => s.macAddress).filter((mac): mac is string => !!mac));
@@ -73,15 +69,6 @@ export default function WifiDiscoveryPage() {
   };
   
   const handleAddSensor = async (device: DiscoveredDevice) => {
-    if (!storageKeys.sensors) {
-        toast({
-            title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
-            description: "Chave de acesso não encontrada. Não é possível adicionar o sensor.",
-            variant: "destructive",
-        });
-        return;
-    }
-
     if (addedMacs.has(device.macAddress)) {
       toast({
           title: t('wifiDiscoveryPage.toast.alreadyExists.title', 'Sensor já Existe'),

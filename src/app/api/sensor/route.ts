@@ -1,18 +1,9 @@
 
-'use server';
+// A integração com Firebase foi removida.
+// Esta rota de API, que dependia do Firestore para salvar os dados do sensor,
+// foi desativada. O aplicativo agora opera em modo de demonstração com dados locais.
 
-import { getDb } from '@/lib/firebase';
-import { collection, collectionGroup, query, where, getDocs, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
-
-/**
- * @fileoverview API endpoint para receber dados de temperatura de sensores IoT (como ESP32) e
- * persistir diretamente no Firestore. Otimizado para o ambiente Vercel.
- */
-
-interface SensorData {
-  macAddress: string;
-  temperature: number;
-}
+import { NextResponse } from 'next/server';
 
 // Helper para criar uma resposta com os headers de CORS corretos
 function createCorsResponse(body: object, status: number): Response {
@@ -34,64 +25,12 @@ export async function OPTIONS(request: Request) {
   return createCorsResponse({ message: 'OK' }, 200);
 }
 
-
 /**
- * Lida com requisições POST para receber e salvar dados de sensores.
- * O dispositivo IoT (ESP32) envia um POST para /api/sensor com um corpo JSON
- * contendo o endereço MAC e a temperatura.
- *
- * @param {Request} request A requisição recebida.
- * @returns {Promise<Response>} Uma resposta JSON com headers de CORS.
+ * Lida com requisições POST para receber dados de sensores.
+ * Como o banco de dados foi removido, esta função agora apenas retorna uma mensagem
+ * indicando que a funcionalidade está desativada no modo de demonstração.
  */
 export async function POST(request: Request) {
-  try {
-    const data: SensorData = await request.json();
-    const { macAddress, temperature } = data;
-    
-    console.log(`[VigiaTemp API] Requisição recebida: MAC=${macAddress}, Temp=${temperature}`);
-
-    if (!macAddress || typeof temperature === 'undefined') {
-      console.warn('[VigiaTemp API] Requisição inválida: dados ausentes.');
-      return createCorsResponse(
-        { message: 'Dados ausentes: macAddress e temperature são obrigatórios.' },
-        400
-      );
-    }
-    
-    const db = getDb();
-
-    // Procura em todas as coleções 'sensors' de todos os usuários
-    const sensorsCollectionGroup = collectionGroup(db, 'sensors');
-    
-    const q = query(sensorsCollectionGroup, where("macAddress", "==", macAddress));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.warn(`[VigiaTemp API] Nenhum sensor encontrado com o MAC Address: ${macAddress} em nenhuma conta.`);
-      return createCorsResponse({ message: 'Sensor não encontrado.' }, 404);
-    }
-
-    // Pega o primeiro sensor encontrado (assume que MAC é único em todo o sistema)
-    const sensorDoc = querySnapshot.docs[0];
-    
-    // 1. Atualizar a temperatura atual no documento principal do sensor
-    await updateDoc(sensorDoc.ref, {
-      currentTemperature: temperature
-    });
-
-    // 2. Adicionar à subcoleção de dados históricos
-    const historyCollection = collection(sensorDoc.ref, 'historicalData');
-    await addDoc(historyCollection, {
-        temperature: temperature,
-        timestamp: Timestamp.now()
-    });
-
-    console.log(`[VigiaTemp API] Dados do sensor (${macAddress}) atualizados com sucesso: Temp = ${temperature}°C`);
-
-    return createCorsResponse({ message: 'Dados recebidos e salvos com sucesso!' }, 200);
-  } catch (error) {
-    console.error('[VigiaTemp API] Erro ao processar dados do sensor:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    return createCorsResponse({ message: `Erro interno do servidor: ${errorMessage}` }, 500);
-  }
+  console.log('[VigiaTemp API] Recebida uma requisição de sensor, mas o banco de dados está desativado (Modo Demo).');
+  return createCorsResponse({ message: 'Funcionalidade desativada no modo de demonstração. Nenhum dado foi salvo.' }, 410); // 410 Gone
 }

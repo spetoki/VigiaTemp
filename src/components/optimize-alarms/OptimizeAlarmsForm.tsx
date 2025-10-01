@@ -87,15 +87,6 @@ export default function OptimizeAlarmsForm() {
   };
 
   const handleGenerateJson = async () => {
-    if (!storageKeys.sensors) {
-        toast({
-            title: "Chave de acesso não encontrada",
-            description: "Não é possível gerar os dados históricos sem uma chave de acesso ativa.",
-            variant: "destructive",
-        });
-        return;
-    }
-
     setIsGeneratingJson(true);
     try {
         const sensors = await getSensors(storageKeys.sensors);

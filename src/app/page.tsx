@@ -9,10 +9,9 @@ import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { getAlerts, addAlert } from '@/services/alert-service';
+import { getSensors } from '@/services/sensor-service';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { getDb } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
 
@@ -26,6 +25,36 @@ export default function DashboardPage() {
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+
+  // Efeito para buscar os sensores (agora da memória) e simular atualizações em tempo real
+  useEffect(() => {
+    const fetchAndSetSensors = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedSensors = await getSensors(storageKeys.sensors);
+        setSensors(fetchedSensors);
+      } catch (error) {
+         toast({
+          title: "Erro ao Carregar Sensores",
+          description: "Não foi possível carregar os dados de demonstração.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAndSetSensors();
+    
+    // Como os dados agora são simulados no serviço, podemos usar um intervalo para buscar as atualizações
+    const intervalId = setInterval(async () => {
+      const updatedSensors = await getSensors(storageKeys.sensors);
+      setSensors(updatedSensors);
+    }, 5000); // Busca por atualizações a cada 5 segundos
+
+    return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar o componente
+  }, [storageKeys.sensors, toast]);
+
 
   useEffect(() => {
     // This effect is responsible for playing sounds from the queue.
@@ -66,63 +95,6 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
   
-  // This effect now sets up a real-time listener on the sensors collection
-  useEffect(() => {
-    // **GUARD CLAUSE:** Do not proceed if the collection path is not valid.
-    // This is the key fix to prevent connection errors on initial load.
-    if (!storageKeys.sensors || !storageKeys.sensors.startsWith('users/')) {
-      setIsLoading(false);
-      setSensors([]); // Ensure sensors are cleared if the key becomes invalid
-      return;
-    }
-
-    setIsLoading(true);
-    
-    // Define the unsubscribe function at this scope.
-    let unsubscribe = () => {};
-
-    try {
-        const db = getDb();
-        const sensorsCol = collection(db, storageKeys.sensors);
-        const q = query(sensorsCol, orderBy("name", "asc"));
-
-        // onSnapshot returns the unsubscribe function.
-        unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const fetchedSensors: Sensor[] = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Sensor));
-            
-            setSensors(fetchedSensors);
-            setIsLoading(false);
-        }, (error) => {
-            console.error("Failed to listen to sensor data from Firestore:", error);
-            toast({
-              title: "Erro ao Carregar Sensores",
-              description: "Não foi possível conectar para receber atualizações em tempo real.",
-              variant: "destructive",
-            });
-            setIsLoading(false);
-            setSensors([]);
-        });
-    } catch (error) {
-        console.error("Error setting up Firestore listener:", error);
-        toast({
-          title: "Erro de Conexão com o Banco de Dados",
-          description: "Verifique sua configuração do Firebase e as variáveis de ambiente.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-    }
-
-    // Return the cleanup function. This will be called when the component unmounts
-    // OR when the storageKeys.sensors dependency changes, ensuring the old listener is removed.
-    return () => {
-      unsubscribe();
-    };
-  }, [storageKeys.sensors, toast]);
-
-
   // This effect runs whenever the sensor data changes to check for new alerts.
   useEffect(() => {
     if (isLoading || sensors.length === 0 || !storageKeys.alerts) return;

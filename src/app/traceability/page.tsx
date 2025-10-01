@@ -55,11 +55,6 @@ export default function TraceabilityPage() {
   const pdfRef = useRef<HTMLDivElement>(null);
   
   const fetchLots = useCallback(async () => {
-    if (!storageKeys.lots) {
-        setIsLoading(false);
-        setLots([]);
-        return;
-    }
     setIsLoading(true);
     try {
         const fetchedLots = await getLots(storageKeys.lots);
@@ -76,13 +71,8 @@ export default function TraceabilityPage() {
   }, [storageKeys.lots, t, toast]);
 
   useEffect(() => {
-    if (storageKeys.lots) {
-        fetchLots();
-    } else {
-        setIsLoading(false);
-        setLots([]);
-    }
-  }, [fetchLots, storageKeys.lots]);
+    fetchLots();
+  }, [fetchLots]);
 
   useEffect(() => {
     if (view === 'details' && selectedLot) {
@@ -121,14 +111,6 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!storageKeys.lots) {
-        toast({
-            title: t('traceability.saveErrorTitle', "Erro ao Salvar"),
-            description: t('traceability.saveErrorNoUser', "Chave de acesso não encontrada. Não é possível salvar o lote."),
-            variant: "destructive"
-        });
-        return;
-    }
     setIsSubmitting(true);
 
     try {
@@ -159,14 +141,6 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
   };
 
   const handleDeleteLot = async (lotId: string) => {
-    if (!storageKeys.lots) {
-        toast({
-            title: "Erro ao Excluir",
-            description: "Chave de acesso não encontrada.",
-            variant: "destructive"
-        });
-        return;
-    }
     try {
         await deleteLot(storageKeys.lots, lotId);
         setLots(prevLots => prevLots.filter(l => l.id !== lotId));

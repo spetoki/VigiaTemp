@@ -16,7 +16,7 @@ export interface Sensor {
   currentTemperature: number; // Always in Celsius for storage
   highThreshold: number; // Always in Celsius
   lowThreshold: number; // Always in Celsius
-  historicalData: HistoricalDataPoint[]; // Note: This is not persisted in the main sensor document in Firestore
+  historicalData: HistoricalDataPoint[];
   model?: string;
   ipAddress?: string;
   macAddress?: string;
@@ -31,4 +31,28 @@ export interface Alert {
   message: string;
   acknowledged: boolean;
   reason?: 'high' | 'low';
+}
+
+// The data structure used within the application
+export interface TraceabilityData {
+  id: string;
+  createdAt: string; // Stored as ISO string
+  lotDescription: string;
+  name: string;
+  wetCocoaWeight: number;
+  dryCocoaWeight: number;
+  fermentationTime: number;
+  dryingTime: number;
+  isoClassification: string;
+}
+
+// The data structure received from the form
+export interface TraceabilityFormData {
+  lotDescription: string;
+  name: string;
+  wetCocoaWeight: string;
+  dryCocoaWeight: string;
+  fermentationTime: string;
+  dryingTime: string;
+  isoClassification: string;
 }

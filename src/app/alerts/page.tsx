@@ -32,20 +32,15 @@ export default function AlertsPage() {
   const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
 
   const loadAlerts = useCallback(async () => {
-    if (!storageKeys.alerts) {
-      setIsLoading(false);
-      setAlerts([]);
-      return;
-    }
     setIsLoading(true);
     try {
       const fetchedAlerts = await getAlerts(storageKeys.alerts);
       setAlerts(fetchedAlerts);
     } catch (error) {
-      console.error("Falha ao buscar alertas do Firestore:", error);
+      console.error("Falha ao buscar alertas:", error);
       toast({
         title: "Erro ao carregar alertas",
-        description: "Não foi possível buscar os alertas do banco de dados.",
+        description: "Não foi possível buscar os alertas.",
         variant: "destructive",
       });
       setAlerts([]);
@@ -55,13 +50,10 @@ export default function AlertsPage() {
   }, [storageKeys.alerts, toast]);
 
   useEffect(() => {
-    if (storageKeys.alerts) {
-        loadAlerts();
-    } else {
-        setIsLoading(false);
-        setAlerts([]);
-    }
-  }, [loadAlerts, storageKeys.alerts]);
+    loadAlerts();
+    const intervalId = setInterval(loadAlerts, 5000); // Recarrega os alertas a cada 5 segundos
+    return () => clearInterval(intervalId);
+  }, [loadAlerts]);
   
   // Clear selection when tab changes
   useEffect(() => {
@@ -69,13 +61,9 @@ export default function AlertsPage() {
   }, [activeTab]);
 
   const handleAcknowledge = async (alertId: string) => {
-    if (!storageKeys.alerts) return;
     try {
       await updateAlert(storageKeys.alerts, alertId, { acknowledged: true });
-      const updatedAlerts = alerts.map(alert =>
-        alert.id === alertId ? { ...alert, acknowledged: true } : alert
-      );
-      setAlerts(updatedAlerts);
+      loadAlerts(); // Recarrega para obter o estado mais recente
     } catch (error) {
        toast({
         title: "Erro ao confirmar alerta",
@@ -86,7 +74,7 @@ export default function AlertsPage() {
   };
 
   const handleAcknowledgeAll = async () => {
-    if (!storageKeys.alerts || unacknowledgedCount === 0) return;
+    if (unacknowledgedCount === 0) return;
     
     const unacknowledgedIds = alerts
       .filter(alert => !alert.acknowledged)
@@ -94,8 +82,7 @@ export default function AlertsPage() {
 
     try {
       await updateMultipleAlerts(storageKeys.alerts, unacknowledgedIds, { acknowledged: true });
-      const updatedAlerts = alerts.map(alert => ({ ...alert, acknowledged: true }));
-      setAlerts(updatedAlerts);
+      loadAlerts();
     } catch (error) {
         toast({
             title: "Erro ao confirmar todos os alertas",
@@ -106,10 +93,10 @@ export default function AlertsPage() {
   };
   
   const handleDeleteSelected = async () => {
-    if (!storageKeys.alerts || selectedAlerts.length === 0) return;
+    if (selectedAlerts.length === 0) return;
     try {
       await deleteMultipleAlerts(storageKeys.alerts, selectedAlerts);
-      setAlerts(prev => prev.filter(alert => !selectedAlerts.includes(alert.id)));
+      loadAlerts();
       toast({
         title: 'Alertas Excluídos',
         description: `${selectedAlerts.length} alerta(s) foram excluídos com sucesso.`,
@@ -140,7 +127,7 @@ export default function AlertsPage() {
 
   const unacknowledgedCount = useMemo(() => alerts.filter(a => !a.acknowledged).length, [alerts]);
 
-  if (isLoading) {
+  if (isLoading && alerts.length === 0) { // Only show skeleton on initial load
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
