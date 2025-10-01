@@ -1,14 +1,10 @@
-
-// A integração com Firebase foi removida.
-// Esta rota de API, que dependia do Firestore para salvar os dados do sensor,
-// foi desativada. O aplicativo agora opera em modo de demonstração com dados locais.
-
+// This API route has been removed as it was specific to the Firestore integration.
+// Supabase interactions will be handled differently, likely via RPC functions or direct client-to-API calls.
 import { NextResponse } from 'next/server';
 
-// Helper para criar uma resposta com os headers de CORS corretos
-function createCorsResponse(body: object, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
+export async function OPTIONS(request: Request) {
+  return new Response(null, {
+    status: 410, // 410 Gone
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
@@ -18,19 +14,15 @@ function createCorsResponse(body: object, status: number): Response {
   });
 }
 
-/**
- * Lida com requisições OPTIONS para o pre-flight de CORS.
- */
-export async function OPTIONS(request: Request) {
-  return createCorsResponse({ message: 'OK' }, 200);
-}
-
-/**
- * Lida com requisições POST para receber dados de sensores.
- * Como o banco de dados foi removido, esta função agora apenas retorna uma mensagem
- * indicando que a funcionalidade está desativada no modo de demonstração.
- */
 export async function POST(request: Request) {
-  console.log('[VigiaTemp API] Recebida uma requisição de sensor, mas o banco de dados está desativado (Modo Demo).');
-  return createCorsResponse({ message: 'Funcionalidade desativada no modo de demonstração. Nenhum dado foi salvo.' }, 410); // 410 Gone
+  console.log('[VigiaTemp API] This endpoint is deprecated and no longer functional.');
+  return NextResponse.json(
+    { message: 'This API endpoint is no longer in use. Please update your device firmware.' }, 
+    { 
+      status: 410, // 410 Gone
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
+    }
+  );
 }
