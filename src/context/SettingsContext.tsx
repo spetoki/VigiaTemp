@@ -3,6 +3,7 @@
 
 import type { TemperatureUnit, LanguageCode } from '@/types';
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import { initializeAdminUser } from '@/services/init-service';
 
 interface Translations {
   [key: string]: string;
@@ -88,6 +89,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         if (unlockedStatus === 'true') {
             setActiveKey(savedActiveKey);
             setIsLocked(false);
+            initializeAdminUser(savedActiveKey); // Garante a existência do admin
         }
     }
 
@@ -131,6 +133,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(ACTIVE_KEY_STORAGE, key);
       setActiveKey(key);
       setIsLocked(false);
+      initializeAdminUser(key); // Garante a existência do admin ao desbloquear
       return true;
     }
     return false;
