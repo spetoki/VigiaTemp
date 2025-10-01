@@ -44,6 +44,10 @@ const generateCppCode = (config: {
     return generateWebSerialTestCode();
   }
 
+  // Garante que a URL base não tenha uma barra no final e que o /api/sensor seja adicionado.
+  const baseUrl = (config.appUrl || '').replace(/\/$/, '');
+  const finalAppUrl = `${baseUrl}/api/sensor`;
+
   const commonIncludes = `
 // Bibliotecas necessárias. Instale-as através do Gerenciador de Bibliotecas do Arduino IDE:
 // - DallasTemperature
@@ -59,7 +63,7 @@ const generateCppCode = (config: {
 
   const commonSetupAndLoop = `
 // --- Configurações Editáveis ---
-const char* app_url = "${config.appUrl}/api/sensor"; // URL do seu aplicativo VigiaTemp
+const char* app_url = "${finalAppUrl}"; // URL do seu aplicativo VigiaTemp
 const int SENSOR_PIN = ${config.pin};           // Pino de dados do sensor DS18B20
 const int SEND_INTERVAL_SEC = ${config.interval};  // Intervalo de envio em segundos
 
@@ -356,7 +360,7 @@ export default function DeviceConfiguratorPage() {
                   <Label htmlFor="app-url">{t('deviceConfigurator.appUrlLabel', 'URL do Aplicativo')}</Label>
                   <Input id="app-url" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} />
                   <p className="text-sm text-muted-foreground">
-                      {t('deviceConfigurator.appUrlDescription', 'Insira a URL completa da sua aplicação, terminando com /api/sensor.')}
+                      Insira a URL base da sua aplicação (Ex: https://meu-app.vercel.app). O caminho /api/sensor será adicionado automaticamente.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -428,3 +432,4 @@ export default function DeviceConfiguratorPage() {
     </div>
   );
 }
+

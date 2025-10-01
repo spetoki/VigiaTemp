@@ -377,7 +377,7 @@
   "deviceConfigurator.ssidLabel": "Nome da Rede WiFi (SSID)",
   "deviceConfigurator.passwordLabel": "Senha da Rede WiFi",
   "deviceConfigurator.appUrlLabel": "URL do Aplicativo",
-  "deviceConfigurator.appUrlDescription": "Insira a URL completa da sua aplicação, terminando com /api/sensor.",
+  "deviceConfigurator.appUrlDescription": "Insira a URL base da sua aplicação (Ex: https://meu-app.vercel.app). O caminho /api/sensor será adicionado automaticamente.",
   "deviceConfigurator.pinLabel": "Pino do Sensor (GPIO)",
   "deviceConfigurator.pinDescription": "Pino de dados para o sensor DS18B20. O padrão é 4.",
   "deviceConfigurator.intervalLabel": "Intervalo de Envio (segundos)",
