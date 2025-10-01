@@ -5,49 +5,31 @@ import type { Sensor, HistoricalDataPoint } from '@/types';
 import { supabase } from '@/lib/supabaseClient';
 import { simulateTemperatureUpdate } from '@/lib/mockData';
 
+// This function now directly fetches from Supabase.
+export async function getSensors(collectionPath: string): Promise<Sensor[]> {
+    const { data, error } = await supabase.from('sensors').select('*').order('created_at', { ascending: false });
 
-// NOTE: The real-time temperature simulation logic is kept for the demo,
-// but the core data persistence is now handled by Supabase.
-let inMemorySensors: Sensor[] = [];
-let isInitialized = false;
+    if (error) {
+        console.error("Error fetching sensors from Supabase:", error);
+        return [];
+    }
 
-async function initializeSensors() {
-  if (isInitialized) return;
-
-  const { data, error } = await supabase.from('sensors').select('*');
-  if (error) {
-    console.error("Error fetching initial sensors from Supabase:", error);
-    inMemorySensors = [];
-  } else {
-    inMemorySensors = data.map(s => ({
-        ...s,
-        currentTemperature: s.current_temperature,
-        highThreshold: s.high_threshold,
-        lowThreshold: s.low_threshold,
+    // The temperature update simulation is now applied to the fetched data
+    // to keep the demo aspect of real-time fluctuation.
+    return data.map(s => ({
+        id: s.id,
+        name: s.name,
+        location: s.location,
+        model: s.model,
         ipAddress: s.ip_address,
         macAddress: s.mac_address,
-        historicalData: [] // Historical data will be fetched on demand
+        lowThreshold: s.low_threshold,
+        highThreshold: s.high_threshold,
+        currentTemperature: simulateTemperatureUpdate({ ...s, currentTemperature: s.current_temperature } as Sensor),
+        historicalData: [] // Historical data is fetched on demand
     }));
-  }
-  isInitialized = true;
 }
 
-
-// Simula atualizações de temperatura em tempo real
-setInterval(async () => {
-    if (!isInitialized) await initializeSensors();
-    
-    inMemorySensors = inMemorySensors.map(sensor => ({
-        ...sensor,
-        currentTemperature: simulateTemperatureUpdate(sensor),
-    }));
-}, 5000);
-
-
-export async function getSensors(collectionPath: string): Promise<Sensor[]> {
-    await initializeSensors();
-    return Promise.resolve(inMemorySensors);
-}
 
 export async function addSensor(
     collectionPath: string, 
@@ -86,7 +68,6 @@ export async function addSensor(
         historicalData: []
     };
     
-    inMemorySensors.unshift(newSensor);
     return newSensor;
 }
 
@@ -112,11 +93,6 @@ export async function updateSensor(
         console.error("Supabase updateSensor error:", error);
         throw new Error('Falha ao atualizar sensor no Supabase.');
     }
-
-    // Update in-memory cache
-    inMemorySensors = inMemorySensors.map(sensor => 
-        sensor.id === sensorId ? { ...sensor, ...sensorData } : sensor
-    );
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
@@ -129,17 +105,20 @@ export async function deleteSensor(collectionPath: string, sensorId: string): Pr
         console.error("Supabase deleteSensor error:", error);
         throw new Error('Falha ao deletar sensor no Supabase.');
     }
-    
-    // Update in-memory cache
-    inMemorySensors = inMemorySensors.filter(sensor => sensor.id !== sensorId);
 }
 
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
     // This function will now be a placeholder as we are not storing historical data in Supabase in this iteration.
     // It can be implemented later if needed.
-    const sensor = inMemorySensors.find(s => s.id === sensorId);
-    if (!sensor) return [];
+    const { data: sensorData, error } = await supabase.from('sensors').select('low_threshold, high_threshold').eq('id', sensorId).single();
+
+    if (error || !sensorData) {
+        console.error("Error fetching sensor for historical data simulation:", error);
+        return [];
+    }
+    
+    const sensor = { lowThreshold: sensorData.low_threshold, highThreshold: sensorData.high_threshold };
 
     // Generate some random data for chart demonstration purposes
     const data: HistoricalDataPoint[] = [];
@@ -162,8 +141,8 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
             break;
         case 'day':
         default:
-            steps = 24;
-            interval = 60 * 60 * 1000;
+            steps = 24 * 4; // every 15 minutes
+            interval = 15 * 60 * 1000;
             break;
     }
 

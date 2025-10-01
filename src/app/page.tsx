@@ -26,34 +26,31 @@ export default function DashboardPage() {
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Efeito para buscar os sensores (agora da memória) e simular atualizações em tempo real
-  useEffect(() => {
-    const fetchAndSetSensors = async () => {
-      setIsLoading(true);
+  // Efeito para buscar os sensores e simular atualizações em tempo real
+  const fetchAndSetSensors = useCallback(async () => {
+      // Don't set loading to true on interval fetches
+      // setIsLoading(true); 
       try {
         const fetchedSensors = await getSensors(storageKeys.sensors);
         setSensors(fetchedSensors);
       } catch (error) {
          toast({
           title: "Erro ao Carregar Sensores",
-          description: "Não foi possível carregar os dados de demonstração.",
+          description: "Não foi possível carregar os dados dos sensores.",
           variant: "destructive",
         });
       } finally {
         setIsLoading(false);
       }
-    };
+    }, [storageKeys.sensors, toast]);
     
+  useEffect(() => {
     fetchAndSetSensors();
     
-    // Como os dados agora são simulados no serviço, podemos usar um intervalo para buscar as atualizações
-    const intervalId = setInterval(async () => {
-      const updatedSensors = await getSensors(storageKeys.sensors);
-      setSensors(updatedSensors);
-    }, 5000); // Busca por atualizações a cada 5 segundos
+    const intervalId = setInterval(fetchAndSetSensors, 5000); // Busca por atualizações a cada 5 segundos
 
     return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar o componente
-  }, [storageKeys.sensors, toast]);
+  }, [fetchAndSetSensors]);
 
 
   useEffect(() => {
