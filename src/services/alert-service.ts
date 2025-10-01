@@ -2,96 +2,48 @@
 'use server';
 
 import type { Alert } from '@/types';
-import { supabase } from '@/lib/supabaseClient';
+import { v4 as uuidv4 } from 'uuid';
+
+// In-memory store for alerts, acting as a local database for demonstration purposes.
+let localAlerts: Alert[] = [];
+
+// Helper function to simulate network delay.
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function getAlerts(collectionPath: string): Promise<Alert[]> {
-    const { data, error } = await supabase
-        .from('alerts')
-        .select('*')
-        .order('timestamp', { ascending: false });
-
-    if (error) {
-        console.error("Supabase getAlerts error:", error);
-        return [];
-    }
-
-    // Map Supabase response to Alert type
-    return data.map(a => ({
-        id: a.id,
-        sensorId: a.sensor_id,
-        sensorName: a.sensor_name,
-        timestamp: new Date(a.timestamp).getTime(),
-        level: a.level,
-        message: a.message,
-        acknowledged: a.acknowledged,
-        reason: a.reason,
-    }));
+    await sleep(100); // Simulate async operation
+    return Promise.resolve(localAlerts.sort((a, b) => b.timestamp - a.timestamp));
 }
 
 export async function addAlert(collectionPath: string, alertData: Omit<Alert, 'id'>): Promise<Alert> {
-    const { data, error } = await supabase
-        .from('alerts')
-        .insert([{
-            sensor_id: alertData.sensorId,
-            sensor_name: alertData.sensorName,
-            timestamp: new Date(alertData.timestamp).toISOString(),
-            level: alertData.level,
-            message: alertData.message,
-            acknowledged: alertData.acknowledged,
-            reason: alertData.reason,
-        }])
-        .select()
-        .single();
-    
-    if (error) {
-        console.error("Supabase addAlert error:", error);
-        throw new Error("Falha ao adicionar alerta no Supabase.");
-    }
-    
-    return {
-        id: data.id,
-        sensorId: data.sensor_id,
-        sensorName: data.sensor_name,
-        timestamp: new Date(data.timestamp).getTime(),
-        level: data.level,
-        message: data.message,
-        acknowledged: data.acknowledged,
-        reason: data.reason,
+    await sleep(50);
+    const newAlert: Alert = {
+        ...alertData,
+        id: uuidv4(),
     };
+    localAlerts.push(newAlert);
+    return Promise.resolve(newAlert);
 }
 
-export async function updateAlert(collectionPath: string, alertId: string, updateData: Partial<Alert>) {
-    const { error } = await supabase
-        .from('alerts')
-        .update({ acknowledged: updateData.acknowledged })
-        .eq('id', alertId);
-
-    if (error) {
-        console.error("Supabase updateAlert error:", error);
-        throw new Error("Falha ao atualizar alerta no Supabase.");
+export async function updateAlert(collectionPath: string, alertId: string, updateData: Partial<Alert>): Promise<void> {
+    await sleep(50);
+    const alertIndex = localAlerts.findIndex(a => a.id === alertId);
+    if (alertIndex !== -1) {
+        localAlerts[alertIndex] = { ...localAlerts[alertIndex], ...updateData };
     }
+    return Promise.resolve();
 }
 
-export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>) {
-    const { error } = await supabase
-        .from('alerts')
-        .update({ acknowledged: updateData.acknowledged })
-        .in('id', alertIds);
-
-    if (error) {
-        console.error("Supabase updateMultipleAlerts error:", error);
-        throw new Error("Falha ao atualizar múltiplos alertas no Supabase.");
-    }
+export async function updateMultipleAlerts(collectionPath: string, alertIds: string[], updateData: Partial<Alert>): Promise<void> {
+    await sleep(100);
+    localAlerts = localAlerts.map(alert => 
+        alertIds.includes(alert.id) ? { ...alert, ...updateData } : alert
+    );
+    return Promise.resolve();
 }
 
 export async function deleteMultipleAlerts(collectionPath: string, alertIds: string[]): Promise<void> {
-    const { error } = await supabase
-        .from('alerts')
-        .delete()
-        .in('id', alertIds);
-    
-    if (error) {
-        console.error("Supabase deleteMultipleAlerts error:", error);
-        throw new Error("Falha ao deletar múltiplos alertas no Supabase.");
-    }
+    await sleep(100);
+    localAlerts = localAlerts.filter(alert => !alertIds.includes(alert.id));
+    return Promise.resolve();
 }

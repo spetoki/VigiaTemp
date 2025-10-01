@@ -2,73 +2,71 @@
 'use server';
 
 import type { Sensor, HistoricalDataPoint } from '@/types';
-import { supabase } from '@/lib/supabaseClient';
 import { simulateTemperatureUpdate } from '@/lib/mockData';
+import { v4 as uuidv4 } from 'uuid';
 
-// This function now directly fetches from Supabase.
+// Helper function to simulate network delay.
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// --- In-Memory Store for Demonstration ---
+let localSensors: Sensor[] = [
+    {
+        id: '1',
+        name: 'Estufa de Fermentação A',
+        location: 'Bloco 1, Nível Superior',
+        currentTemperature: 28.5,
+        highThreshold: 32,
+        lowThreshold: 25,
+        historicalData: [],
+        model: 'TermoX 5000',
+        macAddress: 'AB:CD:EF:12:34:56'
+    },
+    {
+        id: '2',
+        name: 'Secador de Sementes B',
+        location: 'Área de Secagem',
+        currentTemperature: 45.2,
+        highThreshold: 50,
+        lowThreshold: 40,
+        historicalData: [],
+        model: 'AgriSense X1'
+    },
+    {
+        id: '3',
+        name: 'Câmara Fria C',
+        location: 'Armazenamento',
+        currentTemperature: 5.1,
+        highThreshold: 8,
+        lowThreshold: 2,
+        historicalData: [],
+        model: 'TempGuard Standard'
+    },
+];
+
+// This function now uses the in-memory store and simulates real-time updates.
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
-    const { data, error } = await supabase.from('sensors').select('*').order('created_at', { ascending: false });
-
-    if (error) {
-        console.error("Error fetching sensors from Supabase:", error);
-        return [];
-    }
-
-    // The temperature update simulation is now applied to the fetched data
-    // to keep the demo aspect of real-time fluctuation.
-    return data.map(s => ({
-        id: s.id,
-        name: s.name,
-        location: s.location,
-        model: s.model,
-        ipAddress: s.ip_address,
-        macAddress: s.mac_address,
-        lowThreshold: s.low_threshold,
-        highThreshold: s.high_threshold,
-        currentTemperature: simulateTemperatureUpdate({ ...s, currentTemperature: s.current_temperature } as Sensor),
-        historicalData: [] // Historical data is fetched on demand
+    await sleep(200); // Simulate network delay
+    // Apply real-time simulation to the local data
+    localSensors = localSensors.map(s => ({
+        ...s,
+        currentTemperature: simulateTemperatureUpdate(s)
     }));
+    return Promise.resolve(localSensors);
 }
-
 
 export async function addSensor(
     collectionPath: string, 
     sensorData: Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>
 ): Promise<Sensor> {
-    const { data, error } = await supabase
-        .from('sensors')
-        .insert([{ 
-            name: sensorData.name,
-            location: sensorData.location,
-            model: sensorData.model,
-            ip_address: sensorData.ipAddress || null, // Convert empty string to null
-            mac_address: sensorData.macAddress || null, // Convert empty string to null
-            low_threshold: sensorData.lowThreshold,
-            high_threshold: sensorData.highThreshold,
-            current_temperature: 25 // Default starting temp
-        }])
-        .select()
-        .single();
-
-    if (error) {
-        console.error("Supabase addSensor error:", error);
-        throw new Error('Falha ao adicionar sensor no Supabase.');
-    }
-
+    await sleep(100);
     const newSensor: Sensor = {
-        id: data.id,
-        name: data.name,
-        location: data.location,
-        model: data.model,
-        ipAddress: data.ip_address,
-        macAddress: data.mac_address,
-        lowThreshold: data.low_threshold,
-        highThreshold: data.high_threshold,
-        currentTemperature: data.current_temperature,
+        id: uuidv4(),
+        ...sensorData,
+        currentTemperature: 25, // Default starting temp
         historicalData: []
     };
-    
-    return newSensor;
+    localSensors.push(newSensor);
+    return Promise.resolve(newSensor);
 }
 
 export async function updateSensor(
@@ -76,47 +74,23 @@ export async function updateSensor(
     sensorId: string,
     sensorData: Partial<Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>>
 ): Promise<void> {
-    const { error } = await supabase
-        .from('sensors')
-        .update({
-            name: sensorData.name,
-            location: sensorData.location,
-            model: sensorData.model,
-            ip_address: sensorData.ipAddress || null, // Convert empty string to null
-            mac_address: sensorData.macAddress || null, // Convert empty string to null
-            low_threshold: sensorData.lowThreshold,
-            high_threshold: sensorData.highThreshold
-        })
-        .eq('id', sensorId);
-
-    if (error) {
-        console.error("Supabase updateSensor error:", error);
-        throw new Error('Falha ao atualizar sensor no Supabase.');
+    await sleep(100);
+    const sensorIndex = localSensors.findIndex(s => s.id === sensorId);
+    if (sensorIndex !== -1) {
+        localSensors[sensorIndex] = { ...localSensors[sensorIndex], ...sensorData };
     }
+    return Promise.resolve();
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {
-    const { error } = await supabase
-        .from('sensors')
-        .delete()
-        .eq('id', sensorId);
-
-    if (error) {
-        console.error("Supabase deleteSensor error:", error);
-        throw new Error('Falha ao deletar sensor no Supabase.');
-    }
+    await sleep(100);
+    localSensors = localSensors.filter(s => s.id !== sensorId);
+    return Promise.resolve();
 }
 
-
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    const { data: sensorData, error } = await supabase.from('sensors').select('low_threshold, high_threshold').eq('id', sensorId).single();
-
-    if (error || !sensorData) {
-        console.error("Error fetching sensor for historical data simulation:", error);
-        return [];
-    }
-    
-    const sensor = { lowThreshold: sensorData.low_threshold, highThreshold: sensorData.high_threshold };
+    const sensor = localSensors.find(s => s.id === sensorId);
+    if (!sensor) return Promise.resolve([]);
 
     const data: HistoricalDataPoint[] = [];
     const now = Date.now();
