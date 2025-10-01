@@ -41,8 +41,8 @@ export async function addSensor(
             name: sensorData.name,
             location: sensorData.location,
             model: sensorData.model,
-            ip_address: sensorData.ipAddress,
-            mac_address: sensorData.macAddress,
+            ip_address: sensorData.ipAddress || null, // Convert empty string to null
+            mac_address: sensorData.macAddress || null, // Convert empty string to null
             low_threshold: sensorData.lowThreshold,
             high_threshold: sensorData.highThreshold,
             current_temperature: 25 // Default starting temp
@@ -74,7 +74,7 @@ export async function addSensor(
 export async function updateSensor(
     collectionPath: string,
     sensorId: string,
-    sensorData: Partial<Sensor>
+    sensorData: Partial<Omit<Sensor, 'id' | 'historicalData' | 'currentTemperature'>>
 ): Promise<void> {
     const { error } = await supabase
         .from('sensors')
@@ -82,8 +82,8 @@ export async function updateSensor(
             name: sensorData.name,
             location: sensorData.location,
             model: sensorData.model,
-            ip_address: sensorData.ipAddress,
-            mac_address: sensorData.macAddress,
+            ip_address: sensorData.ipAddress || null, // Convert empty string to null
+            mac_address: sensorData.macAddress || null, // Convert empty string to null
             low_threshold: sensorData.lowThreshold,
             high_threshold: sensorData.highThreshold
         })
@@ -109,8 +109,6 @@ export async function deleteSensor(collectionPath: string, sensorId: string): Pr
 
 
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
-    // This function will now be a placeholder as we are not storing historical data in Supabase in this iteration.
-    // It can be implemented later if needed.
     const { data: sensorData, error } = await supabase.from('sensors').select('low_threshold, high_threshold').eq('id', sensorId).single();
 
     if (error || !sensorData) {
@@ -120,7 +118,6 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
     
     const sensor = { lowThreshold: sensorData.low_threshold, highThreshold: sensorData.high_threshold };
 
-    // Generate some random data for chart demonstration purposes
     const data: HistoricalDataPoint[] = [];
     const now = Date.now();
     let steps;
