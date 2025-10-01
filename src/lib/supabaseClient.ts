@@ -1,13 +1,10 @@
+// config/supabaseClient.js
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-// As variáveis de ambiente são carregadas do arquivo .env.local
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// URL e chave pública do seu projeto Supabase
+const supabaseUrl = 'https://vhprbdhupkirwyntwhjn.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZocHJiZGh1cGtpcnd5bnR3aGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyNzkzODAsImV4cCI6MjA3NDg1NTM4MH0.TyxsMrQeNuc6CTLIksK1_2gg3KAixPTCNYQRPtxS-Ss'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase URL and Anon Key must be provided in .env.local');
-}
-
-// Cria e exporta o cliente Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Criar cliente do Supabase
+export const supabase = createClient(supabaseUrl, supabaseKey)
