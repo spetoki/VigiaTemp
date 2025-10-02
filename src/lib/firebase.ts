@@ -2,36 +2,29 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Cole aqui o objeto de configuração que você copiou do Firebase Console.
-// Exemplo:
-// const firebaseConfig = {
-//   apiKey: "AIzaSy...",
-//   authDomain: "seu-projeto.firebaseapp.com",
-//   ...
-// };
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  /* COLE SEU firebaseConfig AQUI */
+  apiKey: "AIzaSyBxlONjf4kw4Ix75rGFJVvz_WXSvmorFhw",
+  authDomain: "vigiatemp.firebaseapp.com",
+  databaseURL: "https://vigiatemp-default-rtdb.firebaseio.com",
+  projectId: "vigiatemp",
+  storageBucket: "vigiatemp.firebasestorage.app",
+  messagingSenderId: "75900061601",
+  appId: "1:75900061601:web:ac19591587d74fccdf2de0"
 };
 
 // Inicializa o Firebase
 // Esta lógica evita que o app seja inicializado várias vezes.
 let app;
 if (!getApps().length) {
-  // @ts-ignore
-  if (!firebaseConfig.projectId) {
-    console.error("Configuração do Firebase está faltando! Cole o objeto firebaseConfig em src/lib/firebase.ts");
-    app = null;
-  } else {
-    app = initializeApp(firebaseConfig);
-  }
+  app = initializeApp(firebaseConfig);
 } else {
   app = getApp();
 }
 
-const db = app ? getFirestore(app) : null;
+const db = getFirestore(app);
 
 // Função para obter a instância do Firestore.
-// Adicionada verificação para garantir que o app foi inicializado.
 function getDb() {
   if (!db) {
     throw new Error("O Firestore não foi inicializado. Verifique sua configuração do Firebase.");
