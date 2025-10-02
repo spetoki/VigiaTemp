@@ -2,14 +2,14 @@
 'use server';
 
 import { getDb } from './db';
-import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
-import type { User, UserFormData } from '@/types';
+import { collection, doc, getDoc, setDoc, addDoc, serverTimestamp, query, getDocs } from 'firebase/firestore';
+import type { UserFormData } from '@/types';
 
 const ADMIN_USER_EMAIL = 'admin@vigiatemp.com';
 
 /**
- * Verifica se o usuário administrador padrão já existe para a chave de acesso.
- * Se não existir, ele o cria.
+ * Garante que a estrutura básica para uma chave de acesso exista no Firestore.
+ * Cria o documento do usuário principal e o usuário administrador padrão, se não existirem.
  * @param accessKey A chave de acesso atual.
  */
 export async function initializeAdminUser(accessKey: string): Promise<void> {
@@ -18,40 +18,47 @@ export async function initializeAdminUser(accessKey: string): Promise<void> {
     return;
   }
 
-  const usersCollectionPath = `users/${accessKey}/users`;
-  
-  try {
-    const db = getDb();
-    const usersCol = collection(db, usersCollectionPath);
-    
-    // 1. Verifica se a coleção de usuários para esta chave de acesso já possui algum usuário.
-    // Uma verificação mais simples para evitar múltiplas leituras.
-    const snapshot = await getDocs(query(usersCol));
+  const db = getDb();
+  const userDocRef = doc(db, 'users', accessKey);
+  const usersSubCollectionRef = collection(userDocRef, 'users');
 
-    if (!snapshot.empty) {
-      // Coleção já tem dados, assume-se que o admin já foi (ou será) criado.
-      console.log(`[Init Service] A coleção de usuários para a chave ${accessKey} já existe. Nenhuma ação necessária.`);
-      return;
+  try {
+    const userDocSnap = await getDoc(userDocRef);
+
+    // Etapa 1: Verificar e criar o documento principal da chave de acesso, se necessário.
+    if (!userDocSnap.exists()) {
+      console.log(`[Init Service] Documento para a chave ${accessKey} não existe. Criando...`);
+      await setDoc(userDocRef, {
+        createdAt: serverTimestamp(),
+        owner: `user_of_${accessKey}`
+      });
+      console.log(`[Init Service] Documento principal para a chave ${accessKey} criado.`);
     }
 
-    // 2. Se a coleção estiver vazia, cria o usuário admin.
-    console.log(`[Init Service] Criando usuário administrador padrão para a nova chave ${accessKey}...`);
-    
-    const adminUserData: UserFormData = {
-      name: 'Admin Padrão',
-      email: ADMIN_USER_EMAIL,
-      role: 'admin',
-      status: 'active',
-    };
+    // Etapa 2: Verificar se o usuário admin já existe na subcoleção.
+    const adminQuery = query(usersSubCollectionRef);
+    const querySnapshot = await getDocs(adminQuery);
 
-    const dataToSave = {
-      ...adminUserData,
-      createdAt: serverTimestamp(),
-    };
+    if (querySnapshot.empty) {
+      console.log(`[Init Service] Subcoleção 'users' está vazia para a chave ${accessKey}. Criando usuário admin...`);
+      
+      const adminUserData: UserFormData = {
+        name: 'Admin Padrão',
+        email: ADMIN_USER_EMAIL,
+        role: 'admin',
+        status: 'active',
+      };
 
-    await addDoc(usersCol, dataToSave);
+      const dataToSave = {
+        ...adminUserData,
+        createdAt: serverTimestamp(),
+      };
 
-    console.log(`[Init Service] Usuário administrador criado com sucesso para a chave ${accessKey}.`);
+      await addDoc(usersSubCollectionRef, dataToSave);
+      console.log(`[Init Service] Usuário administrador criado com sucesso para a chave ${accessKey}.`);
+    } else {
+      console.log(`[Init Service] Usuários já existem para a chave ${accessKey}. Nenhuma ação necessária.`);
+    }
 
   } catch (error) {
     console.error(`[Init Service] Erro ao inicializar o usuário administrador para a chave ${accessKey}:`, error);
