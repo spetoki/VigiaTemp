@@ -5,7 +5,6 @@ import { getDb } from './db';
 import type { Sensor, HistoricalDataPoint } from '@/types';
 import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp } from 'firebase/firestore';
 import { SensorFormData } from '@/components/sensors/SensorForm';
-import { convertTemperature } from '@/lib/utils';
 
 // Função para obter sensores uma única vez
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
@@ -43,6 +42,7 @@ export async function addSensor(
     if (!collectionPath) throw new Error("Caminho da coleção inválido.");
     const db = getDb();
 
+    // Os dados do formulário já estão como números, não precisam de conversão
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
