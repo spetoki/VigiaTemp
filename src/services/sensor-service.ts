@@ -42,7 +42,8 @@ export async function addSensor(
     if (!collectionPath) throw new Error("Caminho da coleção inválido.");
     const db = getDb();
 
-    // Os dados do formulário já estão como números, não precisam de conversão
+    // Correção: Os dados do formulário já estão no formato correto (números).
+    // Salvamos diretamente sem conversões redundantes.
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
@@ -52,17 +53,14 @@ export async function addSensor(
         lowThreshold: sensorData.lowThreshold,
         highThreshold: sensorData.highThreshold,
         currentTemperature: 25, // Valor inicial padrão em Celsius
-        historicalData: [], 
     };
-
-    if (dataToSave.macAddress === '') dataToSave.macAddress = null;
-    if (dataToSave.ipAddress === '') dataToSave.ipAddress = null;
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
     return {
         id: docRef.id,
         ...dataToSave,
+        historicalData: [], // Retorna com historicalData vazio
     } as Sensor;
 }
 
@@ -75,7 +73,6 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
-    // O formulário já envia os dados no tipo correto (números para os limites)
     const dataToUpdate: Partial<Sensor> = { ...sensorData };
    
     if (sensorData.ipAddress === '') {
