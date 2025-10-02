@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getDb } from '@/lib/firebase';
+import { getDb } from './db';
 import type { TraceabilityData, TraceabilityFormData } from '@/types';
 import { collection, getDocs, addDoc, doc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 

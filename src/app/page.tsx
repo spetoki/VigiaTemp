@@ -9,17 +9,14 @@ import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { getAlerts, addAlert } from '@/services/alert-service';
-import { getSensors } from '@/services/sensor-service';
+import { getDb } from '@/services/db';
 import type { Unsubscribe } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
 
-// A função subscribeToSensors foi movida para este arquivo de cliente para resolver o erro de build.
-// Funções que estabelecem listeners em tempo real (onSnapshot) são inerentemente do lado do cliente.
 function subscribeToSensors(collectionPath: string, callback: (sensors: Sensor[]) => void): Unsubscribe | null {
     if (!collectionPath) return null;
     try {
@@ -52,35 +49,30 @@ export default function DashboardPage() {
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
   useEffect(() => {
-    // Se a chave de armazenamento não estiver pronta, não faça nada.
     if (!storageKeys.sensors) {
         setIsLoading(true);
-        setSensors([]); // Limpa os sensores se a chave mudar (ex: logout)
+        setSensors([]); 
         return;
     }
 
-    // Se já houver uma inscrição, cancele-a antes de criar uma nova.
     if (unsubscribeRef.current) {
         unsubscribeRef.current();
     }
 
-    // Inicia o listener em tempo real
     unsubscribeRef.current = subscribeToSensors(storageKeys.sensors, (updatedSensors) => {
         setSensors(updatedSensors);
         setIsLoading(false);
     });
 
-    // Função de limpeza para cancelar a inscrição ao desmontar o componente
     return () => {
         if (unsubscribeRef.current) {
             unsubscribeRef.current();
         }
     };
-  }, [storageKeys.sensors]); // A dependência principal é storageKeys.sensors
+  }, [storageKeys.sensors]); 
 
 
   useEffect(() => {
-    // This effect is responsible for playing sounds from the queue.
     if (isMuted || isPlayingSound || soundQueue.length === 0) {
       return;
     }
@@ -111,22 +103,18 @@ export default function DashboardPage() {
     
     audio.play().catch(error => {
       console.error("Audio playback promise failed:", error);
-      // This can happen if the user hasn't interacted with the page yet.
       playNextSound();
     });
     
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundQueue, isPlayingSound, isMuted]);
   
-  // This effect runs whenever the sensor data changes to check for new alerts.
   useEffect(() => {
     if (isLoading || sensors.length === 0 || !storageKeys.alerts) return;
 
     const checkAlerts = async () => {
         let currentAlerts: Alert[] = [];
         try {
-            // A busca de alertas agora é uma chamada única, não em tempo real,
-            // para evitar complexidade excessiva e chamadas desnecessárias ao DB.
             currentAlerts = await getAlerts(storageKeys.alerts);
         } catch (e) {
             console.warn("Could not fetch alerts, proceeding without them for this check.");
@@ -138,7 +126,6 @@ export default function DashboardPage() {
         sensors.forEach(sensor => {
             const status = getSensorStatus(sensor);
             if (status === 'critical' || status === 'warning') {
-                // Lógica para evitar alertas duplicados: verifica se já existe um alerta *não confirmado* para este sensor e nível.
                 const hasRecentUnacknowledgedAlert = currentAlerts.some(
                     alert => alert.sensorId === sensor.id && !alert.acknowledged && alert.level === status
                 );
@@ -188,7 +175,6 @@ export default function DashboardPage() {
     
   }, [sensors, isLoading, storageKeys.alerts, t, temperatureUnit, toast]);
 
-  // This effect handles the continuous sound alert for critical sensors.
   useEffect(() => {
     let soundInterval: NodeJS.Timeout | null = null;
     
@@ -273,5 +259,3 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
-
-    

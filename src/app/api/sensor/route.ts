@@ -1,6 +1,7 @@
 
+
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/firebase';
+import { getDb } from '@/services/db';
 import { collection, query, where, getDocs, updateDoc, doc, addDoc, Timestamp, collectionGroup } from 'firebase/firestore';
 
 // Habilita o CORS para a API, permitindo que dispositivos externos enviem dados.

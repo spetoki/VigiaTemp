@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getDb } from '@/lib/firebase';
+import { getDb } from './db';
 import type { Sensor, HistoricalDataPoint } from '@/types';
 import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp } from 'firebase/firestore';
 import { SensorFormData } from '@/components/sensors/SensorForm';
@@ -42,10 +42,6 @@ export async function addSensor(
 ): Promise<Sensor> {
     if (!collectionPath) throw new Error("Caminho da coleção inválido.");
     const db = getDb();
-    
-    // Converte temperaturas do formulário para Celsius antes de salvar
-    const lowThresholdInC = convertTemperature(sensorData.lowThreshold, 'C', 'C');
-    const highThresholdInC = convertTemperature(sensorData.highThreshold, 'C', 'C');
 
     const dataToSave = {
         name: sensorData.name,
@@ -53,12 +49,18 @@ export async function addSensor(
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        lowThreshold: lowThresholdInC,
-        highThreshold: highThresholdInC,
+        // O formulário já envia os valores na unidade correta, mas convertemos para garantir que está em Celsius.
+        // Assumindo que a UI sempre trabalha com a unidade do usuário, mas o backend sempre salva em Celsius.
+        // No entanto, o `SensorForm` já faz a conversão de `temperatureUnit` para `C`, então podemos simplificar.
+        lowThreshold: sensorData.lowThreshold,
+        highThreshold: sensorData.highThreshold,
         currentTemperature: 25, // Valor inicial padrão em Celsius
         historicalData: [], 
     };
 
+    if (dataToSave.macAddress === '') dataToSave.macAddress = null;
+    if (dataToSave.ipAddress === '') dataToSave.ipAddress = null;
+    
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
     return {
@@ -76,14 +78,15 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
+    // Converte os números de string para float
     const dataToUpdate: Partial<Sensor> = { ...sensorData };
+    if (typeof sensorData.lowThreshold === 'string') {
+        dataToUpdate.lowThreshold = parseFloat(sensorData.lowThreshold);
+    }
+    if (typeof sensorData.highThreshold === 'string') {
+        dataToUpdate.highThreshold = parseFloat(sensorData.highThreshold);
+    }
 
-    if (sensorData.lowThreshold !== undefined) {
-        dataToUpdate.lowThreshold = convertTemperature(sensorData.lowThreshold, 'C', 'C');
-    }
-    if (sensorData.highThreshold !== undefined) {
-        dataToUpdate.highThreshold = convertTemperature(sensorData.highThreshold, 'C', 'C');
-    }
     if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
     }
@@ -91,7 +94,7 @@ export async function updateSensor(
         dataToUpdate.macAddress = null;
     }
 
-    await updateDoc(sensorRef, dataToUpdate);
+    await updateDoc(sensorRef, dataToUpdate as any);
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {

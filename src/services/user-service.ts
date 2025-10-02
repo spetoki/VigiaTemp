@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getDb } from '@/lib/firebase';
+import { getDb } from './db';
 import type { User, UserFormData } from '@/types';
 import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
