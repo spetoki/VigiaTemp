@@ -2,21 +2,40 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Suas credenciais do Firebase que serão preenchidas pelo Gemini
+// Cole aqui o objeto de configuração que você copiou do Firebase Console.
+// Exemplo:
+// const firebaseConfig = {
+//   apiKey: "AIzaSy...",
+//   authDomain: "seu-projeto.firebaseapp.com",
+//   ...
+// };
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  /* COLE SEU firebaseConfig AQUI */
 };
 
 // Inicializa o Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+// Esta lógica evita que o app seja inicializado várias vezes.
+let app;
+if (!getApps().length) {
+  // @ts-ignore
+  if (!firebaseConfig.projectId) {
+    console.error("Configuração do Firebase está faltando! Cole o objeto firebaseConfig em src/lib/firebase.ts");
+    app = null;
+  } else {
+    app = initializeApp(firebaseConfig);
+  }
+} else {
+  app = getApp();
+}
 
+const db = app ? getFirestore(app) : null;
+
+// Função para obter a instância do Firestore.
+// Adicionada verificação para garantir que o app foi inicializado.
 function getDb() {
+  if (!db) {
+    throw new Error("O Firestore não foi inicializado. Verifique sua configuração do Firebase.");
+  }
   return db;
 }
 
