@@ -39,20 +39,24 @@ export async function addSensor(
     collectionPath: string, 
     sensorData: SensorFormData
 ): Promise<Sensor> {
-    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    if (!collectionPath) {
+        throw new Error("Caminho da coleção inválido. Verifique se a chave de acesso está ativa.");
+    }
     const db = getDb();
 
-    // Correção: Os dados do formulário já estão no formato correto (números).
-    // Salvamos diretamente sem conversões redundantes.
+    // Os dados do formulário já são validados como números pelo Zod,
+    // então podemos usá-los diretamente.
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
+        // Limites já são números do formulário.
         lowThreshold: sensorData.lowThreshold,
         highThreshold: sensorData.highThreshold,
-        currentTemperature: 25, // Valor inicial padrão em Celsius
+        // Valor inicial padrão em Celsius para um novo sensor.
+        currentTemperature: 25, 
     };
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
@@ -60,8 +64,8 @@ export async function addSensor(
     return {
         id: docRef.id,
         ...dataToSave,
-        historicalData: [], // Retorna com historicalData vazio
-    } as Sensor;
+        historicalData: [], // Um novo sensor começa sem dados históricos.
+    };
 }
 
 export async function updateSensor(
@@ -73,7 +77,8 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
-    const dataToUpdate: Partial<Sensor> = { ...sensorData };
+    // Os dados já chegam no formato correto do formulário.
+    const dataToUpdate: { [key: string]: any } = { ...sensorData };
    
     if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
@@ -82,7 +87,7 @@ export async function updateSensor(
         dataToUpdate.macAddress = null;
     }
 
-    await updateDoc(sensorRef, dataToUpdate as any);
+    await updateDoc(sensorRef, dataToUpdate);
 }
 
 export async function deleteSensor(collectionPath: string, sensorId: string): Promise<void> {

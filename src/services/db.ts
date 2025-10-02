@@ -1,6 +1,6 @@
 
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBlH6j-IpV7w3JAwngeWAWZqi5iyftuNY",
@@ -12,20 +12,32 @@ const firebaseConfig = {
   measurementId: "G-F46DRD1DX4"
 };
 
-// Singleton para a instância do Firestore
-let db: ReturnType<typeof getFirestore> | null = null;
+// Declaração da instância para o escopo do módulo
+let db: Firestore;
 
-function initializeDb() {
-    if (!db) {
-        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-        db = getFirestore(app);
+/**
+ * Inicializa o Firebase e o Firestore, garantindo que seja feito apenas uma vez (padrão Singleton).
+ * Esta função é robusta para ambientes de cliente e servidor no Next.js.
+ * @returns A instância do Firestore.
+ */
+function initializeDb(): Firestore {
+    // Se já foi inicializado, apenas retorna a instância existente.
+    if (getApps().length) {
+        return getFirestore(getApp());
     }
-    return db;
+    // Se não, inicializa o app e o Firestore.
+    const app = initializeApp(firebaseConfig);
+    return getFirestore(app);
 }
 
-export const getDb = () => {
+/**
+ * Retorna uma instância funcional do Firestore.
+ * Chama a inicialização se a instância 'db' ainda não foi criada.
+ * @returns A instância do Firestore.
+ */
+export const getDb = (): Firestore => {
     if (!db) {
-        return initializeDb();
+        db = initializeDb();
     }
     return db;
 };
