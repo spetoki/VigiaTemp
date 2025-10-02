@@ -6,16 +6,15 @@ import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'fire
 import type { User, UserFormData } from '@/types';
 
 const ADMIN_USER_EMAIL = 'admin@vigiatemp.com';
-const ADMIN_ACCESS_KEY = '8352';
 
 /**
- * Verifica se o usuário administrador padrão já existe para a chave de acesso principal.
+ * Verifica se o usuário administrador padrão já existe para a chave de acesso.
  * Se não existir, ele o cria.
  * @param accessKey A chave de acesso atual.
  */
 export async function initializeAdminUser(accessKey: string): Promise<void> {
-  // Executa a lógica apenas para a chave de acesso principal
-  if (accessKey !== ADMIN_ACCESS_KEY) {
+  if (!accessKey) {
+    console.error('[Init Service] Chave de acesso inválida.');
     return;
   }
 
@@ -25,21 +24,21 @@ export async function initializeAdminUser(accessKey: string): Promise<void> {
     const db = getDb();
     const usersCol = collection(db, usersCollectionPath);
     
-    // 1. Verifica se o usuário admin já existe
-    const q = query(usersCol, where("email", "==", ADMIN_USER_EMAIL));
-    const querySnapshot = await getDocs(q);
+    // 1. Verifica se a coleção de usuários para esta chave de acesso já possui algum usuário.
+    // Uma verificação mais simples para evitar múltiplas leituras.
+    const snapshot = await getDocs(query(usersCol));
 
-    if (!querySnapshot.empty) {
-      // Admin já existe, não faz nada
-      console.log(`[Init Service] Usuário administrador para a chave ${accessKey} já existe.`);
+    if (!snapshot.empty) {
+      // Coleção já tem dados, assume-se que o admin já foi (ou será) criado.
+      console.log(`[Init Service] A coleção de usuários para a chave ${accessKey} já existe. Nenhuma ação necessária.`);
       return;
     }
 
-    // 2. Se não existir, cria o usuário admin
-    console.log(`[Init Service] Criando usuário administrador padrão para a chave ${accessKey}...`);
+    // 2. Se a coleção estiver vazia, cria o usuário admin.
+    console.log(`[Init Service] Criando usuário administrador padrão para a nova chave ${accessKey}...`);
     
     const adminUserData: UserFormData = {
-      name: 'Admin VigiaTemp',
+      name: 'Admin Padrão',
       email: ADMIN_USER_EMAIL,
       role: 'admin',
       status: 'active',
