@@ -49,9 +49,6 @@ export async function addSensor(
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        // O formulário já envia os valores na unidade correta, mas convertemos para garantir que está em Celsius.
-        // Assumindo que a UI sempre trabalha com a unidade do usuário, mas o backend sempre salva em Celsius.
-        // No entanto, o `SensorForm` já faz a conversão de `temperatureUnit` para `C`, então podemos simplificar.
         lowThreshold: sensorData.lowThreshold,
         highThreshold: sensorData.highThreshold,
         currentTemperature: 25, // Valor inicial padrão em Celsius
@@ -78,15 +75,9 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
-    // Converte os números de string para float
+    // O formulário já envia os dados no tipo correto (números para os limites)
     const dataToUpdate: Partial<Sensor> = { ...sensorData };
-    if (typeof sensorData.lowThreshold === 'string') {
-        dataToUpdate.lowThreshold = parseFloat(sensorData.lowThreshold);
-    }
-    if (typeof sensorData.highThreshold === 'string') {
-        dataToUpdate.highThreshold = parseFloat(sensorData.highThreshold);
-    }
-
+   
     if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
     }
