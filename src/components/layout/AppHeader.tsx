@@ -2,16 +2,28 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, Info, FileCode2, Users } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, Info, FileCode2, Users, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useSettings } from '@/context/SettingsContext';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { Separator } from '../ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, className, onClick }: {
   href: string;
@@ -46,7 +58,7 @@ const NavLink = ({ href, labelKey, icon: Icon, defaultLabel, isMobile, className
 }
 
 export default function AppHeader() {
-  const { temperatureUnit, setTemperatureUnit, t } = useSettings();
+  const { temperatureUnit, setTemperatureUnit, t, lockApp } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const mainNavItems = [
@@ -121,6 +133,33 @@ export default function AppHeader() {
                        {settingsItems.map(item => <MobileNavLink key={item.href} {...item} />)}
                     </div>
                 </div>
+                 <SheetFooter className="p-4 border-t">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <LogOut className="mr-2 h-5 w-5" />
+                          {t('nav.logout', 'Sair')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('logoutDialog.title', 'Confirmar Saída')}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('logoutDialog.description', 'Tem certeza de que deseja sair? Isso irá bloquear o aplicativo e você precisará inserir uma chave de acesso para entrar novamente.')}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('logoutDialog.cancel', 'Cancelar')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => {
+                            lockApp();
+                            setIsMobileMenuOpen(false);
+                          }}>
+                            {t('nav.logout', 'Sair')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </SheetFooter>
           </SheetContent>
         </Sheet>
       </div>
@@ -168,3 +207,5 @@ export default function AppHeader() {
     </header>
   );
 }
+
+    
