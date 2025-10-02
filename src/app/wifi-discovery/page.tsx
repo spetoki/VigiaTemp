@@ -82,8 +82,8 @@ export default function WifiDiscoveryPage() {
     const newSensorData: SensorFormData = {
         name: device.name,
         location: t('wifiDiscoveryPage.defaultLocation', 'Descoberto via WiFi'),
-        highThreshold: "30",
-        lowThreshold: "20",
+        highThreshold: 30,
+        lowThreshold: 20,
         model: 'WiFi Generic',
         ipAddress: device.ipAddress,
         macAddress: device.macAddress,
