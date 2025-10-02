@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { getSensors, addSensor } from '@/services/sensor-service';
+import { SensorFormData } from '@/components/sensors/SensorForm';
 
 // Mock data for discovered WiFi devices
 const mockDiscoveredDevices = [
@@ -78,24 +79,25 @@ export default function WifiDiscoveryPage() {
       return;
     }
     
-    const newSensorData = {
+    const newSensorData: SensorFormData = {
         name: device.name,
         location: t('wifiDiscoveryPage.defaultLocation', 'Descoberto via WiFi'),
-        highThreshold: 30,
-        lowThreshold: 20,
+        highThreshold: "30",
+        lowThreshold: "20",
         model: 'WiFi Generic',
         ipAddress: device.ipAddress,
         macAddress: device.macAddress,
     };
 
     try {
-        const newSensor = await addSensor(storageKeys.sensors, newSensorData);
+        await addSensor(storageKeys.sensors, newSensorData);
         setAddedMacs(prev => new Set(prev).add(device.macAddress));
         toast({
             title: t('wifiDiscoveryPage.toast.sensorAdded.title', 'Sensor Adicionado'),
-            description: t('wifiDiscoveryPage.toast.sensorAdded.description', 'O sensor {deviceName} foi adicionado à sua lista.', { deviceName: newSensor.name }),
+            description: t('wifiDiscoveryPage.toast.sensorAdded.description', 'O sensor {deviceName} foi adicionado à sua lista.', { deviceName: newSensorData.name }),
         });
     } catch(error) {
+        console.error(error);
         toast({
             title: t('sensorsPage.toast.addError.title', "Erro ao Adicionar"),
             description: t('sensorsPage.toast.addError.description', "Não foi possível adicionar o sensor."),
