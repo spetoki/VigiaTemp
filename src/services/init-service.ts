@@ -2,7 +2,7 @@
 'use server';
 
 import { getDb } from './db';
-import { collection, doc, getDoc, setDoc, addDoc, serverTimestamp, query, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, addDoc, serverTimestamp, query, getDocs, where } from 'firebase/firestore';
 import type { UserFormData } from '@/types';
 
 const ADMIN_USER_EMAIL = 'admin@vigiatemp.com';
@@ -25,7 +25,7 @@ export async function initializeAdminUser(accessKey: string): Promise<void> {
   try {
     const userDocSnap = await getDoc(userDocRef);
 
-    // Etapa 1: Verificar e criar o documento principal da chave de acesso, se necessário.
+    // Etapa 1: Criar o documento principal da chave de acesso se ele não existir.
     if (!userDocSnap.exists()) {
       console.log(`[Init Service] Documento para a chave ${accessKey} não existe. Criando...`);
       await setDoc(userDocRef, {
@@ -36,11 +36,11 @@ export async function initializeAdminUser(accessKey: string): Promise<void> {
     }
 
     // Etapa 2: Verificar se o usuário admin já existe na subcoleção.
-    const adminQuery = query(usersSubCollectionRef);
+    const adminQuery = query(usersSubCollectionRef, where("email", "==", ADMIN_USER_EMAIL));
     const querySnapshot = await getDocs(adminQuery);
 
     if (querySnapshot.empty) {
-      console.log(`[Init Service] Subcoleção 'users' está vazia para a chave ${accessKey}. Criando usuário admin...`);
+      console.log(`[Init Service] Usuário admin não encontrado para a chave ${accessKey}. Criando...`);
       
       const adminUserData: UserFormData = {
         name: 'Admin Padrão',
@@ -57,7 +57,7 @@ export async function initializeAdminUser(accessKey: string): Promise<void> {
       await addDoc(usersSubCollectionRef, dataToSave);
       console.log(`[Init Service] Usuário administrador criado com sucesso para a chave ${accessKey}.`);
     } else {
-      console.log(`[Init Service] Usuários já existem para a chave ${accessKey}. Nenhuma ação necessária.`);
+      console.log(`[Init Service] Usuário admin já existe para a chave ${accessKey}. Nenhuma ação necessária.`);
     }
 
   } catch (error) {

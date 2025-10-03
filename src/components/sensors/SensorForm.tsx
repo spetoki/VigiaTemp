@@ -82,8 +82,8 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
         model: sensor.model || '',
         ipAddress: sensor.ipAddress || '',
         macAddress: sensor.macAddress || '',
-        lowThreshold: parseFloat(convertTemperature(sensor.lowThreshold, temperatureUnit).toFixed(1)),
-        highThreshold: parseFloat(convertTemperature(sensor.highThreshold, temperatureUnit).toFixed(1)),
+        lowThreshold: sensor.lowThreshold,
+        highThreshold: sensor.highThreshold,
       }
     : {
         name: '',
@@ -91,8 +91,8 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
         model: '',
         ipAddress: '',
         macAddress: '',
-        lowThreshold: temperatureUnit === 'C' ? 20 : 68,
-        highThreshold: temperatureUnit === 'C' ? 30 : 86,
+        lowThreshold: 20,
+        highThreshold: 30,
       };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -102,8 +102,6 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
   });
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    // A conversão para Celsius será feita na página principal,
-    // o serviço deve lidar com os dados brutos do formulário.
     onSubmit(data);
   };
 
@@ -131,8 +129,8 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
           <DialogTitle>{sensor ? t('sensorForm.editTitle', 'Editar Sensor') : t('sensorForm.addTitle', 'Adicionar Novo Sensor')}</DialogTitle>
           <DialogDescription>
             {sensor 
-              ? t('sensorForm.editDescription', 'Atualize os detalhes deste sensor. Os limites estão em °{unit}.', { unit: temperatureUnit })
-              : t('sensorForm.addDescription', 'Insira os detalhes para o novo sensor. Os limites estão em °{unit}.', { unit: temperatureUnit })}
+              ? t('sensorForm.editDescription', 'Atualize os detalhes deste sensor. Os limites são em °{unit}.', { unit: 'C' })
+              : t('sensorForm.addDescription', 'Insira os detalhes para o novo sensor. Os limites estão em °{unit}.', { unit: 'C' })}
           </DialogDescription>
         </DialogHeader>
 
@@ -220,14 +218,14 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
             </div>
 
             <div className="pt-2">
-              <Label className="text-base font-semibold">{t('sensorForm.thresholdsTitle', 'Limites de Temperatura')}</Label>
+              <Label className="text-base font-semibold">{t('sensorForm.thresholdsTitle', 'Limites de Temperatura (°C)')}</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 <FormField
                   control={form.control}
                   name="lowThreshold"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('sensorForm.lowThresholdLabel', 'Limite Inferior (°{unit})', { unit: temperatureUnit })}</FormLabel>
+                      <FormLabel>{t('sensorForm.lowThresholdLabel', 'Limite Inferior (°C)')}</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.1" {...field} />
                       </FormControl>
@@ -240,7 +238,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                   name="highThreshold"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('sensorForm.highThresholdLabel', 'Limite Superior (°{unit})', { unit: temperatureUnit })}</FormLabel>
+                      <FormLabel>{t('sensorForm.highThresholdLabel', 'Limite Superior (°C)')}</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.1" {...field} />
                       </FormControl>

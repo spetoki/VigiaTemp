@@ -48,7 +48,6 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
     }
     const db = getDb();
     
-    // Convert string form data to numbers for Firestore, with fallbacks.
     const dataToSave = {
         lotDescription: lotData.lotDescription,
         name: lotData.name,
@@ -62,7 +61,6 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
-    // Return a TraceabilityData object consistent with what getLots returns
     return {
         id: docRef.id,
         createdAt: new Date().toISOString(), // Return current date as a client-side estimate

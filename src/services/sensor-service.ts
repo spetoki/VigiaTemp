@@ -3,7 +3,7 @@
 
 import { getDb } from './db';
 import type { Sensor, HistoricalDataPoint } from '@/types';
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query } from 'firebase/firestore';
 import { SensorFormData } from '@/components/sensors/SensorForm';
 
 // Função para obter sensores uma única vez
@@ -19,9 +19,9 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 id: doc.id,
                 name: data.name || 'Sensor Desconhecido',
                 location: data.location || 'Localização Desconhecida',
-                currentTemperature: data.currentTemperature ?? 0,
-                highThreshold: data.highThreshold ?? 0,
-                lowThreshold: data.lowThreshold ?? 0,
+                currentTemperature: data.currentTemperature ?? 25,
+                highThreshold: data.highThreshold ?? 30,
+                lowThreshold: data.lowThreshold ?? 20,
                 historicalData: data.historicalData || [],
                 model: data.model || 'Não especificado',
                 ipAddress: data.ipAddress || null,
@@ -44,16 +44,16 @@ export async function addSensor(
     }
     const db = getDb();
 
+    // Converte os valores de string para number ANTES de salvar.
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        // Garante que os valores são números
         lowThreshold: Number(sensorData.lowThreshold),
         highThreshold: Number(sensorData.highThreshold),
-        currentTemperature: 25, 
+        currentTemperature: 25, // Temperatura inicial padrão
     };
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
@@ -76,13 +76,15 @@ export async function updateSensor(
     
     const dataToUpdate: { [key: string]: any } = { ...sensorData };
 
+    // Garante a conversão para número se os campos existirem
     if (typeof sensorData.lowThreshold !== 'undefined') {
         dataToUpdate.lowThreshold = Number(sensorData.lowThreshold);
     }
-     if (typeof sensorData.highThreshold !== 'undefined') {
+    if (typeof sensorData.highThreshold !== 'undefined') {
         dataToUpdate.highThreshold = Number(sensorData.highThreshold);
     }
    
+    // Trata campos opcionais que podem vir vazios
     if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
     }
@@ -110,40 +112,41 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
         const querySnapshot = await getDocs(historyCollectionRef);
         let data = querySnapshot.docs.map(doc => doc.data() as HistoricalDataPoint);
 
-        if (data.length === 0) {
-            console.warn(`Gerando dados históricos SIMULADOS para o sensor ${sensorId} pois não há dados reais.`);
-            const sensorDoc = await getDoc(doc(db, collectionPath, sensorId));
-            if (!sensorDoc.exists()) return [];
-            
-            const sensor = sensorDoc.data() as Omit<Sensor, 'id'>;
-
-            const simulatedData: HistoricalDataPoint[] = [];
-            const now = Date.now();
-            let steps;
-            let interval;
-
-            switch (timePeriod) {
-                case 'hour': steps = 60; interval = 60 * 1000; break; // 1 ponto por minuto
-                case 'week': steps = 7 * 24; interval = 60 * 60 * 1000; break; // 1 ponto por hora
-                case 'month': steps = 30 * 12; interval = 2 * 60 * 60 * 1000; break; // 1 ponto a cada 2 horas
-                case 'day': default: steps = 24 * 4; interval = 15 * 60 * 1000; break; // 1 ponto a cada 15 minutos
-            }
-
-            for (let i = 0; i < steps; i++) {
-                const timestamp = now - (steps - i) * interval;
-                const dayCycle = Math.sin(((timestamp % 86400000) / 86400000) * 2 * Math.PI - Math.PI / 2);
-                const baseTemp = (sensor.highThreshold + sensor.lowThreshold) / 2;
-                const amplitude = (sensor.highThreshold - sensor.lowThreshold) / 2;
-                const randomNoise = (Math.random() - 0.5) * 2;
-                
-                const temperature = baseTemp + (dayCycle * amplitude * 0.7) + randomNoise;
-                
-                simulatedData.push({ timestamp, temperature });
-            }
-            return simulatedData;
+        if (data.length > 0) {
+           return data.sort((a, b) => a.timestamp - b.timestamp);
         }
 
-        return data.sort((a, b) => a.timestamp - b.timestamp);
+        console.warn(`Gerando dados históricos SIMULADOS para o sensor ${sensorId} pois não há dados reais.`);
+        const sensorDoc = await getDoc(doc(db, collectionPath, sensorId));
+        if (!sensorDoc.exists()) return [];
+        
+        const sensor = sensorDoc.data() as Omit<Sensor, 'id'>;
+
+        const simulatedData: HistoricalDataPoint[] = [];
+        const now = Date.now();
+        let steps;
+        let interval;
+
+        switch (timePeriod) {
+            case 'hour': steps = 60; interval = 60 * 1000; break;
+            case 'week': steps = 7 * 24; interval = 60 * 60 * 1000; break;
+            case 'month': steps = 30 * 12; interval = 2 * 60 * 60 * 1000; break;
+            case 'day': default: steps = 24 * 4; interval = 15 * 60 * 1000; break;
+        }
+
+        for (let i = 0; i < steps; i++) {
+            const timestamp = now - (steps - i) * interval;
+            const dayCycle = Math.sin(((timestamp % 86400000) / 86400000) * 2 * Math.PI - Math.PI / 2);
+            const baseTemp = (sensor.highThreshold + sensor.lowThreshold) / 2;
+            const amplitude = (sensor.highThreshold - sensor.lowThreshold) / 2;
+            const randomNoise = (Math.random() - 0.5) * 2;
+            
+            const temperature = baseTemp + (dayCycle * amplitude * 0.7) + randomNoise;
+            
+            simulatedData.push({ timestamp, temperature });
+        }
+        return simulatedData;
+
     } catch (error) {
         console.error("Erro ao buscar dados históricos: ", error);
         return [];
