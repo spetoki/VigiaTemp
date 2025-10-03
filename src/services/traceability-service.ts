@@ -48,25 +48,31 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
     }
     const db = getDb();
     
-    const newLotData = {
-        ...lotData,
-        createdAt: serverTimestamp(), // Use server timestamp for creation
+    // Convert string form data to numbers for Firestore
+    const dataToSave = {
+        lotDescription: lotData.lotDescription,
+        name: lotData.name,
+        isoClassification: lotData.isoClassification,
         wetCocoaWeight: parseFloat(lotData.wetCocoaWeight) || 0,
         dryCocoaWeight: parseFloat(lotData.dryCocoaWeight) || 0,
         fermentationTime: parseInt(lotData.fermentationTime, 10) || 0,
         dryingTime: parseInt(lotData.dryingTime, 10) || 0,
+        createdAt: serverTimestamp(),
     };
     
-    const docRef = await addDoc(collection(db, collectionPath), newLotData);
+    const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
+    // Return a TraceabilityData object consistent with what getLots returns
     return {
-        ...lotData,
         id: docRef.id,
-        createdAt: new Date().toISOString(), // Return current date as an estimate
-        wetCocoaWeight: newLotData.wetCocoaWeight,
-        dryCocoaWeight: newLotData.dryCocoaWeight,
-        fermentationTime: newLotData.fermentationTime,
-        dryingTime: newLotData.dryingTime,
+        createdAt: new Date().toISOString(), // Return current date as a client-side estimate
+        lotDescription: dataToSave.lotDescription,
+        name: dataToSave.name,
+        isoClassification: dataToSave.isoClassification,
+        wetCocoaWeight: dataToSave.wetCocoaWeight,
+        dryCocoaWeight: dataToSave.dryCocoaWeight,
+        fermentationTime: dataToSave.fermentationTime,
+        dryingTime: dataToSave.dryingTime,
     };
 }
 
