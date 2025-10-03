@@ -1,10 +1,9 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // REGRA DE DESENVOLVIMENTO: Permite acesso total e irrestrito a todo o banco de dados.
-    // Isso é útil para prototipagem rápida, mas é inseguro para produção.
+    // AVISO: Regra insegura, apenas para desenvolvimento.
+    // Permite leitura e escrita em todos os documentos.
     match /{document=**} {
       allow read, write: if true;
     }
