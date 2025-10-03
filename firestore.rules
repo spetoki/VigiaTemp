@@ -1,9 +1,10 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permite leitura e escrita em TODOS os documentos do banco de dados.
-    // Esta regra é ideal para desenvolvimento, mas é INSEGURA para produção.
+    // REGRA DE DESENVOLVIMENTO: Permite acesso total e irrestrito a todo o banco de dados.
+    // Isso é útil para prototipagem rápida, mas é inseguro para produção.
     match /{document=**} {
       allow read, write: if true;
     }

@@ -48,7 +48,7 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
     }
     const db = getDb();
     
-    // Convert string form data to numbers for Firestore
+    // Convert string form data to numbers for Firestore, with fallbacks.
     const dataToSave = {
         lotDescription: lotData.lotDescription,
         name: lotData.name,

@@ -1,5 +1,4 @@
 
-
 import { NextResponse } from 'next/server';
 import { getDb } from '@/services/db';
 import { collection, query, where, getDocs, updateDoc, doc, addDoc, Timestamp, collectionGroup } from 'firebase/firestore';
@@ -23,38 +22,43 @@ export async function POST(request: Request) {
 
     // Validação dos dados recebidos
     if (!macAddress || typeof temperature !== 'number') {
-      return NextResponse.json({ message: 'Dados inválidos. É necessário "macAddress" e "temperature".' }, { status: 400 });
+      return NextResponse.json({ message: 'Dados inválidos. É necessário "macAddress" e "temperature".' }, { 
+          status: 400,
+          headers: { 'Access-Control-Allow-Origin': '*' } 
+      });
     }
 
     const db = getDb();
 
-    // 1. Encontrar o sensor correspondente em todas as coleções de usuários
     // Usamos collectionGroup para buscar na subcoleção "sensors" de todos os documentos "users".
     const sensorsQuery = query(collectionGroup(db, 'sensors'), where('macAddress', '==', macAddress));
     const querySnapshot = await getDocs(sensorsQuery);
 
     if (querySnapshot.empty) {
-      console.warn(`[VigiaTemp API] Sensor com MAC ${macAddress} não foi encontrado em nenhum usuário.`);
-      return NextResponse.json({ message: `Sensor com MAC ${macAddress} não encontrado.` }, { status: 404 });
+      console.warn(`[VigiaTemp API] Sensor com MAC ${macAddress} não foi encontrado.`);
+      return NextResponse.json({ message: `Sensor com MAC ${macAddress} não encontrado.` }, { 
+          status: 404,
+          headers: { 'Access-Control-Allow-Origin': '*' } 
+      });
     }
 
-    // Pega a primeira correspondência (MAC address deve ser único em todo o sistema)
+    // Pega a primeira correspondência (MAC address deve ser único)
     const sensorDoc = querySnapshot.docs[0];
     const sensorRef = sensorDoc.ref;
     
-    // 2. Atualizar a temperatura atual no documento do sensor encontrado
+    // Atualiza a temperatura atual no documento do sensor encontrado
     await updateDoc(sensorRef, {
       currentTemperature: temperature
     });
 
-    // 3. Adicionar um novo ponto de dado na subcoleção de histórico do sensor
+    // Adiciona um novo ponto de dado na subcoleção de histórico do sensor
     const historicalDataRef = collection(sensorRef, 'historicalData');
     await addDoc(historicalDataRef, {
-      timestamp: Timestamp.now(), // Usa o timestamp do servidor para consistência
+      timestamp: Timestamp.now(),
       temperature: temperature
     });
     
-    console.log(`[VigiaTemp API] Dados recebidos para MAC ${macAddress}. Temp: ${temperature}. Dados atualizados com sucesso.`);
+    console.log(`[VigiaTemp API] Dados recebidos para MAC ${macAddress}. Temp: ${temperature}. Atualizado com sucesso.`);
 
     // Retorna uma resposta de sucesso com CORS habilitado
     return NextResponse.json({ message: 'Dados recebidos com sucesso!' }, { 
@@ -68,6 +72,9 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
         errorMessage = error.message;
     }
-    return NextResponse.json({ message: 'Erro interno do servidor', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Erro interno do servidor', error: errorMessage }, { 
+        status: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' } 
+    });
   }
 }

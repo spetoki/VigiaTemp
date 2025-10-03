@@ -44,18 +44,15 @@ export async function addSensor(
     }
     const db = getDb();
 
-    // Os dados do formulário já são validados como números pelo Zod,
-    // então podemos usá-los diretamente.
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        // Limites já são números do formulário.
-        lowThreshold: sensorData.lowThreshold,
-        highThreshold: sensorData.highThreshold,
-        // Valor inicial padrão em Celsius para um novo sensor.
+        // Garante que os valores são números
+        lowThreshold: Number(sensorData.lowThreshold),
+        highThreshold: Number(sensorData.highThreshold),
         currentTemperature: 25, 
     };
     
@@ -77,8 +74,14 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
-    // Os dados já chegam no formato correto do formulário.
     const dataToUpdate: { [key: string]: any } = { ...sensorData };
+
+    if (typeof sensorData.lowThreshold !== 'undefined') {
+        dataToUpdate.lowThreshold = Number(sensorData.lowThreshold);
+    }
+     if (typeof sensorData.highThreshold !== 'undefined') {
+        dataToUpdate.highThreshold = Number(sensorData.highThreshold);
+    }
    
     if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
