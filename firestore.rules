@@ -1,11 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Regra para desenvolvimento: Permite acesso total a qualquer
-    // documento dentro de qualquer coleção de usuário.
-    // Isso é necessário para permitir que a API e as consultas em tempo real funcionem corretamente.
-    match /users/{userId}/{document=**} {
+    // Regra de desenvolvimento: Permite leitura e escrita em todos os documentos.
+    // AVISO: Inseguro para produção.
+    match /{document=**} {
       allow read, write: if true;
     }
   }
