@@ -1,9 +1,10 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permite leitura e escrita em qualquer documento dentro da coleção de um usuário específico.
-    // Isso cobre sensores, alertas, lotes, etc.
-    match /users/{userId}/{document=**} {
+    // Permite leitura e escrita em TODOS os documentos do banco de dados.
+    // Esta regra é ideal para desenvolvimento, mas é INSEGURA para produção.
+    match /{document=**} {
       allow read, write: if true;
     }
   }
