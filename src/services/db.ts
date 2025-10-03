@@ -12,26 +12,46 @@ const firebaseConfig = {
   measurementId: "G-F46DRD1DX4"
 };
 
-let app: FirebaseApp;
-let db: Firestore;
-
-function initializeFirebase() {
-    if (!getApps().length) {
-        app = initializeApp(firebaseConfig);
-    } else {
-        app = getApp();
-    }
-    db = getFirestore(app);
+// Estrutura para garantir uma única instância (Singleton Pattern)
+interface FirebaseInstances {
+  app: FirebaseApp;
+  db: Firestore;
 }
 
-// Inicializa o Firebase ao carregar o módulo
-initializeFirebase();
+let instances: FirebaseInstances | null = null;
+
+function initializeFirebase(): FirebaseInstances {
+    if (typeof window !== 'undefined' && instances) {
+        return instances;
+    }
+
+    if (!getApps().length) {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        instances = { app, db };
+    } else {
+        const app = getApp();
+        const db = getFirestore(app);
+        instances = { app, db };
+    }
+    return instances;
+}
 
 /**
  * Retorna uma instância funcional do Firestore.
+ * Garante que o Firebase seja inicializado apenas uma vez.
  * @returns A instância do Firestore.
  */
 export const getDb = (): Firestore => {
-    // A instância 'db' já foi inicializada, então apenas a retornamos.
-    return db;
+    if (!instances) {
+        initializeFirebase();
+    }
+    // O 'instances' nunca será nulo aqui devido à chamada acima.
+    // O '!' é uma asserção de não-nulidade para o TypeScript.
+    return instances!.db;
 };
+
+// Garante que a inicialização ocorra quando o módulo é carregado no servidor
+if (!instances) {
+    initializeFirebase();
+}
