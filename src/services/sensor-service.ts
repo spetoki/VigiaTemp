@@ -3,10 +3,9 @@
 
 import { getDb } from './db';
 import type { Sensor, HistoricalDataPoint } from '@/types';
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp, writeBatch, limit } from 'firebase/firestore';
 import { SensorFormData } from '@/components/sensors/SensorForm';
 
-// Função para obter sensores uma única vez
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
     if (!collectionPath) return [];
     try {
@@ -22,7 +21,6 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 currentTemperature: data.currentTemperature ?? 25,
                 highThreshold: data.highThreshold ?? 30,
                 lowThreshold: data.lowThreshold ?? 20,
-                historicalData: data.historicalData || [],
                 model: data.model || 'Não especificado',
                 ipAddress: data.ipAddress || null,
                 macAddress: data.macAddress || null,
@@ -44,24 +42,22 @@ export async function addSensor(
     }
     const db = getDb();
 
-    // The form already provides numbers for thresholds due to `z.number({ coerce: true })`
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        lowThreshold: sensorData.lowThreshold,
-        highThreshold: sensorData.highThreshold,
-        currentTemperature: 25, // Temperatura inicial padrão
+        lowThreshold: Number(sensorData.lowThreshold),
+        highThreshold: Number(sensorData.highThreshold),
+        currentTemperature: 25, 
     };
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
     return {
         id: docRef.id,
-        ...dataToSave,
-        historicalData: [], // Um novo sensor começa sem dados históricos.
+        ...dataToSave
     };
 }
 
@@ -74,10 +70,14 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
-    // The form already provides numbers for thresholds
     const dataToUpdate: { [key: string]: any } = { ...sensorData };
+    if (typeof sensorData.lowThreshold !== 'undefined') {
+        dataToUpdate.lowThreshold = Number(sensorData.lowThreshold);
+    }
+    if (typeof sensorData.highThreshold !== 'undefined') {
+        dataToUpdate.highThreshold = Number(sensorData.highThreshold);
+    }
    
-    // Trata campos opcionais que podem vir vazios
     if (sensorData.ipAddress === '') {
         dataToUpdate.ipAddress = null;
     }
@@ -94,7 +94,6 @@ export async function deleteSensor(collectionPath: string, sensorId: string): Pr
     await deleteDoc(doc(db, collectionPath, sensorId));
 }
 
-// Função para buscar dados históricos de um sensor
 export async function getHistoricalData(collectionPath: string, sensorId: string, timePeriod: 'hour' | 'day' | 'week' | 'month' = 'day'): Promise<HistoricalDataPoint[]> {
     if (!collectionPath) return [];
 
@@ -143,5 +142,58 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
     } catch (error) {
         console.error("Erro ao buscar dados históricos: ", error);
         return [];
+    }
+}
+
+
+export async function updateSensorDataFromDevice(macAddress: string, temperature: number): Promise<{id: string} | null> {
+    const db = getDb();
+    const usersCollectionRef = collection(db, 'users');
+    
+    try {
+        const usersSnapshot = await getDocs(usersCollectionRef);
+        
+        for (const userDoc of usersSnapshot.docs) {
+            const sensorsCollectionPath = `users/${userDoc.id}/sensors`;
+            const sensorsCollectionRef = collection(db, sensorsCollectionPath);
+            
+            // Busca pelo sensor com o MAC address correspondente
+            const q = query(sensorsCollectionRef, where("macAddress", "==", macAddress), limit(1));
+            const sensorSnapshot = await getDocs(q);
+
+            if (!sensorSnapshot.empty) {
+                const sensorDoc = sensorSnapshot.docs[0];
+                const sensorId = sensorDoc.id;
+                
+                // Sensor encontrado, iniciar batch de escrita
+                const batch = writeBatch(db);
+
+                // 1. Atualiza a temperatura atual no documento do sensor
+                const sensorRef = doc(db, sensorsCollectionPath, sensorId);
+                batch.update(sensorRef, { currentTemperature: temperature });
+                
+                // 2. Adiciona um novo ponto de dado na subcoleção historicalData
+                const historyCollectionRef = collection(db, `${sensorsCollectionPath}/${sensorId}/historicalData`);
+                const newHistoryDocRef = doc(historyCollectionRef); // Gera um novo ID para o ponto histórico
+                batch.set(newHistoryDocRef, {
+                    timestamp: Timestamp.now().toMillis(),
+                    temperature: temperature
+                });
+
+                // Executa as operações em lote
+                await batch.commit();
+                
+                console.log(`Dados atualizados para o sensor ${sensorId} do usuário ${userDoc.id}`);
+                return { id: sensorId }; // Retorna o ID do sensor atualizado
+            }
+        }
+        
+        // Se o loop terminar e nenhum sensor for encontrado
+        console.warn(`Nenhum sensor encontrado com o MAC Address: ${macAddress} em nenhum usuário.`);
+        return null;
+
+    } catch (error) {
+        console.error("Erro ao atualizar dados do dispositivo:", error);
+        throw error;
     }
 }
