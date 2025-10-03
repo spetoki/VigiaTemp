@@ -61,9 +61,11 @@ export async function addLot(collectionPath: string, lotData: TraceabilityFormDa
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
     
+    const createdAtDate = new Date();
+
     return {
         id: docRef.id,
-        createdAt: new Date().toISOString(), // Return current date as a client-side estimate
+        createdAt: createdAtDate.toISOString(), 
         lotDescription: dataToSave.lotDescription,
         name: dataToSave.name,
         isoClassification: dataToSave.isoClassification,

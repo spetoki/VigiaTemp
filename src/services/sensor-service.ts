@@ -44,15 +44,15 @@ export async function addSensor(
     }
     const db = getDb();
 
-    // Converte os valores de string para number ANTES de salvar.
+    // The form already provides numbers for thresholds due to `z.number({ coerce: true })`
     const dataToSave = {
         name: sensorData.name,
         location: sensorData.location,
         model: sensorData.model || 'Não especificado',
         ipAddress: sensorData.ipAddress || null,
         macAddress: sensorData.macAddress || null,
-        lowThreshold: Number(sensorData.lowThreshold),
-        highThreshold: Number(sensorData.highThreshold),
+        lowThreshold: sensorData.lowThreshold,
+        highThreshold: sensorData.highThreshold,
         currentTemperature: 25, // Temperatura inicial padrão
     };
     
@@ -74,15 +74,8 @@ export async function updateSensor(
     const db = getDb();
     const sensorRef = doc(db, collectionPath, sensorId);
     
+    // The form already provides numbers for thresholds
     const dataToUpdate: { [key: string]: any } = { ...sensorData };
-
-    // Garante a conversão para número se os campos existirem
-    if (typeof sensorData.lowThreshold !== 'undefined') {
-        dataToUpdate.lowThreshold = Number(sensorData.lowThreshold);
-    }
-    if (typeof sensorData.highThreshold !== 'undefined') {
-        dataToUpdate.highThreshold = Number(sensorData.highThreshold);
-    }
    
     // Trata campos opcionais que podem vir vazios
     if (sensorData.ipAddress === '') {

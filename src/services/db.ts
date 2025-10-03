@@ -12,21 +12,27 @@ const firebaseConfig = {
   measurementId: "G-F46DRD1DX4"
 };
 
+// Singleton pattern to ensure a single instance of Firebase services
 let app: FirebaseApp;
 let db: Firestore;
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
+function initializeFirebase() {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApp();
+  }
+  db = getFirestore(app);
 }
 
-db = getFirestore(app);
+// Initialize on module load
+initializeFirebase();
 
-export { db, getDb };
-
-// Manter a função getDb para compatibilidade com o resto do código que a utiliza.
-// A instância 'db' exportada já está inicializada.
+// getDb function to be used by other services
 const getDb = (): Firestore => {
+    // The db instance is already initialized and available, just return it.
+    // This ensures stability across server-side renders and actions.
     return db;
 };
+
+export { db, getDb };
