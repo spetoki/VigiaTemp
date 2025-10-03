@@ -1,9 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Regra de desenvolvimento: Permite leitura e escrita em todos os documentos.
-    // AVISO: Inseguro para produção.
-    match /{document=**} {
+    // Permite leitura e escrita em qualquer documento dentro da coleção de um usuário específico.
+    // Isso cobre sensores, alertas, lotes, etc.
+    match /users/{userId}/{document=**} {
       allow read, write: if true;
     }
   }
