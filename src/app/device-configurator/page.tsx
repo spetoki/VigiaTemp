@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CodeXml, Copy, Check, AlertCircle, FileCode2, Wifi, Settings, HelpCircle, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '../ui/separator';
 
 const generateWebSerialTestCode = () => `
 // Código de Teste Mínimo - "Olá, Mundo!" Serial
@@ -34,6 +34,7 @@ void loop() {
 const generateCppCode = (config: {
   configType: 'wifimanager' | 'hardcoded' | 'webserial';
   appUrl?: string;
+  accessKey?: string;
   pin?: string;
   interval?: string;
   ssid?: string;
@@ -64,6 +65,7 @@ const generateCppCode = (config: {
   const commonSetupAndLoop = `
 // --- Configurações Editáveis ---
 const char* app_url = "${finalAppUrl}"; // URL do seu aplicativo VigiaTemp
+const char* access_key = "${config.accessKey}";   // Chave de Acesso para identificar o workspace
 const int SENSOR_PIN = ${config.pin};           // Pino de dados do sensor DS18B20
 const int SEND_INTERVAL_SEC = ${config.interval};  // Intervalo de envio em segundos
 
@@ -126,6 +128,7 @@ void sendTemperature(float temperature) {
     JsonDocument doc;
     doc["macAddress"] = WiFi.macAddress();
     doc["temperature"] = temperature;
+    doc["accessKey"] = access_key; // Envia a chave de acesso
 
     String requestBody;
     serializeJson(doc, requestBody);
@@ -236,6 +239,7 @@ export default function DeviceConfiguratorPage() {
 
   const [configType, setConfigType] = useState<ConfigType>('wifimanager');
   const [appUrl, setAppUrl] = useState('https://vigia-temp.vercel.app');
+  const [accessKey, setAccessKey] = useState(activeKey || '');
   const [sensorPin, setSensorPin] = useState('4');
   const [sendInterval, setSendInterval] = useState('30');
   const [ssid, setSsid] = useState('');
@@ -244,6 +248,13 @@ export default function DeviceConfiguratorPage() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState('');
+  
+   React.useEffect(() => {
+    if (activeKey) {
+      setAccessKey(activeKey);
+    }
+  }, [activeKey]);
+
 
   const handleGenerate = () => {
     setError('');
@@ -251,6 +262,10 @@ export default function DeviceConfiguratorPage() {
     if (configType !== 'webserial') {
        if (!appUrl) {
         setError(t('deviceConfigurator.errorDescription', 'Por favor, preencha a URL do Aplicativo.'));
+        return;
+      }
+      if (!accessKey || accessKey.length !== 4) {
+        setError('A Chave de Acesso é obrigatória e deve ter 4 dígitos.');
         return;
       }
       if (configType === 'hardcoded' && (!ssid || !password)) {
@@ -262,6 +277,7 @@ export default function DeviceConfiguratorPage() {
     const code = generateCppCode({
       configType,
       appUrl,
+      accessKey,
       pin: sensorPin,
       interval: sendInterval,
       ssid,
@@ -363,6 +379,24 @@ export default function DeviceConfiguratorPage() {
                       Insira a URL base da sua aplicação (Ex: https://meu-app.vercel.app). O caminho /api/sensor será adicionado automaticamente.
                   </p>
                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="access-key" className="flex items-center">
+                        <KeyRound className="mr-2 h-4 w-4" />
+                        Chave de Acesso
+                      </Label>
+                      <Input
+                        id="access-key"
+                        value={accessKey}
+                        onChange={(e) => setAccessKey(e.target.value)}
+                        placeholder="Sua chave de 4 dígitos"
+                        maxLength={4}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                          A chave que você usa para desbloquear o app.
+                      </p>
+                    </div>
+                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                       <Label htmlFor="sensor-pin">{t('deviceConfigurator.pinLabel', 'Pino do Sensor (GPIO)')}</Label>
@@ -432,5 +466,7 @@ export default function DeviceConfiguratorPage() {
     </div>
   );
 }
+
+    
 
     

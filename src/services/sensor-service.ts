@@ -59,7 +59,7 @@ export async function addSensor(
     return {
         id: docRef.id,
         ...dataToSave,
-        historicalData: [] // Initialize historicalData as an empty array
+        historicalData: []
     };
 }
 
@@ -148,50 +148,42 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
 }
 
 
-export async function updateSensorDataFromDevice(macAddress: string, temperature: number): Promise<{id: string} | null> {
+export async function updateSensorDataFromDevice(accessKey: string, macAddress: string, temperature: number): Promise<{id: string} | null> {
     const db = getDb();
-    const usersCollectionRef = collection(db, 'users');
+    const sensorsCollectionPath = `users/${accessKey}/sensors`;
     
     try {
-        const usersSnapshot = await getDocs(usersCollectionRef);
+        const sensorsCollectionRef = collection(db, sensorsCollectionPath);
         
-        for (const userDoc of usersSnapshot.docs) {
-            const sensorsCollectionPath = `users/${userDoc.id}/sensors`;
-            const sensorsCollectionRef = collection(db, sensorsCollectionPath);
+        // Busca pelo sensor com o MAC address correspondente dentro do workspace da chave
+        const q = query(sensorsCollectionRef, where("macAddress", "==", macAddress), limit(1));
+        const sensorSnapshot = await getDocs(q);
+
+        if (!sensorSnapshot.empty) {
+            const sensorDoc = sensorSnapshot.docs[0];
+            const sensorId = sensorDoc.id;
             
-            // Busca pelo sensor com o MAC address correspondente
-            const q = query(sensorsCollectionRef, where("macAddress", "==", macAddress), limit(1));
-            const sensorSnapshot = await getDocs(q);
+            const batch = writeBatch(db);
 
-            if (!sensorSnapshot.empty) {
-                const sensorDoc = sensorSnapshot.docs[0];
-                const sensorId = sensorDoc.id;
-                
-                // Sensor encontrado, iniciar batch de escrita
-                const batch = writeBatch(db);
+            // 1. Atualiza a temperatura atual no documento do sensor
+            const sensorRef = doc(db, sensorsCollectionPath, sensorId);
+            batch.update(sensorRef, { currentTemperature: temperature });
+            
+            // 2. Adiciona um novo ponto de dado na subcoleção historicalData
+            const historyCollectionRef = collection(db, `${sensorsCollectionPath}/${sensorId}/historicalData`);
+            const newHistoryDocRef = doc(historyCollectionRef); 
+            batch.set(newHistoryDocRef, {
+                timestamp: Timestamp.now().toMillis(),
+                temperature: temperature
+            });
 
-                // 1. Atualiza a temperatura atual no documento do sensor
-                const sensorRef = doc(db, sensorsCollectionPath, sensorId);
-                batch.update(sensorRef, { currentTemperature: temperature });
-                
-                // 2. Adiciona um novo ponto de dado na subcoleção historicalData
-                const historyCollectionRef = collection(db, `${sensorsCollectionPath}/${sensorId}/historicalData`);
-                const newHistoryDocRef = doc(historyCollectionRef); // Gera um novo ID para o ponto histórico
-                batch.set(newHistoryDocRef, {
-                    timestamp: Timestamp.now().toMillis(),
-                    temperature: temperature
-                });
-
-                // Executa as operações em lote
-                await batch.commit();
-                
-                console.log(`Dados atualizados para o sensor ${sensorId} do usuário ${userDoc.id}`);
-                return { id: sensorId }; // Retorna o ID do sensor atualizado
-            }
+            await batch.commit();
+            
+            console.log(`Dados atualizados para o sensor ${sensorId} no espaço de trabalho da chave ${accessKey}`);
+            return { id: sensorId };
         }
         
-        // Se o loop terminar e nenhum sensor for encontrado
-        console.warn(`Nenhum sensor encontrado com o MAC Address: ${macAddress} em nenhum usuário.`);
+        console.warn(`Nenhum sensor encontrado com o MAC Address: ${macAddress} para a chave ${accessKey}.`);
         return null;
 
     } catch (error) {
@@ -199,3 +191,5 @@ export async function updateSensorDataFromDevice(macAddress: string, temperature
         throw error;
     }
 }
+
+    
