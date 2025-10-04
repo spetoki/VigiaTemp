@@ -9,33 +9,12 @@ import { useSettings } from '@/context/SettingsContext';
 import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { getAlerts, addAlert } from '@/services/alert-service';
-import { getDb } from '@/services/db';
+import { getSensors } from '@/services/sensor-service';
 import type { Unsubscribe } from 'firebase/firestore';
-import { collection, query, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
-
-function subscribeToSensors(collectionPath: string, callback: (sensors: Sensor[]) => void): Unsubscribe | null {
-    if (!collectionPath) return null;
-    try {
-        const db = getDb();
-        const q = query(collection(db, collectionPath));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const sensors: Sensor[] = [];
-            querySnapshot.forEach((doc) => {
-                sensors.push({ id: doc.id, ...doc.data() } as Sensor);
-            });
-            callback(sensors);
-        });
-        return unsubscribe;
-    } catch (error) {
-        console.error("Erro ao se inscrever para atualizações de sensores:", error);
-        return null;
-    }
-}
-
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -46,30 +25,33 @@ export default function DashboardPage() {
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
-  useEffect(() => {
+  const fetchSensors = useCallback(async () => {
     if (!storageKeys.sensors) {
-        setIsLoading(true);
-        setSensors([]); 
+        setIsLoading(false);
+        setSensors([]);
         return;
     }
-
-    if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-    }
-
-    unsubscribeRef.current = subscribeToSensors(storageKeys.sensors, (updatedSensors) => {
+    try {
+        const updatedSensors = await getSensors(storageKeys.sensors);
         setSensors(updatedSensors);
+    } catch (error) {
+        console.error("Falha ao buscar sensores:", error);
+        toast({
+            title: t('sensorsPage.toast.fetchError.title', "Erro ao Buscar Sensores"),
+            description: t('sensorsPage.toast.fetchError.description', "Não foi possível carregar os sensores."),
+            variant: "destructive",
+        });
+    } finally {
         setIsLoading(false);
-    });
+    }
+  }, [storageKeys.sensors, t, toast]);
 
-    return () => {
-        if (unsubscribeRef.current) {
-            unsubscribeRef.current();
-        }
-    };
-  }, [storageKeys.sensors]); 
+  useEffect(() => {
+    fetchSensors(); // Fetch initial data
+    const intervalId = setInterval(fetchSensors, 5000); // Poll every 5 seconds
+    return () => clearInterval(intervalId); // Cleanup on component unmount
+  }, [fetchSensors]);
 
 
   useEffect(() => {
