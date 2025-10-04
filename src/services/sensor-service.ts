@@ -24,6 +24,7 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 model: data.model || 'Não especificado',
                 ipAddress: data.ipAddress || null,
                 macAddress: data.macAddress || null,
+                historicalData: [], // Assume empty if not present
             } as Sensor
         });
         return sensorList;
@@ -57,7 +58,8 @@ export async function addSensor(
     
     return {
         id: docRef.id,
-        ...dataToSave
+        ...dataToSave,
+        historicalData: [] // Initialize historicalData as an empty array
     };
 }
 
