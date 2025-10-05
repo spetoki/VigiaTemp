@@ -17,3 +17,7 @@ Este arquivo documenta as versões das principais tecnologias usadas neste proje
 - **React:** `18.3.1`
 - **ShadCN UI / Radix:** (várias versões, veja `package.json`)
 - **Tailwind CSS:** `3.4.4`
+
+## Ponto de Salvamento
+
+- **2024-08-01:** Versão estável com conexão ao Firebase corrigida e arquitetura de envio de dados do ESP32 finalizada. O aplicativo está funcional.
