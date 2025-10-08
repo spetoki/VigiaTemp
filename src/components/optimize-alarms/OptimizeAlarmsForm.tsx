@@ -15,8 +15,6 @@ import { useSettings } from '@/context/SettingsContext';
 import { getSensors, getHistoricalData } from '@/services/sensor-service';
 import { useToast } from '@/hooks/use-toast';
 import type { HistoricalDataPoint } from '@/types';
-import { getWeek } from 'date-fns';
-
 
 // Função para remover outliers usando o método IQR (Interquartile Range)
 const removeOutliers = (data: HistoricalDataPoint[]): HistoricalDataPoint[] => {
@@ -32,32 +30,48 @@ const removeOutliers = (data: HistoricalDataPoint[]): HistoricalDataPoint[] => {
     return data.filter(p => p.temperature >= lowerBound && p.temperature <= upperBound);
 };
 
-// Função para calcular médias semanais
-const calculateWeeklyAverages = (data: HistoricalDataPoint[]): { week: string; averageTemperature: number }[] => {
-    const weeklyData: Record<string, { sum: number; count: number }> = {};
+// Função para pegar 10 amostras por dia dos últimos 7 dias
+const getDailySamples = (data: HistoricalDataPoint[], days = 7, samplesPerDay = 10): { day: string; temperature: number }[] => {
+    const dailyData: Record<string, HistoricalDataPoint[]> = {};
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.setDate(now.getDate() - days));
 
+    // 1. Filtrar dados dos últimos 7 dias e agrupar por dia
     data.forEach(point => {
-        const date = new Date(point.timestamp);
-        const year = date.getFullYear();
-        const weekNumber = getWeek(date, { weekStartsOn: 1 }); // Padrão ISO 8601
-        const weekKey = `${weekNumber}/${year}`;
-
-        if (!weeklyData[weekKey]) {
-            weeklyData[weekKey] = { sum: 0, count: 0 };
+        const pointDate = new Date(point.timestamp);
+        if (pointDate >= sevenDaysAgo) {
+            const dayKey = pointDate.toISOString().split('T')[0];
+            if (!dailyData[dayKey]) {
+                dailyData[dayKey] = [];
+            }
+            dailyData[dayKey].push(point);
         }
-        weeklyData[weekKey].sum += point.temperature;
-        weeklyData[weekKey].count++;
     });
 
-    return Object.keys(weeklyData).map(weekKey => ({
-        week: weekKey,
-        averageTemperature: parseFloat((weeklyData[weekKey].sum / weeklyData[weekKey].count).toFixed(2)),
-    })).sort((a, b) => {
-        const [weekA, yearA] = a.week.split('/').map(Number);
-        const [weekB, yearB] = b.week.split('/').map(Number);
-        if (yearA !== yearB) return yearA - yearB;
-        return weekA - weekB;
+    const finalSamples: { day: string; temperature: number }[] = [];
+
+    // 2. Para cada dia, pegar 'samplesPerDay' amostras
+    Object.keys(dailyData).forEach(dayKey => {
+        const dayPoints = dailyData[dayKey];
+        dayPoints.sort((a, b) => a.timestamp - b.timestamp); // Ordenar por tempo
+
+        if (dayPoints.length <= samplesPerDay) {
+            // Se tiver 10 ou menos pontos, pega todos
+            finalSamples.push(...dayPoints.map(p => ({ day: dayKey, temperature: parseFloat(p.temperature.toFixed(2)) })));
+        } else {
+            // Se tiver mais de 10, pega amostras espaçadas
+            const step = Math.floor(dayPoints.length / samplesPerDay);
+            for (let i = 0; i < samplesPerDay; i++) {
+                const sampleIndex = i * step;
+                if (dayPoints[sampleIndex]) {
+                    const point = dayPoints[sampleIndex];
+                    finalSamples.push({ day: dayKey, temperature: parseFloat(point.temperature.toFixed(2)) });
+                }
+            }
+        }
     });
+
+    return finalSamples;
 };
 
 
@@ -101,7 +115,7 @@ export default function OptimizeAlarmsForm() {
         }
 
         const allHistoricalData = await Promise.all(
-            sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'month'))
+            sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'week'))
         );
 
         let combinedData = allHistoricalData.flat();
@@ -109,7 +123,7 @@ export default function OptimizeAlarmsForm() {
         if (combinedData.length === 0) {
             toast({
                 title: "Nenhum dado histórico",
-                description: "Não foram encontrados dados históricos para os seus sensores no último mês.",
+                description: "Não foram encontrados dados históricos para os seus sensores na última semana.",
                 variant: "destructive",
             });
             setHistoricalData("[]");
@@ -120,14 +134,14 @@ export default function OptimizeAlarmsForm() {
         // 1. Remover outliers
         const cleanedData = removeOutliers(combinedData);
         
-        // 2. Calcular médias semanais
-        const weeklyAverages = calculateWeeklyAverages(cleanedData);
+        // 2. Obter amostras diárias dos últimos 7 dias
+        const dailySamples = getDailySamples(cleanedData, 7, 10);
 
-        const jsonString = JSON.stringify(weeklyAverages, null, 2);
+        const jsonString = JSON.stringify(dailySamples, null, 2);
         setHistoricalData(jsonString);
         toast({
-            title: "JSON com Médias Semanais Gerado",
-            description: `${cleanedData.length} pontos de dados (após limpeza) foram agregados em ${weeklyAverages.length} semanas.`,
+            title: "JSON de Amostras Diárias Gerado",
+            description: `${dailySamples.length} pontos de dados dos últimos 7 dias foram preparados para análise.`,
         });
 
     } catch (error) {

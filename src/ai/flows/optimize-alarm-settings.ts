@@ -16,7 +16,7 @@ const OptimizeAlarmSettingsInputSchema = z.object({
   historicalData: z
     .string()
     .describe(
-      'Historical temperature data for the greenhouse, including timestamps and temperature readings. Should be a JSON array of objects with timestamp and temperature fields.'
+      'Historical temperature data for the greenhouse, including timestamps and temperature readings. Should be a JSON array of objects with day and temperature fields, representing daily samples.'
     ),
   cacaoVariety: z.string().describe('The specific variety of cacao being cultivated.'),
   microclimateInfo: z
@@ -52,7 +52,7 @@ const prompt = ai.definePrompt({
   output: {schema: OptimizeAlarmSettingsOutputSchema},
   prompt: `Você é um especialista em ciências agrícolas, com especialização na otimização de controles ambientais para o cultivo de cacau.
 
-  Analise os dados históricos de temperatura, a variedade de cacau e as informações do microclima fornecidas para sugerir limiares de temperatura otimizados para alertas em uma estufa de fermentação.
+  Analise os dados históricos de temperatura (amostras diárias), a variedade de cacau e as informações do microclima fornecidas para sugerir limiares de temperatura otimizados para alertas em uma estufa de fermentação.
   **A sua resposta deve ser inteiramente em português.**
   
   Explique seu raciocínio para os limiares sugeridos, considerando as necessidades específicas da variedade de cacau e as características do microclima.
