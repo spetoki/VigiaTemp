@@ -6,8 +6,7 @@ import type { Sensor, Alert } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { BarChart, CalendarDays, PieChartIcon, Activity } from 'lucide-react';
-import SensorStatusPieChart from '@/components/charts/SensorStatusPieChart';
+import { BarChart, CalendarDays, Activity } from 'lucide-react';
 import AlertFrequencyBarChart from '@/components/charts/AlertFrequencyBarChart';
 import AlertsCalendarHeatmap from '@/components/charts/AlertsCalendarHeatmap';
 import { getSensors } from '@/services/sensor-service';
@@ -88,27 +87,6 @@ export default function DataAnalysisPage() {
         </div>
 
       <div className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5 text-primary" />
-              {t('dataAnalysis.pieChart.title', 'Distribuição de Status por Sensor')}
-            </CardTitle>
-            <CardDescription>{t('dataAnalysis.pieChart.description', 'Percentual de tempo que cada sensor permaneceu em estado "Normal", "Atenção" ou "Crítico". (Baseado em simulação)')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {sensors.length > 0 ? (
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {sensors.map(sensor => (
-                  <SensorStatusPieChart key={sensor.id} sensor={sensor} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">{t('dataAnalysis.noSensorData', 'Não há dados de sensores para analisar.')}</p>
-            )}
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
