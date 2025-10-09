@@ -1,6 +1,16 @@
 # VigiaTemp - Monitoramento Inteligente de Temperatura
 
-O **VigiaTemp** é uma aplicação web robusta e moderna, projetada para o monitoramento de temperatura em tempo real, com um foco especial em estufas de fermentação de cacau, mas flexível o suficiente para qualquer cenário de monitoramento ambiental. Construído com as tecnologias mais atuais, o sistema oferece uma experiência de usuário rica, segura e altamente funcional.
+O VigiaTemp é uma aplicação web para monitoramento de temperatura em tempo real,
+ideal para processos críticos como a fermentação de cacau e controle de estufas.
+O sistema oferece uma interface moderna e segura para visualizar dados de
+sensores (ESP32/ESP8266) em um painel centralizado.
+
+Funcionalidades incluem gerenciamento completo de sensores, um sistema de alertas
+visuais para desvios de temperatura e gráficos históricos para análise de tendências.
+A aplicação também conta com um módulo de rastreabilidade de lotes, permitindo
+registrar informações de produção e gerar QR Codes para garantir a procedência.
+O acesso é protegido, isolando os dados de cada usuário por meio de uma chave única,
+e a interface é personalizável com temas e suporte a múltiplos idiomas.
 
 ---
 
@@ -95,4 +105,3 @@ A maneira mais fácil e recomendada de hospedar este aplicativo é usando a **Ve
 
 ---
 _Aplicativo desenvolvido por Irineu Marcos Bartnik_
-
