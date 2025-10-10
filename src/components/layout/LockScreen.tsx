@@ -5,10 +5,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { KeyRound, ShieldAlert, AlertCircle } from 'lucide-react';
+import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, CheckCircle } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 
 // Constantes para controle de bloqueio
 const FAILED_ATTEMPTS_KEY = 'vigiatemp_failed_attempts';
@@ -25,6 +26,44 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
     return defaultValue;
   }
 };
+
+const PricingCard = ({ title, icon: Icon, price, duration, features, discount, recommended }: {
+    title: string;
+    icon: React.ElementType;
+    price: string;
+    duration: string;
+    features: string[];
+    discount: string;
+    recommended?: boolean;
+}) => (
+    <Card className={`flex flex-col ${recommended ? 'border-primary shadow-lg' : ''}`}>
+        <CardHeader className="items-center">
+            <div className="flex items-center gap-2">
+                <Icon className="h-6 w-6 text-primary" />
+                <CardTitle>{title}</CardTitle>
+            </div>
+            <CardDescription>{duration}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-grow space-y-4 text-center">
+            <p className="text-4xl font-bold">{price}</p>
+            <p className="text-sm text-muted-foreground">por sensor</p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+                {features.map((feature, index) => (
+                    <li key={index} className="flex items-center justify-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>{feature}</span>
+                    </li>
+                ))}
+            </ul>
+        </CardContent>
+        <CardFooter className="flex-col">
+            <div className="bg-primary/10 text-primary font-bold text-sm py-2 px-4 rounded-full">
+                {discount}
+            </div>
+        </CardFooter>
+    </Card>
+);
+
 
 export default function LockScreen() {
   const { unlockApp, t } = useSettings();
@@ -119,8 +158,8 @@ export default function LockScreen() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-sm shadow-2xl">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+      <Card className="w-full max-w-sm shadow-2xl z-10">
         <CardHeader className="text-center">
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
              <ShieldAlert className={`h-10 w-10 ${isLockedOut ? 'text-destructive' : 'text-primary'}`} />
@@ -167,6 +206,40 @@ export default function LockScreen() {
           </p>
         </CardFooter>
       </Card>
+
+        <Separator className="my-8" />
+
+        <div className="w-full max-w-5xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-6">Nossos Planos de Licenciamento</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <PricingCard 
+                    title="Plano Prata"
+                    icon={Award}
+                    price="R$ 350"
+                    duration="Licença de 6 Meses"
+                    features={["Ideal para projetos curtos", "Suporte via e-mail"]}
+                    discount="5% de desconto para 6+ sensores"
+                />
+                <PricingCard 
+                    title="Plano Bronze"
+                    icon={Star}
+                    price="R$ 600"
+                    duration="Licença de 12 Meses"
+                    features={["Ciclo anual de monitoramento", "Suporte via WhatsApp"]}
+                    discount="10% de desconto para 6+ sensores"
+                    recommended
+                />
+                <PricingCard 
+                    title="Plano Ouro"
+                    icon={Gem}
+                    price="R$ 2500"
+                    duration="Licença Permanente"
+                    features={["1 ano de assistência prioritária", "Ideal para operações de longo prazo"]}
+                    discount="10% de desconto para 6+ sensores"
+                />
+            </div>
+        </div>
+
     </div>
   );
 }
