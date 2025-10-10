@@ -26,6 +26,7 @@
   "nav.esphome": "Configurador ESPHome",
   "nav.hardwareMenu": "Hardware",
   "nav.about": "Sobre o App",
+  "nav.whoWeAre": "Quem Somos",
 
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
@@ -471,5 +472,15 @@
   "lockScreen.warning.lockout": "Atenção: Após 3 tentativas incorretas, o acesso será bloqueado temporariamente.",
   "lockScreen.toast.lockoutRemovedTitle": "Bloqueio Removido",
   "lockScreen.toast.lockoutRemovedDescription": "O bloqueio de tempo foi removido. Pode tentar a sua chave de acesso novamente.",
-  "lockScreen.masterKeyInfo": "Bloqueado? Use a chave mestra para liberar o tempo de espera."
+  "lockScreen.masterKeyInfo": "Bloqueado? Use a chave mestra para liberar o tempo de espera.",
+
+  "whoWeAre.title": "Quem Somos: Inovação e Paixão pelo Agronegócio",
+  "whoWeAre.subtitle": "Entenda nossa missão, visão e os valores que impulsionam o VigiaTemp.",
+  "whoWeAre.aboutUs.title": "Sobre Nós",
+  "whoWeAre.aboutUs.p1": "Nascemos da união entre a paixão pela tecnologia e o profundo respeito pelo campo. Somos um time de desenvolvedores e entusiastas do agronegócio que viram, na prática, os desafios enfrentados por produtores que buscam a excelência. O VigiaTemp surgiu de uma necessidade real: criar uma solução acessível, inteligente e confiável para monitorar processos críticos que definem a qualidade de safras inteiras, como a fermentação do cacau.",
+  "whoWeAre.mission.title": "Nossa Missão",
+  "whoWeAre.mission.p1": "Nossa missão é empoderar o produtor rural com ferramentas de ponta. Acreditamos que a tecnologia não deve ser um privilégio, mas uma aliada poderosa para todos. Por isso, desenvolvemos um sistema que transforma dados complexos de temperatura em informações visuais, claras e acionáveis. Queremos que você tenha o controle total do seu processo, na palma da sua mão, permitindo tomadas de decisão mais rápidas e precisas.",
+  "whoWeAre.vision.title": "Visão de Futuro",
+  "whoWeAre.vision.p1": "Olhamos para o futuro com a certeza de que a inovação é o caminho para um agronegócio mais sustentável e produtivo. O VigiaTemp é apenas o começo. Estamos constantemente pesquisando e desenvolvendo novas funcionalidades, desde análises preditivas com inteligência artificial até a integração com outros sensores, sempre com o objetivo de entregar mais valor, segurança e tranquilidade para quem produz.",
+  "whoWeAre.vision.p2": "Somos mais do que uma empresa de software; somos parceiros na sua jornada pela qualidade."
 }

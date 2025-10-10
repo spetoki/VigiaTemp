@@ -26,6 +26,7 @@
   "nav.esphome": "ESPHome Configurator",
   "nav.hardwareMenu": "Hardware",
   "nav.about": "About",
+  "nav.whoWeAre": "Who We Are",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
@@ -475,5 +476,15 @@
   "lockScreen.warning.lockout": "Warning: After 3 incorrect attempts, access will be temporarily blocked.",
   "lockScreen.toast.lockoutRemovedTitle": "Lockout Removed",
   "lockScreen.toast.lockoutRemovedDescription": "The time lock has been removed. You can try your access key again.",
-  "lockScreen.masterKeyInfo": "Locked out? Use the master key to clear the waiting time."
+  "lockScreen.masterKeyInfo": "Locked out? Use the master key to clear the waiting time.",
+
+  "whoWeAre.title": "Who We Are: Innovation and Passion for Agribusiness",
+  "whoWeAre.subtitle": "Understand our mission, vision, and the values that drive VigiaTemp.",
+  "whoWeAre.aboutUs.title": "About Us",
+  "whoWeAre.aboutUs.p1": "We were born from the union of passion for technology and deep respect for the field. We are a team of developers and agribusiness enthusiasts who have seen firsthand the challenges faced by producers seeking excellence. VigiaTemp arose from a real need: to create an accessible, intelligent, and reliable solution to monitor critical processes that define the quality of entire harvests, such as cocoa fermentation.",
+  "whoWeAre.mission.title": "Our Mission",
+  "whoWeAre.mission.p1": "Our mission is to empower the rural producer with cutting-edge tools. We believe that technology should not be a privilege, but a powerful ally for everyone. That's why we developed a system that transforms complex temperature data into visual, clear, and actionable information. We want you to have full control of your process, in the palm of your hand, allowing for faster and more accurate decision-making.",
+  "whoWeAre.vision.title": "Vision for the Future",
+  "whoWeAre.vision.p1": "We look to the future with the certainty that innovation is the path to a more sustainable and productive agribusiness. VigiaTemp is just the beginning. We are constantly researching and developing new features, from predictive analysis with artificial intelligence to integration with other sensors, always with the goal of delivering more value, security, and peace of mind to those who produce.",
+  "whoWeAre.vision.p2": "We are more than just a software company; we are partners in your journey for quality."
 }
