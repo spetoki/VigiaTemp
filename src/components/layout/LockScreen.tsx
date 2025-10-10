@@ -217,8 +217,8 @@ export default function LockScreen() {
                     icon={Award}
                     price="R$ 350"
                     duration="Licença de 6 Meses"
-                    features={["Ideal para projetos curtos", "Suporte via e-mail"]}
-                    discount="5% de desconto para 6+ sensores"
+                    features={["Ideal para projetos curtos", "Suporte via WhatsApp"]}
+                    discount="5% de desconto para 6 ou mais sensores"
                 />
                 <PricingCard 
                     title="Plano Bronze"
@@ -226,7 +226,7 @@ export default function LockScreen() {
                     price="R$ 600"
                     duration="Licença de 12 Meses"
                     features={["Ciclo anual de monitoramento", "Suporte via WhatsApp"]}
-                    discount="10% de desconto para 6+ sensores"
+                    discount="10% de desconto para 6 ou mais sensores"
                     recommended
                 />
                 <PricingCard 
@@ -234,8 +234,8 @@ export default function LockScreen() {
                     icon={Gem}
                     price="R$ 2500"
                     duration="Licença Permanente"
-                    features={["1 ano de assistência prioritária", "Ideal para operações de longo prazo"]}
-                    discount="10% de desconto para 6+ sensores"
+                    features={["1 ano de assistência prioritária", "Suporte via WhatsApp"]}
+                    discount="10% de desconto para 6 ou mais sensores"
                 />
             </div>
         </div>
