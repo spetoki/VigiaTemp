@@ -202,7 +202,7 @@ export default function LockScreen() {
             {isLockedOut ? t('lockScreen.unlockButtonLocked', 'Desbloquear Espera') : t('lockScreen.unlockButton', 'Desbloquear')}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-              {t('lockScreen.contactForAccess', 'Para adquirir uma chave de acesso, entre em contato pelo WhatsApp: +55 45 99931-4560.')}
+              {t('lockScreen.contactForAccess', 'Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560.')}
           </p>
         </CardFooter>
       </Card>
@@ -218,7 +218,7 @@ export default function LockScreen() {
                     price="R$ 350"
                     duration="Licença de 6 Meses"
                     features={["Ideal para projetos curtos", "Suporte via WhatsApp"]}
-                    discount="5% de desconto para 6 ou mais sensores"
+                    discount="desconto para 6 ou mais sensores de 5%"
                 />
                 <PricingCard 
                     title="Plano Bronze"
@@ -226,7 +226,7 @@ export default function LockScreen() {
                     price="R$ 600"
                     duration="Licença de 12 Meses"
                     features={["Ciclo anual de monitoramento", "Suporte via WhatsApp"]}
-                    discount="10% de desconto para 6 ou mais sensores"
+                    discount="desconto para 6 ou mais sensores de 10%"
                     recommended
                 />
                 <PricingCard 
@@ -235,7 +235,7 @@ export default function LockScreen() {
                     price="R$ 2500"
                     duration="Licença Permanente"
                     features={["1 ano de assistência prioritária", "Suporte via WhatsApp"]}
-                    discount="10% de desconto para 6 ou mais sensores"
+                    discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
         </div>
