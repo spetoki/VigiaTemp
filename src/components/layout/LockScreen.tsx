@@ -214,7 +214,7 @@ export default function LockScreen() {
                     icon={Award}
                     price="R$ 350"
                     duration="Licença de 6 Meses"
-                    features={["Ideal para projetos curtos", "Suporte via WhatsApp"]}
+                    features={["Ideal para projetos curtos", "Suporte via WhatsApp", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
                     discount="desconto para 6 ou mais sensores de 5%"
                 />
                 <PricingCard 
@@ -222,7 +222,7 @@ export default function LockScreen() {
                     icon={Star}
                     price="R$ 600"
                     duration="Licença de 12 Meses"
-                    features={["Ciclo anual de monitoramento", "Suporte via WhatsApp"]}
+                    features={["Ciclo anual de monitoramento", "Suporte via WhatsApp", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
                     discount="desconto para 6 ou mais sensores de 10%"
                     recommended
                 />
@@ -231,7 +231,7 @@ export default function LockScreen() {
                     icon={Gem}
                     price="R$ 2500"
                     duration="Licença Permanente"
-                    features={["1 ano de assistência prioritária", "Suporte via WhatsApp"]}
+                    features={["1 ano de assistência prioritária", "Suporte via WhatsApp", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
                     discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
