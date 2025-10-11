@@ -262,6 +262,11 @@ export default function LockScreen() {
                         </li>
                     </ul>
                 </CardContent>
+                <CardFooter className="flex-col">
+                    <div className="bg-primary/10 text-primary font-bold text-sm py-2 px-4 rounded-full">
+                        desconto de 30% na compra de 6 ou mais sensores
+                    </div>
+                </CardFooter>
             </Card>
 
             <p className="text-lg font-semibold text-center mt-8">
