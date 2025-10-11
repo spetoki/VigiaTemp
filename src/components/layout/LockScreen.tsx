@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, Cpu, CheckCircle, PackageCheck, LineChart, Bell, QrCode, BrainCircuit, Wrench } from 'lucide-react';
+import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, Cpu, CheckCircle, PackageCheck, LineChart, Bell, QrCode, BrainCircuit, Wrench, Activity } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -76,7 +76,7 @@ const FeaturesCard = () => (
         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 text-center px-6 text-sm">
             <div className="flex items-center gap-2">
                 <LineChart className="h-4 w-4 text-primary" />
-                <span>Monitoramento Real-Time</span>
+                <span>Monitoramento em Tempo Real</span>
             </div>
              <div className="flex items-center gap-2">
                 <Bell className="h-4 w-4 text-primary" />
@@ -88,7 +88,11 @@ const FeaturesCard = () => (
             </div>
              <div className="flex items-center gap-2">
                 <LineChart className="h-4 w-4 text-primary" />
-                <span>Gráficos e Análise de Dados</span>
+                <span>Gráficos</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" />
+                <span>Análise de Dados</span>
             </div>
              <div className="flex items-center gap-2">
                 <Wrench className="h-4 w-4 text-primary" />
