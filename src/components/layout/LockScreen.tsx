@@ -91,10 +91,6 @@ const FeaturesCard = () => (
                 <span>Gráficos e Análise de Dados</span>
             </div>
              <div className="flex items-center gap-2">
-                <BrainCircuit className="h-4 w-4 text-primary" />
-                <span>Otimização com IA</span>
-            </div>
-             <div className="flex items-center gap-2">
                 <Wrench className="h-4 w-4 text-primary" />
                 <span>Guias de Hardware</span>
             </div>
@@ -317,5 +313,7 @@ export default function LockScreen() {
     </div>
   );
 }
+
+    
 
     
