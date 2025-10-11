@@ -37,27 +37,27 @@ const PricingCard = ({ title, icon: Icon, price, duration, features, discount, r
     recommended?: boolean;
 }) => (
     <Card className={`flex flex-col ${recommended ? 'border-primary shadow-lg' : ''}`}>
-        <CardHeader className="items-center">
+        <CardHeader className="items-center pb-4">
             <div className="flex items-center gap-2">
-                <Icon className="h-6 w-6 text-primary" />
-                <CardTitle>{title}</CardTitle>
+                <Icon className="h-5 w-5 text-primary" />
+                <CardTitle className="text-xl">{title}</CardTitle>
             </div>
-            <CardDescription>{duration}</CardDescription>
+            <CardDescription className="text-xs">{duration}</CardDescription>
         </CardHeader>
-        <CardContent className="flex-grow space-y-4 text-center">
-            <p className="text-4xl font-bold">{price}</p>
-            <p className="text-sm text-muted-foreground">por sensor</p>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+        <CardContent className="flex-grow space-y-2 text-center">
+            <p className="text-3xl font-bold">{price}</p>
+            <p className="text-xs text-muted-foreground">por sensor</p>
+            <ul className="space-y-1 text-sm text-muted-foreground pt-2">
                 {features.map((feature, index) => (
-                    <li key={index} className="flex items-center justify-center gap-2 text-left">
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <li key={index} className="flex items-start justify-center gap-2 text-center">
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
                         <span>{feature}</span>
                     </li>
                 ))}
             </ul>
         </CardContent>
-        <CardFooter className="flex-col">
-            <div className="bg-primary/10 text-primary font-bold text-sm py-2 px-4 rounded-full">
+        <CardFooter className="flex-col pt-4">
+            <div className="bg-primary/10 text-primary font-bold text-xs py-1 px-3 rounded-full text-center">
                 {discount}
             </div>
         </CardFooter>
@@ -159,10 +159,10 @@ export default function LockScreen() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-sm shadow-2xl z-10">
+      <Card className="w-full max-w-md shadow-2xl z-10">
         <CardHeader className="text-center">
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
-             <ShieldAlert className={`h-10 w-10 ${isLockedOut ? 'text-destructive' : 'text-primary'}`} />
+             <ShieldAlert className={`h-12 w-12 ${isLockedOut ? 'text-destructive' : 'text-primary'}`} />
           </div>
           <CardTitle className="text-2xl">{t('lockScreen.title', 'VigiaTemp')}</CardTitle>
           <CardDescription>
@@ -181,7 +181,7 @@ export default function LockScreen() {
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 placeholder="----"
-                className="text-center text-2xl tracking-[1rem] font-mono"
+                className="text-center text-4xl tracking-[1.5rem] font-mono h-14"
                 autoFocus
                 disabled={isLockedOut && key !== MASTER_UNLOCK_KEY}
               />
@@ -237,33 +237,33 @@ export default function LockScreen() {
             </div>
             
             <Card className="mt-8 shadow-lg border-secondary">
-                <CardHeader className="items-center text-center">
+                <CardHeader className="items-center text-center pb-4">
                     <div className="flex items-center gap-2">
-                        <Cpu className="h-6 w-6 text-primary" />
-                        <CardTitle>Equipamento Físico (Sensor)</CardTitle>
+                        <Cpu className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-xl">Equipamento Físico (Sensor)</CardTitle>
                     </div>
-                    <CardDescription>Opcional: adquira o hardware pronto para usar.</CardDescription>
+                    <CardDescription className="text-xs">Opcional: adquira o hardware pronto para usar.</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                    <p className="text-4xl font-bold">R$ 150,00</p>
-                    <p className="text-sm text-muted-foreground">por unidade de sensor</p>
-                    <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                        <li className="flex items-center justify-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                    <p className="text-3xl font-bold">R$ 150,00</p>
+                    <p className="text-xs text-muted-foreground">por unidade de sensor</p>
+                    <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
+                        <li className="flex items-start justify-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
                             <span>Sensor de temperatura de alta precisão</span>
                         </li>
-                        <li className="flex items-center justify-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                        <li className="flex items-start justify-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
                             <span>Placa ESP32 com conectividade WiFi</span>
                         </li>
-                        <li className="flex items-center justify-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                        <li className="flex items-start justify-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
                             <span>Montado e pronto para configurar</span>
                         </li>
                     </ul>
                 </CardContent>
-                <CardFooter className="flex-col">
-                    <div className="bg-primary/10 text-primary font-bold text-sm py-2 px-4 rounded-full">
+                <CardFooter className="flex-col pt-4">
+                    <div className="bg-primary/10 text-primary font-bold text-xs py-1 px-3 rounded-full">
                         desconto de 30% na compra de 6 ou mais sensores
                     </div>
                 </CardFooter>
