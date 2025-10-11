@@ -136,7 +136,7 @@ export default function SystemSettingsPage() {
         </Card>
 
         {installPromptEvent && (
-          <Card className="w-full shadow-lg md:col-span-3">
+          <Card className="w-full shadow-lg lg:col-span-3">
             <CardHeader>
                 <CardTitle className="flex items-center">
                     <DownloadCloud className="mr-2 h-5 w-5 text-primary" />
@@ -148,6 +148,7 @@ export default function SystemSettingsPage() {
             </CardHeader>
             <CardContent>
                 <Button onClick={triggerInstallPrompt} className="w-full">
+                    <DownloadCloud className="mr-2 h-4 w-4" />
                     {t('systemSettings.installApp.button', 'Instalar Aplicativo')}
                 </Button>
             </CardContent>

@@ -17,6 +17,21 @@ function LayoutContent({ children }: MainLayoutProps) {
   const [footerText, setFooterText] = useState('');
 
   useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').then(
+          (registration) => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          },
+          (err) => {
+            console.log('ServiceWorker registration failed: ', err);
+          }
+        );
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     const year = new Date().getFullYear();
     setFooterText(t('footer.copyright', '© 2025 VigiaTemp. Todos os direitos reservados a Irineu Marcos Bartnik', { year: 2025 }));
   }, [t]);
