@@ -81,7 +81,6 @@ export default function AppHeader() {
   const appInfoNavItems = [
       { href: '/about', labelKey: 'nav.about', icon: Info, defaultLabel: 'Sobre o App' },
       { href: '/who-we-are', labelKey: 'nav.whoWeAre', icon: Building2, defaultLabel: 'Quem Somos' },
-      { href: '/pricing', labelKey: 'nav.pricing', icon: DollarSign, defaultLabel: 'Preços' },
       { href: '/privacy-policy', labelKey: 'nav.privacyPolicy', icon: ShieldCheck, defaultLabel: 'Política de Privacidade' },
   ];
 
