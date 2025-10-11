@@ -235,7 +235,7 @@ export default function LockScreen() {
                     discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
-             <p className="text-center text-muted-foreground mt-8">
+            <p className="text-lg font-semibold text-center mt-8">
                 Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560.
             </p>
         </div>
