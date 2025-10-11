@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, Info, FileCode2, Users, LogOut, Building2, ShieldCheck, DollarSign } from 'lucide-react';
+import { ThermometerSnowflake, Home, Settings, BrainCircuit, Menu, LineChart, SlidersHorizontal, Bell, Wrench, ClipboardList, Activity, Info, FileCode2, Users, LogOut, Building2, ShieldCheck, DollarSign, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -81,6 +81,7 @@ export default function AppHeader() {
   const appInfoNavItems = [
       { href: '/about', labelKey: 'nav.about', icon: Info, defaultLabel: 'Sobre o App' },
       { href: '/who-we-are', labelKey: 'nav.whoWeAre', icon: Building2, defaultLabel: 'Quem Somos' },
+      { href: '/hardware-usage', labelKey: 'nav.hardwareUsage', icon: AlertTriangle, defaultLabel: 'Uso do Hardware' },
       { href: '/privacy-policy', labelKey: 'nav.privacyPolicy', icon: ShieldCheck, defaultLabel: 'Política de Privacidade' },
   ];
 
