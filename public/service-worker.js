@@ -1,41 +1,72 @@
-'use strict';
-
+// Define um nome para o cache
 const CACHE_NAME = 'vigiatemp-cache-v1';
-const PRECACHE_ASSETS = [
+// Lista de arquivos a serem cacheados
+const urlsToCache = [
   '/',
-  '/offline.html'
+  '/manifest.json',
+  '/favicon.ico',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
-self.addEventListener('install', (event) => {
+// Instalação do Service Worker
+self.addEventListener('install', event => {
+  // Espera até que o cache seja aberto e todos os arquivos sejam adicionados
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting())
+      .then(cache => {
+        console.log('Cache aberto');
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
-self.addEventListener('activate', (event) => {
-  const currentCaches = [CACHE_NAME];
+// Ativação do Service Worker
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return cacheNames.filter((cacheName) => !currentCaches.includes(cacheName));
-    }).then((cachesToDelete) => {
-      return Promise.all(cachesToDelete.map((cacheToDelete) => {
-        return caches.delete(cacheToDelete);
-      }));
-    }).then(() => self.clients.claim())
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // Deleta caches antigos
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      caches.match(event.request)
-        .then((response) => {
-          return response || fetch(event.request).catch(() => {
-            return caches.match('/offline.html');
-          });
-        })
+// Intercepta as requisições de rede
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Se a resposta estiver no cache, retorna ela
+        if (response) {
+          return response;
+        }
+
+        // Caso contrário, busca na rede
+        return fetch(event.request).then(
+          response => {
+            // Verifica se recebemos uma resposta válida
+            if(!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // Clona a resposta para que possamos armazená-la no cache e retorná-la
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+
+            return response;
+          }
+        );
+      })
     );
-  }
 });
