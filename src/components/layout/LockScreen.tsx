@@ -212,26 +212,26 @@ export default function LockScreen() {
                 <PricingCard 
                     title="Plano Prata"
                     icon={Award}
-                    price="R$ 350"
+                    price="R$ 350,00"
                     duration="Licença de 6 Meses"
-                    features={["Ideal para projetos curtos", "Suporte via WhatsApp", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
+                    features={["Suporte via WhatsApp", "Ideal para projetos curtos", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
                     discount="desconto para 6 ou mais sensores de 5%"
                 />
                 <PricingCard 
                     title="Plano Bronze"
                     icon={Star}
-                    price="R$ 600"
+                    price="R$ 600,00"
                     duration="Licença de 12 Meses"
-                    features={["Ciclo anual de monitoramento", "Suporte via WhatsApp", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
+                    features={["Suporte via WhatsApp", "Ciclo anual de monitoramento", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
                     discount="desconto para 6 ou mais sensores de 10%"
                     recommended
                 />
                 <PricingCard 
                     title="Plano Ouro"
                     icon={Gem}
-                    price="R$ 2500"
+                    price="R$ 2.500,00"
                     duration="Licença Permanente"
-                    features={["1 ano de assistência prioritária", "Suporte via WhatsApp", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
+                    features={["Suporte via WhatsApp", "1 ano de assistência prioritária", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
                     discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
