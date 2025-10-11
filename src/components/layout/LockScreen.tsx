@@ -201,9 +201,6 @@ export default function LockScreen() {
             <KeyRound className="mr-2 h-4 w-4" />
             {isLockedOut ? t('lockScreen.unlockButtonLocked', 'Desbloquear Espera') : t('lockScreen.unlockButton', 'Desbloquear')}
           </Button>
-          <p className="text-xs text-muted-foreground text-center">
-              {t('lockScreen.contactForAccess', 'Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560.')}
-          </p>
         </CardFooter>
       </Card>
 
@@ -238,6 +235,9 @@ export default function LockScreen() {
                     discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
+             <p className="text-center text-muted-foreground mt-8">
+                Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560.
+            </p>
         </div>
 
     </div>
