@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, CheckCircle } from 'lucide-react';
+import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, CheckCircle, Cpu } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -49,8 +49,8 @@ const PricingCard = ({ title, icon: Icon, price, duration, features, discount, r
             <p className="text-sm text-muted-foreground">por sensor</p>
             <ul className="space-y-2 text-sm text-muted-foreground">
                 {features.map((feature, index) => (
-                    <li key={index} className="flex items-center justify-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                    <li key={index} className="flex items-center justify-center gap-2 text-left">
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                         <span>{feature}</span>
                     </li>
                 ))}
@@ -235,6 +235,35 @@ export default function LockScreen() {
                     discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
+            
+            <Card className="mt-8 shadow-lg border-secondary">
+                <CardHeader className="items-center text-center">
+                    <div className="flex items-center gap-2">
+                        <Cpu className="h-6 w-6 text-primary" />
+                        <CardTitle>Equipamento Físico (Sensor)</CardTitle>
+                    </div>
+                    <CardDescription>Opcional: adquira o hardware pronto para usar.</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                    <p className="text-4xl font-bold">R$ 150,00</p>
+                    <p className="text-sm text-muted-foreground">por unidade de sensor</p>
+                    <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-center justify-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span>Sensor de temperatura de alta precisão</span>
+                        </li>
+                        <li className="flex items-center justify-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span>Placa ESP32 com conectividade WiFi</span>
+                        </li>
+                        <li className="flex items-center justify-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span>Montado e pronto para configurar</span>
+                        </li>
+                    </ul>
+                </CardContent>
+            </Card>
+
             <p className="text-lg font-semibold text-center mt-8">
                 Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560.
             </p>
