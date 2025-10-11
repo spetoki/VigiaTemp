@@ -164,9 +164,9 @@ export default function LockScreen() {
             <KeyRound className="mr-2 h-4 w-4" />
             {isLockedOut ? t('lockScreen.unlockButtonLocked', 'Desbloquear Espera') : t('lockScreen.unlockButton', 'Desbloquear')}
           </Button>
-          <Link href="/pricing" className="text-sm text-primary hover:underline mt-4">
+          <a href="/pricing" className="text-sm text-primary hover:underline mt-4">
             Clique aqui para conferir nossos planos de aquisição
-          </Link>
+          </a>
         </CardFooter>
       </Card>
     </div>
