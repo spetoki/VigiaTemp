@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, Cpu, CheckCircle } from 'lucide-react';
+import { KeyRound, ShieldAlert, AlertCircle, Award, Star, Gem, Cpu, CheckCircle, PackageCheck, LineChart, Bell, QrCode, BrainCircuit, Wrench } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -56,10 +56,50 @@ const PricingCard = ({ title, icon: Icon, price, duration, features, discount, r
                 ))}
             </ul>
         </CardContent>
-        <CardFooter className="flex-col pt-2 pb-3">
-            <div className="bg-primary/10 text-primary font-bold text-xs py-1 px-2 rounded-full text-center">
+        <CardFooter className="flex-col pt-2 pb-3 text-center">
+            <p className='text-xs text-muted-foreground px-2'>Desconto válido para pagamento à vista ou parcelado em até 6x.</p>
+            <div className="mt-2 bg-primary/10 text-primary font-bold text-xs py-1 px-2 rounded-full">
                 {discount}
             </div>
+        </CardFooter>
+    </Card>
+);
+
+const FeaturesCard = () => (
+    <Card className="flex flex-col border-secondary shadow-lg md:col-span-3">
+        <CardHeader className="items-center pb-4">
+             <div className="flex items-center gap-2">
+                <PackageCheck className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base">Principais Funcionalidades do App</CardTitle>
+            </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 text-center px-6 text-sm">
+            <div className="flex items-center gap-2">
+                <LineChart className="h-4 w-4 text-primary" />
+                <span>Monitoramento Real-Time</span>
+            </div>
+             <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <span>Alertas de Temperatura</span>
+            </div>
+             <div className="flex items-center gap-2">
+                <QrCode className="h-4 w-4 text-primary" />
+                <span>Rastreabilidade com QR Code</span>
+            </div>
+             <div className="flex items-center gap-2">
+                <LineChart className="h-4 w-4 text-primary" />
+                <span>Gráficos e Análise de Dados</span>
+            </div>
+             <div className="flex items-center gap-2">
+                <BrainCircuit className="h-4 w-4 text-primary" />
+                <span>Otimização com IA</span>
+            </div>
+             <div className="flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-primary" />
+                <span>Guias de Hardware</span>
+            </div>
+        </CardContent>
+         <CardFooter className="flex-col pt-4 pb-4">
         </CardFooter>
     </Card>
 );
@@ -214,7 +254,7 @@ export default function LockScreen() {
                     icon={Award}
                     price="R$ 350,00"
                     duration="Licença de 6 Meses"
-                    features={["Suporte via WhatsApp", "Ideal para projetos curtos", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
+                    features={["Suporte via WhatsApp"]}
                     discount="desconto para 6 ou mais sensores de 5%"
                 />
                 <PricingCard 
@@ -222,7 +262,7 @@ export default function LockScreen() {
                     icon={Star}
                     price="R$ 600,00"
                     duration="Licença de 12 Meses"
-                    features={["Suporte via WhatsApp", "Ciclo anual de monitoramento", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
+                    features={["Suporte via WhatsApp"]}
                     discount="desconto para 6 ou mais sensores de 10%"
                     recommended
                 />
@@ -231,46 +271,51 @@ export default function LockScreen() {
                     icon={Gem}
                     price="R$ 2.500,00"
                     duration="Licença Permanente"
-                    features={["Suporte via WhatsApp", "1 ano de assistência prioritária", "Desconto válido para pagamento à vista ou parcelado em até 6x."]}
+                    features={["1 ano de assistência prioritária", "Suporte via WhatsApp"]}
                     discount="desconto para 6 ou mais sensores de 10%"
                 />
             </div>
-            <Card className="mt-4 shadow-lg border-secondary">
-                <CardHeader className="items-center text-center pb-2">
-                    <div className="flex items-center gap-2">
-                        <Cpu className="h-4 w-4 text-primary" />
-                        <CardTitle className="text-base">Equipamento Físico (Sensor)</CardTitle>
-                    </div>
-                    <CardDescription className="text-xs">Opcional: adquira o hardware pronto para usar.</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center px-4 py-2">
-                    <p className="text-xl font-bold">R$ 150,00</p>
-                    <p className="text-xs text-muted-foreground">por unidade de sensor</p>
-                    <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                       <li className="flex items-start justify-center gap-1.5">
-                            <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-                            <span>Sensor de temperatura de alta precisão</span>
-                        </li>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <Card className="md:col-span-3 shadow-lg border-secondary">
+                    <CardHeader className="items-center text-center pb-2">
+                        <div className="flex items-center gap-2">
+                            <Cpu className="h-4 w-4 text-primary" />
+                            <CardTitle className="text-base">Equipamento Físico (Sensor)</CardTitle>
+                        </div>
+                        <CardDescription className="text-xs">Opcional: adquira o hardware pronto para usar.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center px-4 py-2">
+                        <p className="text-xl font-bold">R$ 150,00</p>
+                        <p className="text-xs text-muted-foreground">por unidade de sensor</p>
+                        <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                         <li className="flex items-start justify-center gap-1.5">
-                            <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-                            <span>Placa ESP32 com conectividade WiFi</span>
-                        </li>
-                        <li className="flex items-start justify-center gap-1.5">
-                            <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-                            <span>Montado e pronto para configurar</span>
-                        </li>
-                    </ul>
-                </CardContent>
-                <CardFooter className="flex-col pt-2 pb-3">
-                     <div className="bg-primary/10 text-primary font-bold text-xs py-1 px-2 rounded-full">
-                        desconto de 30% na compra de 6 ou mais sensores
-                    </div>
-                </CardFooter>
-            </Card>
-             <p className="text-xl font-semibold text-center mt-6">
-                Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560.
+                                <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                                <span>Sensor de temperatura de alta precisão</span>
+                            </li>
+                            <li className="flex items-start justify-center gap-1.5">
+                                <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                                <span>Placa ESP32 com conectividade WiFi</span>
+                            </li>
+                            <li className="flex items-start justify-center gap-1.5">
+                                <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                                <span>Montado e pronto para configurar</span>
+                            </li>
+                        </ul>
+                    </CardContent>
+                    <CardFooter className="flex-col pt-2 pb-3">
+                        <div className="bg-primary/10 text-primary font-bold text-xs py-1 px-2 rounded-full">
+                            desconto de 30% na compra de 6 ou mais sensores
+                        </div>
+                    </CardFooter>
+                </Card>
+                <FeaturesCard />
+            </div>
+            <p className="text-xl font-semibold text-center mt-6">
+                Para adquirir, entre em contato via WhatsApp com Irineu Marcos Bartnik: +55 45 99931-4560
             </p>
         </div>
     </div>
   );
 }
+
+    
