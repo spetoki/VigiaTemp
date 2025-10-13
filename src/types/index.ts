@@ -31,6 +31,9 @@ export interface Alert {
   message: string;
   acknowledged: boolean;
   reason?: 'high' | 'low';
+  acknowledgedBy?: string;
+  acknowledgementNote?: string;
+  acknowledgedAt?: number;
 }
 
 // The data structure used within the application

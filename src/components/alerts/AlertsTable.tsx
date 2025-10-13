@@ -5,7 +5,7 @@ import type { Alert } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Check, CheckCircle } from 'lucide-react';
+import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Check, CheckCircle, MessageSquareText } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { cn } from '@/lib/utils';
 import {
@@ -19,7 +19,7 @@ import React from 'react';
 
 interface AlertsTableProps {
   alerts: Alert[];
-  onAcknowledge: (alertId: string) => void;
+  onAcknowledgeRequest: (alert: Alert) => void;
   isLoading: boolean;
   selectedAlerts: string[];
   onSelectedAlertsChange: (ids: string[]) => void;
@@ -27,7 +27,7 @@ interface AlertsTableProps {
 
 export default function AlertsTable({ 
   alerts, 
-  onAcknowledge, 
+  onAcknowledgeRequest, 
   isLoading,
   selectedAlerts,
   onSelectedAlertsChange
@@ -126,10 +126,19 @@ export default function AlertsTable({
                   <TableCell>
                     <Badge variant={alert.acknowledged ? 'secondary' : 'default'} className={cn(alert.acknowledged ? '' : 'bg-accent text-accent-foreground')}>
                       {alert.acknowledged ? (
-                          <>
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            {t('alertsTable.status.acknowledged', 'Confirmado')}
-                          </>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center cursor-pointer">
+                                <CheckCircle className="mr-1 h-3 w-3" />
+                                {t('alertsTable.status.acknowledged', 'Confirmado')}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Confirmado por: {alert.acknowledgedBy || 'N/A'}</p>
+                              {alert.acknowledgementNote && <p>Nota: {alert.acknowledgementNote}</p>}
+                              {alert.acknowledgedAt && <p>Em: {new Date(alert.acknowledgedAt).toLocaleString(language)}</p>}
+                            </TooltipContent>
+                          </Tooltip>
                       ) : (
                           <>
                            <AlertTriangle className="mr-1 h-3 w-3" />
@@ -171,8 +180,8 @@ export default function AlertsTable({
                     {!alert.acknowledged ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => onAcknowledge(alert.id)}>
-                            <Check className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" onClick={() => onAcknowledgeRequest(alert)}>
+                            <MessageSquareText className="h-4 w-4" />
                             <span className="sr-only">{t('alertsTable.acknowledgeAction', 'Confirmar Alerta')}</span>
                           </Button>
                         </TooltipTrigger>

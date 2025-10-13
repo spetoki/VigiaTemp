@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AlertsTable from '@/components/alerts/AlertsTable';
 import { getAlerts, updateAlert, updateMultipleAlerts, deleteMultipleAlerts } from '@/services/alert-service';
 import { useToast } from '@/hooks/use-toast';
+import AcknowledgeDialog from '@/components/alerts/AcknowledgeDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ export default function AlertsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('unacknowledged');
   const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
+  const [alertToAcknowledge, setAlertToAcknowledge] = useState<Alert | null>(null);
 
   const loadAlerts = useCallback(async () => {
     setIsLoading(true);
@@ -60,10 +62,26 @@ export default function AlertsPage() {
     setSelectedAlerts([]);
   }, [activeTab]);
 
-  const handleAcknowledge = async (alertId: string) => {
+  const handleAcknowledgeRequest = (alert: Alert) => {
+    setAlertToAcknowledge(alert);
+  };
+  
+  const handleAcknowledgeConfirm = async (formData: { acknowledgedBy: string; acknowledgementNote: string }) => {
+    if (!alertToAcknowledge) return;
+
     try {
-      await updateAlert(storageKeys.alerts, alertId, { acknowledged: true });
+      await updateAlert(storageKeys.alerts, alertToAcknowledge.id, { 
+        acknowledged: true,
+        acknowledgedBy: formData.acknowledgedBy,
+        acknowledgementNote: formData.acknowledgementNote,
+        acknowledgedAt: Date.now(),
+      });
+      setAlertToAcknowledge(null);
       loadAlerts(); // Recarrega para obter o estado mais recente
+      toast({
+        title: 'Alerta Confirmado',
+        description: 'O alerta foi confirmado com sucesso.',
+      });
     } catch (error) {
        toast({
         title: "Erro ao confirmar alerta",
@@ -73,6 +91,7 @@ export default function AlertsPage() {
     }
   };
 
+
   const handleAcknowledgeAll = async () => {
     if (unacknowledgedCount === 0) return;
     
@@ -81,7 +100,13 @@ export default function AlertsPage() {
       .map(alert => alert.id);
 
     try {
-      await updateMultipleAlerts(storageKeys.alerts, unacknowledgedIds, { acknowledged: true });
+      // Nota: A confirmação em massa não terá notas detalhadas.
+      await updateMultipleAlerts(storageKeys.alerts, unacknowledgedIds, { 
+        acknowledged: true,
+        acknowledgedBy: 'Sistema (Massa)',
+        acknowledgementNote: 'Confirmado em massa pelo usuário.',
+        acknowledgedAt: Date.now()
+      });
       loadAlerts();
     } catch (error) {
         toast({
@@ -193,13 +218,22 @@ export default function AlertsPage() {
         <TabsContent value={activeTab} className="mt-4">
            <AlertsTable
               alerts={filteredAlerts}
-              onAcknowledge={handleAcknowledge}
+              onAcknowledgeRequest={handleAcknowledgeRequest}
               isLoading={isLoading}
               selectedAlerts={selectedAlerts}
               onSelectedAlertsChange={setSelectedAlerts}
             />
         </TabsContent>
       </Tabs>
+      
+      {alertToAcknowledge && (
+        <AcknowledgeDialog
+          isOpen={!!alertToAcknowledge}
+          onClose={() => setAlertToAcknowledge(null)}
+          onSubmit={handleAcknowledgeConfirm}
+          alert={alertToAcknowledge}
+        />
+      )}
     </div>
   );
 }
