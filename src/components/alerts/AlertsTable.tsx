@@ -5,7 +5,7 @@ import type { Alert } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Check, CheckCircle, MessageSquareText } from 'lucide-react';
+import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Check, CheckCircle, MessageSquareText, UserCheck } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { cn } from '@/lib/utils';
 import {
@@ -83,8 +83,8 @@ export default function AlertsTable({
               <TableHead className="w-[120px]">{t('alertsTable.header.status', 'Status')}</TableHead>
               <TableHead className="w-[150px]">{t('alertsTable.header.level', 'Nível')}</TableHead>
               <TableHead>{t('alertsTable.header.sensor', 'Sensor')}</TableHead>
-              <TableHead>{t('alertsTable.header.reason', 'Motivo')}</TableHead>
-              <TableHead>{t('alertsTable.header.message', 'Mensagem')}</TableHead>
+              <TableHead>{t('alertsTable.header.message', 'Mensagem do Alerta')}</TableHead>
+              <TableHead>{t('alertsTable.header.confirmation', 'Detalhes da Confirmação')}</TableHead>
               <TableHead className="w-[180px]">{t('alertsTable.header.timestamp', 'Horário')}</TableHead>
               <TableHead className="text-right w-[120px]">{t('alertsTable.header.actions', 'Ação')}</TableHead>
             </TableRow>
@@ -125,26 +125,17 @@ export default function AlertsTable({
                   </TableCell>
                   <TableCell>
                     <Badge variant={alert.acknowledged ? 'secondary' : 'default'} className={cn(alert.acknowledged ? '' : 'bg-accent text-accent-foreground')}>
-                      {alert.acknowledged ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center cursor-pointer">
-                                <CheckCircle className="mr-1 h-3 w-3" />
-                                {t('alertsTable.status.acknowledged', 'Confirmado')}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Confirmado por: {alert.acknowledgedBy || 'N/A'}</p>
-                              {alert.acknowledgementNote && <p>Nota: {alert.acknowledgementNote}</p>}
-                              {alert.acknowledgedAt && <p>Em: {new Date(alert.acknowledgedAt).toLocaleString(language)}</p>}
-                            </TooltipContent>
-                          </Tooltip>
-                      ) : (
+                        {alert.acknowledged ? (
+                          <>
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                            {t('alertsTable.status.acknowledged', 'Confirmado')}
+                          </>
+                        ) : (
                           <>
                            <AlertTriangle className="mr-1 h-3 w-3" />
                            {t('alertsTable.status.unacknowledged', 'Pendente')}
                           </>
-                      )}
+                        )}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -154,22 +145,17 @@ export default function AlertsTable({
                     </Badge>
                   </TableCell>
                   <TableCell>{alert.sensorName}</TableCell>
-                  <TableCell>
-                    {alert.reason === 'high' && (
-                      <Badge variant="outline" className="border-red-500 text-red-500">
-                        <ArrowUpCircle className="mr-1 h-3 w-3" />
-                        {t('alertsTable.reason.high', 'Temperatura Alta')}
-                      </Badge>
-                    )}
-                    {alert.reason === 'low' && (
-                      <Badge variant="outline" className="border-blue-500 text-blue-500">
-                        <ArrowDownCircle className="mr-1 h-3 w-3" />
-                        {t('alertsTable.reason.low', 'Temperatura Baixa')}
-                      </Badge>
-                    )}
-                    {!alert.reason && <span className="text-muted-foreground">-</span>}
-                  </TableCell>
                   <TableCell className="text-muted-foreground font-normal">{alert.message}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-normal">
+                    {alert.acknowledged ? (
+                      <div>
+                        <p className="flex items-center gap-1"><UserCheck className="h-3 w-3" /> <strong>{alert.acknowledgedBy}</strong></p>
+                        <p className="mt-1 italic">"{alert.acknowledgementNote}"</p>
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
                   <TableCell>
                     {new Date(alert.timestamp).toLocaleString(language, {
                       dateStyle: 'short',
