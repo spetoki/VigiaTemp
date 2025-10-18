@@ -7,7 +7,7 @@ export interface HistoricalDataPoint {
   temperature: number; // Always in Celsius for storage
 }
 
-export type SensorStatus = 'normal' | 'warning' | 'critical';
+export type SensorStatus = 'normal' | 'warning' | 'critical' | 'offline';
 
 export interface Sensor {
   id: string;
@@ -17,6 +17,7 @@ export interface Sensor {
   highThreshold: number; // Always in Celsius
   lowThreshold: number; // Always in Celsius
   historicalData: HistoricalDataPoint[];
+  lastUpdatedAt?: number; // Unix timestamp of the last update
   model?: string;
   ipAddress: string | null;
   macAddress: string | null;

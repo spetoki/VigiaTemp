@@ -20,6 +20,12 @@ export function convertTemperature(temperature: number, toUnit: TemperatureUnit,
 }
 
 export function getSensorStatus(sensor: Sensor): SensorStatus {
+  // Check if sensor is offline (hasn't updated in 5 minutes)
+  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+  if (!sensor.lastUpdatedAt || sensor.lastUpdatedAt < fiveMinutesAgo) {
+    return 'offline';
+  }
+
   if (sensor.currentTemperature > sensor.highThreshold || sensor.currentTemperature < sensor.lowThreshold) {
     return 'critical';
   }

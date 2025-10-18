@@ -81,6 +81,7 @@
   "sensorCard.label.normal": "Normal",
   "sensorCard.label.warning": "Advertencia",
   "sensorCard.label.critical": "Crítico",
+  "sensorCard.label.offline": "Sin conexión",
   "sensorCard.lowThreshold": "Umbral Inferior",
   "sensorCard.highThreshold": "Umbral Superior",
   "sensorCard.tooltip.physicalDevice": "Datos de un dispositivo físico",

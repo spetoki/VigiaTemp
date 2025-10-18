@@ -1,11 +1,11 @@
 
 "use client";
 
-import type { Sensor } from '@/types';
+import type { Sensor, SensorStatus } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Edit3, Trash2, AlertTriangle, CheckCircle2, WifiOff } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { cn, formatTemperature, getSensorStatus } from '@/lib/utils';
 import {
@@ -49,11 +49,13 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
     setSensorToDelete(null);
   };
 
-  const statusTranslations: Record<ReturnType<typeof getSensorStatus>, string> = {
-    normal: t('sensorCard.label.normal', 'Normal'),
-    warning: t('sensorCard.label.warning', 'Atenção'),
-    critical: t('sensorCard.label.critical', 'Crítico'),
+  const statusConfig: Record<SensorStatus, { label: string, icon: React.ElementType, className: string }> = {
+    normal: { label: t('sensorCard.label.normal', 'Normal'), icon: CheckCircle2, className: 'bg-green-100 text-green-800' },
+    warning: { label: t('sensorCard.label.warning', 'Atenção'), icon: AlertTriangle, className: 'bg-yellow-100 text-yellow-800' },
+    critical: { label: t('sensorCard.label.critical', 'Crítico'), icon: AlertTriangle, className: 'bg-red-100 text-red-800' },
+    offline: { label: t('sensorCard.label.offline', 'Offline'), icon: WifiOff, className: 'bg-gray-100 text-gray-800' },
   };
+
 
   return (
     <>
@@ -80,18 +82,20 @@ export default function SensorTable({ sensors, onEdit, onDelete }: SensorTablePr
             )}
             {sensors.map((sensor) => {
               const status = getSensorStatus(sensor);
+              const { label, icon: Icon, className } = statusConfig[status];
               return (
-                <TableRow key={sensor.id} className={cn(status === 'critical' ? 'bg-accent/10' : status === 'warning' ? 'bg-yellow-500/10' : '')}>
+                <TableRow key={sensor.id} className={cn(status === 'critical' ? 'bg-destructive/5' : status === 'warning' ? 'bg-yellow-500/5' : status === 'offline' ? 'bg-muted/50' : '')}>
                   <TableCell className="font-medium">{sensor.name}</TableCell>
                   <TableCell>{sensor.location}</TableCell>
-                  <TableCell className="text-center">{formatTemperature(sensor.currentTemperature, temperatureUnit)}</TableCell>
+                  <TableCell className="text-center">
+                    {status === 'offline' ? '---' : formatTemperature(sensor.currentTemperature, temperatureUnit)}
+                  </TableCell>
                   <TableCell className="text-center">{formatTemperature(sensor.lowThreshold, temperatureUnit)}</TableCell>
                   <TableCell className="text-center">{formatTemperature(sensor.highThreshold, temperatureUnit)}</TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={status === 'critical' ? 'destructive' : status === 'warning' ? 'default' : 'secondary'}
-                           className={cn(status === 'warning' && 'bg-yellow-500 text-white')}>
-                      {status === 'critical' || status === 'warning' ? <AlertTriangle className="mr-1 h-3 w-3" /> : <CheckCircle2 className="mr-1 h-3 w-3" />}
-                      {statusTranslations[status]}
+                    <Badge variant={'outline'} className={cn(className)}>
+                      <Icon className="mr-1 h-3 w-3" />
+                      {label}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

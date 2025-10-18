@@ -21,6 +21,7 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 currentTemperature: data.currentTemperature ?? 25,
                 highThreshold: data.highThreshold ?? 30,
                 lowThreshold: data.lowThreshold ?? 20,
+                lastUpdatedAt: data.lastUpdatedAt || null,
                 model: data.model || 'Não especificado',
                 ipAddress: data.ipAddress || null,
                 macAddress: data.macAddress || null,
@@ -52,6 +53,7 @@ export async function addSensor(
         lowThreshold: Number(sensorData.lowThreshold),
         highThreshold: Number(sensorData.highThreshold),
         currentTemperature: 25, 
+        lastUpdatedAt: Date.now(),
     };
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
@@ -136,6 +138,7 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
 export async function updateSensorDataFromDevice(accessKey: string, macAddress: string, temperature: number): Promise<{id: string} | null> {
     const db = getDb();
     const sensorsCollectionPath = `users/${accessKey}/sensors`;
+    const now = Date.now();
     
     try {
         const sensorsCollectionRef = collection(db, sensorsCollectionPath);
@@ -150,15 +153,18 @@ export async function updateSensorDataFromDevice(accessKey: string, macAddress: 
             
             const batch = writeBatch(db);
 
-            // 1. Atualiza a temperatura atual no documento do sensor
+            // 1. Atualiza a temperatura atual e o timestamp no documento do sensor
             const sensorRef = doc(db, sensorsCollectionPath, sensorId);
-            batch.update(sensorRef, { currentTemperature: temperature });
+            batch.update(sensorRef, { 
+              currentTemperature: temperature,
+              lastUpdatedAt: now
+            });
             
             // 2. Adiciona um novo ponto de dado na subcoleção historicalData
             const historyCollectionRef = collection(db, `${sensorsCollectionPath}/${sensorId}/historicalData`);
             const newHistoryDocRef = doc(historyCollectionRef); 
             batch.set(newHistoryDocRef, {
-                timestamp: Timestamp.now().toMillis(),
+                timestamp: now,
                 temperature: temperature
             });
 

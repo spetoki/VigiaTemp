@@ -81,6 +81,7 @@
   "sensorCard.label.normal": "Normal",
   "sensorCard.label.warning": "Warning",
   "sensorCard.label.critical": "Critical",
+  "sensorCard.label.offline": "Offline",
   "sensorCard.lowThreshold": "Low Threshold",
   "sensorCard.highThreshold": "High Threshold",
   "sensorCard.tooltip.physicalDevice": "Data from a physical device",
