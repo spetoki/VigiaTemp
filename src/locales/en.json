@@ -492,7 +492,7 @@
   "whoWeAre.vision.title": "Vision for the Future",
   "whoWeAre.vision.p1": "We look to the future with the certainty that innovation is the path to a more sustainable and productive agribusiness. VigiaTemp is just the beginning. We are constantly researching and developing new features, from predictive analysis with artificial intelligence to integration with other sensors, always with the goal of delivering more value, security, and peace of mind to those who produce.",
   "whoWeare.vision.p2": "We are more than just a software company; we are partners in your journey for quality.",
-
+  
   "updates.pageTitle": "Updates and Notices",
   "updates.pageSubtitle": "Stay up to date with the latest news and important announcements.",
   "updates.noticeBoardTitle": "Notice Board",
@@ -510,5 +510,7 @@
   "updates.update5.description": "The alerts table now directly displays who acknowledged an alert and the associated note, improving action traceability.",
 
   "notice.title": "Scheduled Database Maintenance",
-  "notice.content": "Please be advised that on the next 15th of August, between 02:00 and 03:00 AM (Brasília time), we will perform scheduled maintenance on our servers. During this period, the application may experience temporary instability. We appreciate your understanding."
+  "notice.content": "Please be advised that on the next 15th of August, between 02:00 and 03:00 AM (Brasília time), we will perform scheduled maintenance on our servers. During this period, the application may experience temporary instability. We appreciate your understanding.",
+  "notice.nextUpdate.title": "Next Update: Fault Detection",
+  "notice.nextUpdate.content": "We will implement auto-detection of sensor failures. This will ensure you are notified not only when the temperature is wrong, but also when the sensor itself stops working."
 }

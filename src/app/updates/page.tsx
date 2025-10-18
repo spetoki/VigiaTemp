@@ -55,11 +55,11 @@ const updates = [
 // O mural de avisos é gerenciado aqui.
 // Para adicionar um aviso, altere o conteúdo abaixo.
 const notice = {
-    titleKey: "notice.title",
-    defaultTitle: "Manutenção Programada do Banco de Dados",
-    date: "Aviso de: 03 de Agosto de 2024",
-    contentKey: "notice.content",
-    defaultContent: "Informamos que no próximo dia 15 de Agosto, entre 02:00 e 03:00 da manhã (horário de Brasília), faremos uma manutenção programada em nossos servidores. Durante este período, o aplicativo poderá apresentar instabilidade temporária. Agradecemos a compreensão."
+    titleKey: "notice.nextUpdate.title",
+    defaultTitle: "Próxima Atualização: Detecção de Falhas",
+    date: "Agendada para: 18 de Outubro de 2025, às 00:01",
+    contentKey: "notice.nextUpdate.content",
+    defaultContent: "Implementaremos a auto-detecção de falhas nos sensores. Isso garantirá que você seja notificado não apenas quando a temperatura estiver errada, mas também quando o próprio sensor parar de funcionar."
 };
 
 
