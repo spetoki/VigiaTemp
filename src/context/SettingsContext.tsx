@@ -4,7 +4,16 @@
 import type { TemperatureUnit, LanguageCode } from '@/types';
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { initializeAdminUser } from '@/services/init-service';
-import { notice } from '@/app/updates/page';
+
+// A constante de aviso agora reside aqui para ser acessível globalmente sem causar erros de build.
+const notice = {
+    id: "update_2025_10_18", // ID único para este aviso
+    titleKey: "notice.nextUpdate.title",
+    defaultTitle: "Próxima Atualização: Detecção de Falhas",
+    date: "Agendada para: 18 de Outubro de 2025, às 00:01",
+    contentKey: "notice.nextUpdate.content",
+    defaultContent: "Implementaremos a auto-detecção de falhas nos sensores. Isso garantirá que você seja notificado não apenas quando a temperatura estiver errada, mas também quando o próprio sensor parar de funcionar."
+};
 
 interface Translations {
   [key: string]: string;

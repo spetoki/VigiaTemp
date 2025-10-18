@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/button';
 import { Bell, BellOff, Rss } from 'lucide-react';
 import { Alert as AlertComponent, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
-import { notice } from '@/app/updates/page';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -205,7 +204,7 @@ export default function DashboardPage() {
                     onClick={dismissNoticeAlert}
                 >
                     <Rss className="h-5 w-5 text-primary" />
-                    <AlertTitle className="font-bold">{t(notice.titleKey, notice.defaultTitle)}</AlertTitle>
+                    <AlertTitle className="font-bold">{t('notice.nextUpdate.title', 'Próxima Atualização: Detecção de Falhas')}</AlertTitle>
                     <AlertDescription>
                         {t('notice.clickToView', 'Um novo aviso foi publicado. Clique aqui para ver os detalhes.')}
                     </AlertDescription>

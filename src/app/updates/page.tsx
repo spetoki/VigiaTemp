@@ -54,18 +54,19 @@ const updates = [
 
 // O mural de avisos é gerenciado aqui.
 // Para adicionar um aviso, altere o conteúdo abaixo.
-export const notice = {
-    id: "update_2025_10_18", // ID único para este aviso
-    titleKey: "notice.nextUpdate.title",
-    defaultTitle: "Próxima Atualização: Detecção de Falhas",
-    date: "Agendada para: 18 de Outubro de 2025, às 00:01",
-    contentKey: "notice.nextUpdate.content",
-    defaultContent: "Implementaremos a auto-detecção de falhas nos sensores. Isso garantirá que você seja notificado não apenas quando a temperatura estiver errada, mas também quando o próprio sensor parar de funcionar."
-};
-
-
+// A constante foi movida para DENTRO do componente para corrigir o erro de build do Next.js
+// O SettingsContext agora tem sua própria cópia desta constante.
 export default function UpdatesPage() {
     const { t } = useSettings();
+    
+    const notice = {
+        id: "update_2025_10_18", // ID único para este aviso
+        titleKey: "notice.nextUpdate.title",
+        defaultTitle: "Próxima Atualização: Detecção de Falhas",
+        date: "Agendada para: 18 de Outubro de 2025, às 00:01",
+        contentKey: "notice.nextUpdate.content",
+        defaultContent: "Implementaremos a auto-detecção de falhas nos sensores. Isso garantirá que você seja notificado não apenas quando a temperatura estiver errada, mas também quando o próprio sensor parar de funcionar."
+    };
 
     return (
         <div className="space-y-8 max-w-4xl mx-auto">
