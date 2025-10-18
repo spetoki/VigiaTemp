@@ -52,13 +52,11 @@ const updates = [
     }
 ];
 
-// O mural de avisos é gerenciado aqui.
-// Para adicionar um aviso, altere o conteúdo abaixo.
-// A constante foi movida para DENTRO do componente para corrigir o erro de build do Next.js
-// O SettingsContext agora tem sua própria cópia desta constante.
+// O mural de avisos agora é definido dentro do componente para evitar erros de build do Next.js
 export default function UpdatesPage() {
     const { t } = useSettings();
     
+    // A definição do aviso agora está aqui.
     const notice = {
         id: "update_2025_10_18", // ID único para este aviso
         titleKey: "notice.nextUpdate.title",
