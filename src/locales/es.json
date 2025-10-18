@@ -505,8 +505,6 @@
   "updates.update5.title": "Detalles de Confirmación de Alerta",
   "updates.update5.description": "La tabla de alertas ahora muestra directamente quién confirmó una alerta y la nota asociada, mejorando la trazabilidad de las acciones.",
 
-  "notice.title": "Mantenimiento Programado de la Base de Datos",
-  "notice.content": "Le informamos que el próximo 15 de agosto, entre las 02:00 y las 03:00 de la mañana (hora de Brasilia), realizaremos un mantenimiento programado en nuestros servidores. Durante este período, la aplicación podría experimentar inestabilidad temporal. Agradecemos su comprensión.",
   "notice.nextUpdate.title": "Próxima Actualización: Detección de Fallos",
   "notice.nextUpdate.content": "Implementaremos la autodetección de fallos en los sensores. Esto garantizará que se le notifique no solo cuando la temperatura sea incorrecta, sino también cuando el propio sensor deje de funcionar."
 }

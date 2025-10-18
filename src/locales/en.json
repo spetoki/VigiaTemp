@@ -509,8 +509,6 @@
   "updates.update5.title": "Alert Acknowledgment Details",
   "updates.update5.description": "The alerts table now directly displays who acknowledged an alert and the associated note, improving action traceability.",
 
-  "notice.title": "Scheduled Database Maintenance",
-  "notice.content": "Please be advised that on the next 15th of August, between 02:00 and 03:00 AM (Brasília time), we will perform scheduled maintenance on our servers. During this period, the application may experience temporary instability. We appreciate your understanding.",
   "notice.nextUpdate.title": "Next Update: Fault Detection",
   "notice.nextUpdate.content": "We will implement auto-detection of sensor failures. This will ensure you are notified not only when the temperature is wrong, but also when the sensor itself stops working."
 }
