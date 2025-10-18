@@ -12,10 +12,11 @@ interface SensorStatusPieChartProps {
   sensor: Sensor;
 }
 
-const COLORS = {
+const COLORS: Record<SensorStatus, string> = {
   normal: 'hsl(var(--chart-2))', // Green
   warning: 'hsl(var(--chart-4))', // Yellow
   critical: 'hsl(var(--chart-1))', // Red
+  offline: 'hsl(var(--muted-foreground))', // Gray
 };
 
 // This component is now designed to show a "no data" message for real tests,
@@ -39,10 +40,11 @@ export default function SensorStatusPieChart({ sensor }: SensorStatusPieChartPro
       return [];
     }
 
-    const statusMap = {
+    const statusMap: Record<SensorStatus, string> = {
       normal: t('dataAnalysis.pieChart.statusNormal', 'Normal'),
       warning: t('dataAnalysis.pieChart.statusWarning', 'Atenção'),
       critical: t('dataAnalysis.pieChart.statusCritical', 'Crítico'),
+      offline: t('sensorCard.label.offline', 'Offline'),
     };
 
     return (Object.keys(counts) as SensorStatus[])
@@ -96,4 +98,3 @@ export default function SensorStatusPieChart({ sensor }: SensorStatusPieChartPro
     </Card>
   );
 }
-
