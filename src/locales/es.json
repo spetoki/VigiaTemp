@@ -506,5 +506,6 @@
   "updates.update5.description": "La tabla de alertas ahora muestra directamente quién confirmó una alerta y la nota asociada, mejorando la trazabilidad de las acciones.",
 
   "notice.nextUpdate.title": "Próxima Actualización: Detección de Fallos",
-  "notice.nextUpdate.content": "Implementaremos la autodetección de fallos en los sensores. Esto garantizará que se le notifique no solo cuando la temperatura sea incorrecta, sino también cuando el propio sensor deje de funcionar."
+  "notice.nextUpdate.content": "Implementaremos la autodetección de fallos en los sensores. Esto garantizará que se le notifique no solo cuando la temperatura sea incorrecta, sino también cuando el propio sensor deje de funcionar.",
+  "notice.clickToView": "Se ha publicado un nuevo aviso. Haga clic aquí para ver los detalles."
 }

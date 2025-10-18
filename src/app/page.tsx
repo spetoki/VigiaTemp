@@ -14,12 +14,15 @@ import type { Unsubscribe } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, Rss } from 'lucide-react';
+import { Alert as AlertComponent, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from 'next/link';
+import { notice } from '@/app/updates/page';
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { t, temperatureUnit, storageKeys } = useSettings();
+  const { t, temperatureUnit, storageKeys, showNoticeAlert, dismissNoticeAlert } = useSettings();
   const { toast } = useToast();
   
   const [soundQueue, setSoundQueue] = useState<(string | undefined)[]>([]);
@@ -183,6 +186,7 @@ export default function DashboardPage() {
           <Skeleton className="h-9 w-48" />
           <Skeleton className="h-9 w-32" />
         </div>
+        <Skeleton className="h-24 w-full" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
             <CardSkeleton key={i} />
@@ -194,6 +198,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+        {showNoticeAlert && (
+            <Link href="/updates" passHref>
+                <AlertComponent 
+                    className="border-primary/50 text-primary bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
+                    onClick={dismissNoticeAlert}
+                >
+                    <Rss className="h-5 w-5 text-primary" />
+                    <AlertTitle className="font-bold">{t(notice.titleKey, notice.defaultTitle)}</AlertTitle>
+                    <AlertDescription>
+                        {t('notice.clickToView', 'Um novo aviso foi publicado. Clique aqui para ver os detalhes.')}
+                    </AlertDescription>
+                </AlertComponent>
+            </Link>
+        )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.realTimeMonitoring', 'Monitoramento em Tempo Real')}</h1>
          <Button

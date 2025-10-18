@@ -4,6 +4,7 @@
 import type { TemperatureUnit, LanguageCode } from '@/types';
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { initializeAdminUser } from '@/services/init-service';
+import { notice } from '@/app/updates/page';
 
 interface Translations {
   [key: string]: string;
@@ -27,6 +28,7 @@ const UNLOCKED_KEY_PREFIX = 'vigiatemp_unlocked';
 const ACTIVE_KEY_STORAGE = 'vigiatemp_active_key';
 const FAILED_ATTEMPTS_KEY = 'vigiatemp_failed_attempts';
 const LOCKOUT_END_TIME_KEY = 'vigiatemp_lockout_end_time';
+const DISMISSED_NOTICE_KEY = 'vigiatemp_dismissed_notice';
 
 interface SettingsContextType {
   temperatureUnit: TemperatureUnit;
@@ -51,6 +53,8 @@ interface SettingsContextType {
   };
   installPromptEvent: BeforeInstallPromptEvent | null;
   triggerInstallPrompt: () => void;
+  showNoticeAlert: boolean;
+  dismissNoticeAlert: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -81,6 +85,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [isLocked, setIsLocked] = useState<boolean>(true);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showNoticeAlert, setShowNoticeAlert] = useState(false);
 
   useEffect(() => {
     const savedActiveKey = localStorage.getItem(ACTIVE_KEY_STORAGE);
@@ -90,6 +95,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             setActiveKey(savedActiveKey);
             setIsLocked(false);
             initializeAdminUser(savedActiveKey); // Garante a existência do admin
+            
+            const dismissedNoticeId = localStorage.getItem(DISMISSED_NOTICE_KEY);
+            if (dismissedNoticeId !== notice.id) {
+                setShowNoticeAlert(true);
+            }
         }
     }
 
@@ -134,6 +144,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setActiveKey(key);
       setIsLocked(false);
       initializeAdminUser(key); // Garante a existência do admin ao desbloquear
+      
+      const dismissedNoticeId = localStorage.getItem(DISMISSED_NOTICE_KEY);
+      if (dismissedNoticeId !== notice.id) {
+          setShowNoticeAlert(true);
+      }
+      
       return true;
     }
     return false;
@@ -146,6 +162,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem(ACTIVE_KEY_STORAGE);
     setIsLocked(true);
     setActiveKey(null);
+    setShowNoticeAlert(false);
+  };
+  
+  const dismissNoticeAlert = () => {
+    localStorage.setItem(DISMISSED_NOTICE_KEY, notice.id);
+    setShowNoticeAlert(false);
   };
 
   const loadTranslations = useCallback(async (lang: LanguageCode) => {
@@ -189,7 +211,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <SettingsContext.Provider value={{ temperatureUnit, setTemperatureUnit, language, setLanguage, theme, setTheme, t, isLocked, unlockApp, lockApp, activeKey, storageKeys, installPromptEvent, triggerInstallPrompt }}>
+    <SettingsContext.Provider value={{ 
+        temperatureUnit, setTemperatureUnit, 
+        language, setLanguage, 
+        theme, setTheme, 
+        t, 
+        isLocked, unlockApp, lockApp, 
+        activeKey, storageKeys, 
+        installPromptEvent, triggerInstallPrompt,
+        showNoticeAlert, dismissNoticeAlert
+    }}>
       {children}
     </SettingsContext.Provider>
   );

@@ -510,5 +510,6 @@
   "updates.update5.description": "The alerts table now directly displays who acknowledged an alert and the associated note, improving action traceability.",
 
   "notice.nextUpdate.title": "Next Update: Fault Detection",
-  "notice.nextUpdate.content": "We will implement auto-detection of sensor failures. This will ensure you are notified not only when the temperature is wrong, but also when the sensor itself stops working."
+  "notice.nextUpdate.content": "We will implement auto-detection of sensor failures. This will ensure you are notified not only when the temperature is wrong, but also when the sensor itself stops working.",
+  "notice.clickToView": "A new notice has been posted. Click here to see the details."
 }

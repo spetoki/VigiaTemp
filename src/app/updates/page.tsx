@@ -54,7 +54,8 @@ const updates = [
 
 // O mural de avisos é gerenciado aqui.
 // Para adicionar um aviso, altere o conteúdo abaixo.
-const notice = {
+export const notice = {
+    id: "update_2025_10_18", // ID único para este aviso
     titleKey: "notice.nextUpdate.title",
     defaultTitle: "Próxima Atualização: Detecção de Falhas",
     date: "Agendada para: 18 de Outubro de 2025, às 00:01",
