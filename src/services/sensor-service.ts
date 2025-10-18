@@ -3,7 +3,7 @@
 
 import { getDb } from './db';
 import type { Sensor, HistoricalDataPoint } from '@/types';
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp, writeBatch, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, getDoc, query, where, Timestamp, writeBatch, limit, orderBy } from 'firebase/firestore';
 import { SensorFormData } from '@/components/sensors/SensorForm';
 
 export async function getSensors(collectionPath: string): Promise<Sensor[]> {
@@ -24,7 +24,7 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 model: data.model || 'Não especificado',
                 ipAddress: data.ipAddress || null,
                 macAddress: data.macAddress || null,
-                historicalData: [], // Assume empty if not present
+                historicalData: [], // This is now fetched separately
             } as Sensor
         });
         return sensorList;
@@ -100,50 +100,35 @@ export async function getHistoricalData(collectionPath: string, sensorId: string
     if (!collectionPath) return [];
 
     const db = getDb();
+    const now = Date.now();
+    let startTime: number;
+
+    switch (timePeriod) {
+        case 'hour':
+            startTime = now - 60 * 60 * 1000;
+            break;
+        case 'week':
+            startTime = now - 7 * 24 * 60 * 60 * 1000;
+            break;
+        case 'month':
+            startTime = now - 30 * 24 * 60 * 60 * 1000;
+            break;
+        case 'day':
+        default:
+            startTime = now - 24 * 60 * 60 * 1000;
+            break;
+    }
+
     const historyCollectionRef = collection(db, `${collectionPath}/${sensorId}/historicalData`);
+    const q = query(historyCollectionRef, where("timestamp", ">=", startTime), orderBy("timestamp", "asc"));
     
     try {
-        const querySnapshot = await getDocs(historyCollectionRef);
-        let data = querySnapshot.docs.map(doc => doc.data() as HistoricalDataPoint);
-
-        if (data.length > 0) {
-           return data.sort((a, b) => a.timestamp - b.timestamp);
-        }
-
-        console.warn(`Gerando dados históricos SIMULADOS para o sensor ${sensorId} pois não há dados reais.`);
-        const sensorDoc = await getDoc(doc(db, collectionPath, sensorId));
-        if (!sensorDoc.exists()) return [];
-        
-        const sensor = sensorDoc.data() as Omit<Sensor, 'id'>;
-
-        const simulatedData: HistoricalDataPoint[] = [];
-        const now = Date.now();
-        let steps;
-        let interval;
-
-        switch (timePeriod) {
-            case 'hour': steps = 60; interval = 60 * 1000; break;
-            case 'week': steps = 7 * 24; interval = 60 * 60 * 1000; break;
-            case 'month': steps = 30 * 12; interval = 2 * 60 * 60 * 1000; break;
-            case 'day': default: steps = 24 * 4; interval = 15 * 60 * 1000; break;
-        }
-
-        for (let i = 0; i < steps; i++) {
-            const timestamp = now - (steps - i) * interval;
-            const dayCycle = Math.sin(((timestamp % 86400000) / 86400000) * 2 * Math.PI - Math.PI / 2);
-            const baseTemp = (sensor.highThreshold + sensor.lowThreshold) / 2;
-            const amplitude = (sensor.highThreshold - sensor.lowThreshold) / 2;
-            const randomNoise = (Math.random() - 0.5) * 2;
-            
-            const temperature = baseTemp + (dayCycle * amplitude * 0.7) + randomNoise;
-            
-            simulatedData.push({ timestamp, temperature });
-        }
-        return simulatedData;
-
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => doc.data() as HistoricalDataPoint);
+        return data;
     } catch (error) {
-        console.error("Erro ao buscar dados históricos: ", error);
-        return [];
+        console.error(`Erro ao buscar dados históricos para o sensor ${sensorId}: `, error);
+        return []; // Retorna um array vazio em caso de erro para não quebrar os gráficos
     }
 }
 
@@ -191,5 +176,3 @@ export async function updateSensorDataFromDevice(accessKey: string, macAddress: 
         throw error;
     }
 }
-
-    
