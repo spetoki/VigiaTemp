@@ -29,6 +29,7 @@
   "nav.whoWeAre": "Quem Somos",
   "nav.privacyPolicy": "Política de Privacidade",
   "nav.hardwareUsage": "Uso do Hardware",
+  "nav.updates": "Atualizações",
 
   "temperatureUnitSelection": "Seleção de unidade de temperatura",
   "openMenu": "Abrir menu",
@@ -486,5 +487,24 @@
   "whoWeAre.mission.p1": "Nossa missão é empoderar o produtor rural com ferramentas de ponta. Acreditamos que a tecnologia não deve ser um privilégio, mas uma aliada poderosa para todos. Por isso, desenvolvemos um sistema que transforma dados complexos de temperatura em informações visuais, claras e acionáveis. Queremos que você tenha o controle total do seu processo, na palma da sua mão, permitindo tomadas de decisão mais rápidas e precisas.",
   "whoWeAre.vision.title": "Visão de Futuro",
   "whoWeAre.vision.p1": "Olhamos para o futuro com a certeza de que a inovação é o caminho para um agronegócio mais sustentável e produtivo. O VigiaTemp é apenas o começo. Estamos constantemente pesquisando e desenvolvendo novas funcionalidades, desde análises preditivas com inteligência artificial até a integração com outros sensores, sempre com o objetivo de entregar mais valor, segurança e tranquilidade para quem produz.",
-  "whoWeAre.vision.p2": "Somos mais do que uma empresa de software; somos parceiros na sua jornada pela qualidade."
+  "whoWeAre.vision.p2": "Somos mais do que uma empresa de software; somos parceiros na sua jornada pela qualidade.",
+
+  "updates.pageTitle": "Atualizações e Avisos",
+  "updates.pageSubtitle": "Fique por dentro das últimas novidades e comunicados importantes.",
+  "updates.noticeBoardTitle": "Mural de Avisos",
+  "updates.historyTitle": "Últimas 5 Atualizações",
+  "updates.historyDescription": "Veja o que há de novo nas versões mais recentes do VigiaTemp.",
+  "updates.update1.title": "Página de Atualizações e Mural de Avisos",
+  "updates.update1.description": "Adicionada uma nova página para que os usuários possam ver as últimas 5 atualizações do sistema e um mural de avisos para comunicados importantes do desenvolvedor.",
+  "updates.update2.title": "Correção no Gráfico de Pizza",
+  "updates.update2.description": "Corrigido um bug que causava um erro de compilação na página de Análise de Dados devido ao novo status 'Offline' não ser reconhecido pelo gráfico.",
+  "updates.update3.title": "Detecção de Sensores Offline",
+  "updates.update3.description": "Implementado um sistema de 'watchdog' que agora marca um sensor como 'Offline' se ele não enviar dados por mais de 5 minutos, garantindo a detecção de falhas silenciosas.",
+  "updates.update4.title": "Dados Dinâmicos no Painel e Gráficos",
+  "updates.update4.description": "Corrigido o comportamento de dados 'congelados'. O painel agora busca dados a cada 5 segundos e os gráficos históricos utilizam exclusivamente dados reais do banco de dados.",
+  "updates.update5.title": "Detalhes de Confirmação de Alerta",
+  "updates.update5.description": "A tabela de alertas agora exibe diretamente quem confirmou um alerta e a nota associada, melhorando a rastreabilidade das ações.",
+
+  "notice.title": "Manutenção Programada do Banco de Dados",
+  "notice.content": "Informamos que no próximo dia 15 de Agosto, entre 02:00 e 03:00 da manhã (horário de Brasília), faremos uma manutenção programada em nossos servidores. Durante este período, o aplicativo poderá apresentar instabilidade temporária. Agradecemos a compreensão."
 }

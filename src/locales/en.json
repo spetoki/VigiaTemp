@@ -29,6 +29,7 @@
   "nav.whoWeAre": "Who We Are",
   "nav.privacyPolicy": "Privacy Policy",
   "nav.hardwareUsage": "Hardware Usage",
+  "nav.updates": "Updates",
 
   "temperatureUnitSelection": "Temperature unit selection",
   "openMenu": "Open menu",
@@ -490,5 +491,24 @@
   "whoWeAre.mission.p1": "Our mission is to empower the rural producer with cutting-edge tools. We believe that technology should not be a privilege, but a powerful ally for everyone. That's why we developed a system that transforms complex temperature data into visual, clear, and actionable information. We want you to have full control of your process, in the palm of your hand, allowing for faster and more accurate decision-making.",
   "whoWeAre.vision.title": "Vision for the Future",
   "whoWeAre.vision.p1": "We look to the future with the certainty that innovation is the path to a more sustainable and productive agribusiness. VigiaTemp is just the beginning. We are constantly researching and developing new features, from predictive analysis with artificial intelligence to integration with other sensors, always with the goal of delivering more value, security, and peace of mind to those who produce.",
-  "whoWeare.vision.p2": "We are more than just a software company; we are partners in your journey for quality."
+  "whoWeare.vision.p2": "We are more than just a software company; we are partners in your journey for quality.",
+
+  "updates.pageTitle": "Updates and Notices",
+  "updates.pageSubtitle": "Stay up to date with the latest news and important announcements.",
+  "updates.noticeBoardTitle": "Notice Board",
+  "updates.historyTitle": "Last 5 Updates",
+  "updates.historyDescription": "See what's new in the latest versions of VigiaTemp.",
+  "updates.update1.title": "Updates Page and Notice Board",
+  "updates.update1.description": "Added a new page for users to see the last 5 system updates and a notice board for important developer announcements.",
+  "updates.update2.title": "Fix in Pie Chart",
+  "updates.update2.description": "Fixed a bug that caused a build error on the Data Analysis page because the new 'Offline' status was not recognized by the chart.",
+  "updates.update3.title": "Offline Sensor Detection",
+  "updates.update3.description": "Implemented a 'watchdog' system that now marks a sensor as 'Offline' if it does not send data for more than 5 minutes, ensuring the detection of silent failures.",
+  "updates.update4.title": "Dynamic Data on Dashboard and Charts",
+  "updates.update4.description": "Fixed the 'frozen' data behavior. The dashboard now fetches data every 5 seconds, and historical charts exclusively use real data from the database.",
+  "updates.update5.title": "Alert Acknowledgment Details",
+  "updates.update5.description": "The alerts table now directly displays who acknowledged an alert and the associated note, improving action traceability.",
+
+  "notice.title": "Scheduled Database Maintenance",
+  "notice.content": "Please be advised that on the next 15th of August, between 02:00 and 03:00 AM (Brasília time), we will perform scheduled maintenance on our servers. During this period, the application may experience temporary instability. We appreciate your understanding."
 }
