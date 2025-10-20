@@ -21,6 +21,8 @@ export interface Sensor {
   model?: string;
   ipAddress: string | null;
   macAddress: string | null;
+  minRecordedTemp?: number;
+  maxRecordedTemp?: number;
 }
 
 export interface Alert {

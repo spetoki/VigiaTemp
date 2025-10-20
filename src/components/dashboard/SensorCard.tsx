@@ -1,13 +1,13 @@
 
-
 "use client";
 
 import type { Sensor, SensorStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Thermometer, AlertTriangle, CheckCircle2, MapPin, WifiOff } from 'lucide-react';
+import { Thermometer, AlertTriangle, CheckCircle2, MapPin, WifiOff, ArrowDown, ArrowUp } from 'lucide-react';
 import { cn, formatTemperature, getSensorStatus } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '../ui/separator';
 
 interface SensorCardProps {
   sensor: Sensor;
@@ -30,7 +30,7 @@ export default function SensorCard({ sensor }: SensorCardProps) {
 
   return (
     <Card className={cn(
-      "shadow-lg hover:shadow-xl transition-all duration-300",
+      "shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col",
       config.cardClass || "border-gray-200"
     )}>
       <CardHeader className="pb-2">
@@ -55,7 +55,7 @@ export default function SensorCard({ sensor }: SensorCardProps) {
             <MapPin className="h-4 w-4 mr-1" /> {sensor.location}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow flex flex-col justify-between">
         <div className="flex items-center justify-center my-4 gap-2">
           { status !== 'offline' ? (
             <>
@@ -71,12 +71,28 @@ export default function SensorCard({ sensor }: SensorCardProps) {
             </div>
           )}
         </div>
-        <div className={cn("text-xs grid grid-cols-2 gap-2", 
-            status === 'critical' ? 'text-destructive-foreground/80' : 
-            status === 'offline' ? 'text-muted-foreground/70' : 
-            'text-muted-foreground')}>
-          <p>{t('sensorCard.lowThreshold', 'Limite Inferior')}: {formatTemperature(sensor.lowThreshold, temperatureUnit)}</p>
-          <p>{t('sensorCard.highThreshold', 'Limite Superior')}: {formatTemperature(sensor.highThreshold, temperatureUnit)}</p>
+        <div className="space-y-2">
+            <div className={cn("text-xs grid grid-cols-2 gap-2", 
+                status === 'critical' ? 'text-destructive-foreground/80' : 
+                status === 'offline' ? 'text-muted-foreground/70' : 
+                'text-muted-foreground')}>
+                <p>{t('sensorCard.lowThreshold', 'Limite Inferior')}: {formatTemperature(sensor.lowThreshold, temperatureUnit)}</p>
+                <p>{t('sensorCard.highThreshold', 'Limite Superior')}: {formatTemperature(sensor.highThreshold, temperatureUnit)}</p>
+            </div>
+            <Separator />
+             <div className={cn("text-xs grid grid-cols-2 gap-2 pt-1", 
+                status === 'critical' ? 'text-destructive-foreground/80' : 
+                status === 'offline' ? 'text-muted-foreground/70' : 
+                'text-muted-foreground')}>
+                <p className="flex items-center gap-1">
+                    <ArrowDown className="h-3 w-3 text-blue-500" />
+                    Mín. Reg.: {sensor.minRecordedTemp ? formatTemperature(sensor.minRecordedTemp, temperatureUnit) : '--'}
+                </p>
+                <p className="flex items-center gap-1">
+                    <ArrowUp className="h-3 w-3 text-red-500" />
+                    Máx. Reg.: {sensor.maxRecordedTemp ? formatTemperature(sensor.maxRecordedTemp, temperatureUnit) : '--'}
+                </p>
+            </div>
         </div>
       </CardContent>
     </Card>

@@ -25,6 +25,8 @@ export async function getSensors(collectionPath: string): Promise<Sensor[]> {
                 model: data.model || 'Não especificado',
                 ipAddress: data.ipAddress || null,
                 macAddress: data.macAddress || null,
+                minRecordedTemp: data.minRecordedTemp,
+                maxRecordedTemp: data.maxRecordedTemp,
                 historicalData: [], // This is now fetched separately
             } as Sensor
         });
@@ -54,6 +56,9 @@ export async function addSensor(
         highThreshold: Number(sensorData.highThreshold),
         currentTemperature: 25, 
         lastUpdatedAt: Date.now(),
+        // Initialize recorded temps
+        minRecordedTemp: 25,
+        maxRecordedTemp: 25,
     };
     
     const docRef = await addDoc(collection(db, collectionPath), dataToSave);
@@ -150,17 +155,29 @@ export async function updateSensorDataFromDevice(accessKey: string, macAddress: 
         if (!sensorSnapshot.empty) {
             const sensorDoc = sensorSnapshot.docs[0];
             const sensorId = sensorDoc.id;
+            const sensorData = sensorDoc.data() as Sensor;
             
             const batch = writeBatch(db);
 
             // 1. Atualiza a temperatura atual e o timestamp no documento do sensor
             const sensorRef = doc(db, sensorsCollectionPath, sensorId);
-            batch.update(sensorRef, { 
+            
+            const updatePayload: Partial<Sensor> = { 
               currentTemperature: temperature,
               lastUpdatedAt: now
-            });
+            };
+
+            // 2. Verifica e atualiza as temperaturas mínimas e máximas registradas
+            if (typeof sensorData.minRecordedTemp === 'undefined' || temperature < sensorData.minRecordedTemp) {
+                updatePayload.minRecordedTemp = temperature;
+            }
+            if (typeof sensorData.maxRecordedTemp === 'undefined' || temperature > sensorData.maxRecordedTemp) {
+                updatePayload.maxRecordedTemp = temperature;
+            }
             
-            // 2. Adiciona um novo ponto de dado na subcoleção historicalData
+            batch.update(sensorRef, updatePayload);
+            
+            // 3. Adiciona um novo ponto de dado na subcoleção historicalData
             const historyCollectionRef = collection(db, `${sensorsCollectionPath}/${sensorId}/historicalData`);
             const newHistoryDocRef = doc(historyCollectionRef); 
             batch.set(newHistoryDocRef, {
