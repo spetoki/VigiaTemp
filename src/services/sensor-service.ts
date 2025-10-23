@@ -199,3 +199,36 @@ export async function updateSensorDataFromDevice(accessKey: string, macAddress: 
         throw error;
     }
 }
+
+/**
+ * Resets the minimum and maximum recorded temperatures for a specific sensor.
+ * Sets both minRecordedTemp and maxRecordedTemp to the current temperature.
+ * @param collectionPath - The path to the sensors collection (e.g., 'users/{key}/sensors').
+ * @param sensorId - The ID of the sensor to reset.
+ */
+export async function resetMinMaxTemperatures(collectionPath: string, sensorId: string): Promise<void> {
+    if (!collectionPath) throw new Error("Caminho da coleção inválido.");
+    
+    const db = getDb();
+    const sensorRef = doc(db, collectionPath, sensorId);
+
+    try {
+        const sensorSnap = await getDoc(sensorRef);
+        if (!sensorSnap.exists()) {
+            throw new Error("Sensor não encontrado.");
+        }
+
+        const sensorData = sensorSnap.data();
+        const currentTemperature = sensorData.currentTemperature;
+
+        // Reset min and max to the current temperature
+        await updateDoc(sensorRef, {
+            minRecordedTemp: currentTemperature,
+            maxRecordedTemp: currentTemperature
+        });
+
+    } catch (error) {
+        console.error("Erro ao zerar temperaturas min/max:", error);
+        throw error;
+    }
+}

@@ -3,18 +3,36 @@
 
 import type { Sensor, SensorStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Thermometer, AlertTriangle, CheckCircle2, MapPin, WifiOff, ArrowDown, ArrowUp } from 'lucide-react';
+import { Thermometer, AlertTriangle, CheckCircle2, MapPin, WifiOff, ArrowDown, ArrowUp, RotateCw } from 'lucide-react';
 import { cn, formatTemperature, getSensorStatus } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '../ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { resetMinMaxTemperatures } from '@/services/sensor-service';
+import { useState } from 'react';
 
 interface SensorCardProps {
   sensor: Sensor;
+  onUpdate: () => void;
 }
 
-export default function SensorCard({ sensor }: SensorCardProps) {
-  const { temperatureUnit, t } = useSettings();
+export default function SensorCard({ sensor, onUpdate }: SensorCardProps) {
+  const { temperatureUnit, t, storageKeys } = useSettings();
+  const { toast } = useToast();
+  const [isResetting, setIsResetting] = useState(false);
   const status = getSensorStatus(sensor);
 
   const statusConfig: Record<SensorStatus, { icon: React.ElementType; colorClass: string; label: string; cardClass?: string; }> = {
@@ -27,74 +45,118 @@ export default function SensorCard({ sensor }: SensorCardProps) {
   const CurrentStatusIcon = statusConfig[status].icon;
   const config = statusConfig[status];
 
+  const handleReset = async () => {
+    setIsResetting(true);
+    try {
+        if (!storageKeys.sensors) throw new Error("Caminho da coleção inválido.");
+        await resetMinMaxTemperatures(storageKeys.sensors, sensor.id);
+        toast({
+            title: "Registros Zerados",
+            description: `As temperaturas mínima e máxima do sensor ${sensor.name} foram redefinidas.`,
+        });
+        onUpdate(); // Chama a função para recarregar os dados do painel
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Erro ao Zerar",
+            description: "Não foi possível redefinir os registros de temperatura.",
+        });
+    } finally {
+        setIsResetting(false);
+    }
+  };
+
 
   return (
     <Card className={cn(
-      "shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col",
+      "shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col group",
       config.cardClass || "border-gray-200"
     )}>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg font-headline">{sensor.name}</CardTitle>
-          <Badge variant={status === 'critical' ? 'default' : status === 'warning' ? 'default' : 'secondary'} 
-                 className={cn(
-                   status === 'warning' && 'bg-yellow-500 text-white', 
-                   status === 'critical' && 'bg-destructive-foreground/20 text-destructive-foreground border-destructive-foreground/50',
-                   status === 'offline' && 'bg-gray-500 text-white'
-                 )}>
-            <CurrentStatusIcon className={cn("mr-1 h-4 w-4", 
-                status === 'normal' ? 'text-green-600' :
-                status === 'warning' ? 'text-white' :
-                status === 'critical' ? 'text-destructive-foreground' :
-                'text-white'
-            )} />
-            {config.label}
-          </Badge>
-        </div>
-        <CardDescription className={cn("flex items-center text-sm", status === 'critical' ? 'text-destructive-foreground/80' : 'text-muted-foreground')}>
-            <MapPin className="h-4 w-4 mr-1" /> {sensor.location}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col justify-between">
-        <div className="flex items-center justify-center my-4 gap-2">
-          { status !== 'offline' ? (
-            <>
-              <Thermometer className={cn("h-16 w-16", config.colorClass)} />
-              <p className={cn("text-5xl font-bold", config.colorClass)}>
-                {formatTemperature(sensor.currentTemperature, temperatureUnit)}
-              </p>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[88px] text-muted-foreground">
-                <WifiOff className="h-12 w-12" />
-                <p className="mt-2 text-sm font-medium">Sem sinal</p>
+       <AlertDialog>
+        <CardHeader className="pb-2 relative">
+            <div className="flex justify-between items-start">
+            <CardTitle className="text-lg font-headline">{sensor.name}</CardTitle>
+            <Badge variant={status === 'critical' ? 'default' : status === 'warning' ? 'default' : 'secondary'} 
+                    className={cn(
+                    status === 'warning' && 'bg-yellow-500 text-white', 
+                    status === 'critical' && 'bg-destructive-foreground/20 text-destructive-foreground border-destructive-foreground/50',
+                    status === 'offline' && 'bg-gray-500 text-white'
+                    )}>
+                <CurrentStatusIcon className={cn("mr-1 h-4 w-4", 
+                    status === 'normal' ? 'text-green-600' :
+                    status === 'warning' ? 'text-white' :
+                    status === 'critical' ? 'text-destructive-foreground' :
+                    'text-white'
+                )} />
+                {config.label}
+            </Badge>
             </div>
-          )}
-        </div>
-        <div className="space-y-2">
-            <div className={cn("text-xs grid grid-cols-2 gap-2", 
-                status === 'critical' ? 'text-destructive-foreground/80' : 
-                status === 'offline' ? 'text-muted-foreground/70' : 
-                'text-muted-foreground')}>
-                <p>{t('sensorCard.lowThreshold', 'Limite Inferior')}: {formatTemperature(sensor.lowThreshold, temperatureUnit)}</p>
-                <p>{t('sensorCard.highThreshold', 'Limite Superior')}: {formatTemperature(sensor.highThreshold, temperatureUnit)}</p>
+            <CardDescription className={cn("flex items-center text-sm", status === 'critical' ? 'text-destructive-foreground/80' : 'text-muted-foreground')}>
+                <MapPin className="h-4 w-4 mr-1" /> {sensor.location}
+            </CardDescription>
+            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <RotateCw className="h-4 w-4" />
+                    </Button>
+                </AlertDialogTrigger>
             </div>
-            <Separator />
-             <div className={cn("text-xs grid grid-cols-2 gap-2 pt-1", 
-                status === 'critical' ? 'text-destructive-foreground/80' : 
-                status === 'offline' ? 'text-muted-foreground/70' : 
-                'text-muted-foreground')}>
-                <p className="flex items-center gap-1">
-                    <ArrowDown className="h-3 w-3 text-blue-500" />
-                    Mín. Reg.: {sensor.minRecordedTemp ? formatTemperature(sensor.minRecordedTemp, temperatureUnit) : '--'}
+        </CardHeader>
+        <CardContent className="flex-grow flex flex-col justify-between">
+            <div className="flex items-center justify-center my-4 gap-2">
+            { status !== 'offline' ? (
+                <>
+                <Thermometer className={cn("h-16 w-16", config.colorClass)} />
+                <p className={cn("text-5xl font-bold", config.colorClass)}>
+                    {formatTemperature(sensor.currentTemperature, temperatureUnit)}
                 </p>
-                <p className="flex items-center gap-1">
-                    <ArrowUp className="h-3 w-3 text-red-500" />
-                    Máx. Reg.: {sensor.maxRecordedTemp ? formatTemperature(sensor.maxRecordedTemp, temperatureUnit) : '--'}
-                </p>
+                </>
+            ) : (
+                <div className="flex flex-col items-center justify-center h-[88px] text-muted-foreground">
+                    <WifiOff className="h-12 w-12" />
+                    <p className="mt-2 text-sm font-medium">Sem sinal</p>
+                </div>
+            )}
             </div>
-        </div>
-      </CardContent>
+            <div className="space-y-2">
+                <div className={cn("text-xs grid grid-cols-2 gap-2", 
+                    status === 'critical' ? 'text-destructive-foreground/80' : 
+                    status === 'offline' ? 'text-muted-foreground/70' : 
+                    'text-muted-foreground')}>
+                    <p>{t('sensorCard.lowThreshold', 'Limite Inferior')}: {formatTemperature(sensor.lowThreshold, temperatureUnit)}</p>
+                    <p>{t('sensorCard.highThreshold', 'Limite Superior')}: {formatTemperature(sensor.highThreshold, temperatureUnit)}</p>
+                </div>
+                <Separator />
+                <div className={cn("text-xs grid grid-cols-2 gap-2 pt-1", 
+                    status === 'critical' ? 'text-destructive-foreground/80' : 
+                    status === 'offline' ? 'text-muted-foreground/70' : 
+                    'text-muted-foreground')}>
+                    <p className="flex items-center gap-1">
+                        <ArrowDown className="h-3 w-3 text-blue-500" />
+                        Mín. Reg.: {sensor.minRecordedTemp ? formatTemperature(sensor.minRecordedTemp, temperatureUnit) : '--'}
+                    </p>
+                    <p className="flex items-center gap-1">
+                        <ArrowUp className="h-3 w-3 text-red-500" />
+                        Máx. Reg.: {sensor.maxRecordedTemp ? formatTemperature(sensor.maxRecordedTemp, temperatureUnit) : '--'}
+                    </p>
+                </div>
+            </div>
+        </CardContent>
+         <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Zerar Registros de Temperatura?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Esta ação redefinirá a temperatura mínima e máxima registradas para o sensor "{sensor.name}" para o valor atual. Isso não pode ser desfeito.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReset} disabled={isResetting}>
+                        {isResetting ? "Redefinindo..." : "Zerar Registros"}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </Card>
   );
 }
