@@ -11,6 +11,22 @@ import { Badge } from '@/components/ui/badge';
 // Para adicionar uma nova atualização, adicione um item no topo da lista.
 const updates = [
     {
+        version: "v1.2.2",
+        date: "2024-08-04",
+        titleKey: "updates.updateNew1.title",
+        defaultTitle: "Zerar Registros de Temperatura",
+        descriptionKey: "updates.updateNew1.description",
+        defaultDescription: "Adicionada a funcionalidade de zerar os registros de temperatura mínima e máxima em cada sensor do painel, permitindo iniciar um novo ciclo de monitoramento facilmente através de um botão de reset.",
+    },
+    {
+        version: "v1.2.1",
+        date: "2024-08-04",
+        titleKey: "updates.updateNew2.title",
+        defaultTitle: "Exibição de Temperaturas Mínima e Máxima Registradas",
+        descriptionKey: "updates.updateNew2.description",
+        defaultDescription: "O painel de monitoramento agora exibe a temperatura mais alta e a mais baixa que cada sensor já registrou, fornecendo uma visão histórica rápida diretamente no cartão do sensor.",
+    },
+    {
         version: "v1.2.0",
         date: "2024-08-03",
         titleKey: "updates.update1.title",
@@ -33,22 +49,6 @@ const updates = [
         defaultTitle: "Detecção de Sensores Offline",
         descriptionKey: "updates.update3.description",
         defaultDescription: "Implementado um sistema de 'watchdog' que agora marca um sensor como 'Offline' se ele não enviar dados por mais de 5 minutos, garantindo a detecção de falhas silenciosas.",
-    },
-    {
-        version: "v1.1.3",
-        date: "2024-08-02",
-        titleKey: "updates.update4.title",
-        defaultTitle: "Dados Dinâmicos no Painel e Gráficos",
-        descriptionKey: "updates.update4.description",
-        defaultDescription: "Corrigido o comportamento de dados 'congelados'. O painel agora busca dados a cada 5 segundos e os gráficos históricos utilizam exclusivamente dados reais do banco de dados.",
-    },
-    {
-        version: "v1.1.2",
-        date: "2024-08-01",
-        titleKey: "updates.update5.title",
-        defaultTitle: "Detalhes de Confirmação de Alerta",
-        descriptionKey: "updates.update5.description",
-        defaultDescription: "A tabela de alertas agora exibe diretamente quem confirmou um alerta e a nota associada, melhorando a rastreabilidade das ações.",
     }
 ];
 
