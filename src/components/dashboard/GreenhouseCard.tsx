@@ -3,7 +3,7 @@
 
 import type { Sensor, SensorStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Thermometer, AlertTriangle, CheckCircle2, MapPin, WifiOff, ArrowDown, ArrowUp, RotateCw, AlignVerticalSpaceAround, ArrowDownToDot, ArrowUpToDot } from 'lucide-react';
+import { Thermometer, AlertTriangle, CheckCircle2, MapPin, WifiOff, RotateCw, AlignVerticalSpaceAround, ArrowDownToLine, ArrowUpToLine } from 'lucide-react';
 import { cn, formatTemperature } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { Badge } from '@/components/ui/badge';
@@ -195,9 +195,9 @@ export default function GreenhouseCard({ greenhouseName, sensors, onUpdate }: Gr
             <Separator className="my-3"/>
             
             <div className="grid grid-cols-3 divide-x">
-                <SensorTempDisplay sensor={sensors.low} label="Baixo" icon={ArrowDownToDot} />
+                <SensorTempDisplay sensor={sensors.low} label="Baixo" icon={ArrowDownToLine} />
                 <SensorTempDisplay sensor={sensors.middle} label="Meio" icon={AlignVerticalSpaceAround} />
-                <SensorTempDisplay sensor={sensors.high} label="Alto" icon={ArrowUpToDot} />
+                <SensorTempDisplay sensor={sensors.high} label="Alto" icon={ArrowUpToLine} />
             </div>
         </CardContent>
          <AlertDialogContent>
