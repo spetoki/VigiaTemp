@@ -9,6 +9,7 @@ import { Bluetooth, BluetoothConnected, XCircle, Loader2, CheckCircle } from 'lu
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { addSensor } from '@/services/sensor-service';
+import { SensorFormData } from '@/types';
 
 export default function BluetoothDiscoveryPage() {
   const { t, storageKeys } = useSettings();
@@ -34,7 +35,8 @@ export default function BluetoothDiscoveryPage() {
         optionalServices: ['battery_service'] 
       });
       
-      const newSensorData = {
+      const newSensorData: SensorFormData = {
+        sensorType: 'individual',
         name: device.name || `Sensor ${device.id.substring(0, 6)}...`,
         location: t('bluetoothPage.defaultLocation', 'Descoberto via Bluetooth'),
         highThreshold: 30,

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { getSensors, addSensor } from '@/services/sensor-service';
-import { SensorFormData } from '@/components/sensors/SensorForm';
+import { SensorFormData } from '@/types';
 
 // Mock data for discovered WiFi devices
 const mockDiscoveredDevices = [
@@ -80,6 +80,7 @@ export default function WifiDiscoveryPage() {
     }
     
     const newSensorData: SensorFormData = {
+        sensorType: 'individual',
         name: device.name,
         location: t('wifiDiscoveryPage.defaultLocation', 'Descoberto via WiFi'),
         highThreshold: 30,
