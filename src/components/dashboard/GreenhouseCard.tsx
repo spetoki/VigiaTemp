@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Sensor, SensorStatus } from '@/types';
