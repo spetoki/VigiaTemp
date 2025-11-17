@@ -12,11 +12,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettings } from '@/context/SettingsContext';
-import { convertTemperature } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Wifi, WifiOff } from 'lucide-react';
 import React from 'react';
 import { Separator } from '../ui/separator';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import type { SensorFormData } from '@/types';
 
 const ipAddressRegex = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/;
 const macAddressRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
@@ -35,7 +36,10 @@ const supportedSensorModels = [
 ];
 
 const formSchema = z.object({
-  name: z.string().min(1, "O nome é obrigatório"),
+  sensorType: z.enum(['grouped', 'individual']).default('individual'),
+  name: z.string().optional(),
+  greenhouse: z.string().optional(),
+  level: z.string().optional(),
   location: z.string().min(1, "A localização é obrigatória"),
   model: z.string().min(1, "O modelo do sensor é obrigatório"),
   ipAddress: z.string().optional().refine(val => !val || ipAddressRegex.test(val), {
@@ -50,17 +54,24 @@ const formSchema = z.object({
   message: "O limite superior deve ser maior que o limite inferior",
   path: ["highThreshold"],
 }).refine(data => {
-    if (data.model === 'WiFi Generic' && (!data.macAddress || data.macAddress.trim() === '')) {
-      return false;
+    if (data.sensorType === 'individual' && (!data.name || data.name.trim() === '')) {
+        return false;
     }
     return true;
 }, {
-    message: "O endereço MAC é obrigatório para sensores do tipo 'WiFi Generic'.",
-    path: ["macAddress"],
+    message: "O nome é obrigatório para sensores individuais.",
+    path: ["name"],
+}).refine(data => {
+    if (data.sensorType === 'grouped' && (!data.greenhouse || !data.level)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Estufa e Nível são obrigatórios para sensores agrupados.",
+    path: ["greenhouse"],
 });
 
-
-export type SensorFormData = z.infer<typeof formSchema>;
+export type { SensorFormData };
 
 interface SensorFormProps {
   sensor?: Sensor | null; // For editing
@@ -74,10 +85,23 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
   const [isCheckingConnection, setIsCheckingConnection] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<'online' | 'offline' | null>(null);
 
+  const isGroupedSensor = sensor ? /Estufa_\d+-[BMA]$/.test(sensor.name) : false;
+  const initialSensorType = isGroupedSensor ? 'grouped' : 'individual';
+  
+  let initialGreenhouse = '';
+  let initialLevel = '';
+  if (isGroupedSensor && sensor) {
+    const parts = sensor.name.split('-');
+    initialGreenhouse = parts[0].replace('_', ' '); // 'Estufa 1'
+    initialLevel = parts[1]; // 'B', 'M', or 'A'
+  }
 
   const defaultValues = sensor
     ? {
-        name: sensor.name,
+        sensorType: initialSensorType,
+        name: isGroupedSensor ? '' : sensor.name,
+        greenhouse: initialGreenhouse,
+        level: initialLevel,
         location: sensor.location,
         model: sensor.model || '',
         ipAddress: sensor.ipAddress || '',
@@ -86,7 +110,10 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
         highThreshold: sensor.highThreshold,
       }
     : {
+        sensorType: 'individual',
         name: '',
+        greenhouse: '',
+        level: '',
         location: '',
         model: '',
         ipAddress: '',
@@ -101,16 +128,36 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
     mode: "onChange",
   });
 
+  const sensorType = form.watch('sensorType');
+
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    onSubmit(data);
+    let finalName = data.name;
+    if (data.sensorType === 'grouped' && data.greenhouse && data.level) {
+        finalName = `${data.greenhouse.replace(' ', '_')}-${data.level}`;
+    }
+    
+    // Ensure finalName is set before submitting
+    if (!finalName) {
+        toast({
+            title: "Nome do Sensor Inválido",
+            description: "Não foi possível gerar o nome do sensor. Verifique os campos.",
+            variant: "destructive",
+        });
+        return;
+    }
+
+    const submissionData: SensorFormData = {
+        ...data,
+        name: finalName,
+    };
+    onSubmit(submissionData);
   };
 
   const handleCheckConnection = async () => {
     setIsCheckingConnection(true);
     setConnectionStatus(null);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
-    const isOnline = Math.random() > 0.3; // Simulate success rate
+    const isOnline = Math.random() > 0.3;
     setConnectionStatus(isOnline ? 'online' : 'offline');
     toast({
       title: t('sensorForm.connectionCheckToast.title', "Verificação de Conexão"),
@@ -121,6 +168,13 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
     });
     setIsCheckingConnection(false);
   };
+  
+  const greenhouses = Array.from({ length: 10 }, (_, i) => `Estufa ${i + 1}`);
+  const levels = [
+      { value: 'B', label: 'Sensor 1 – Inferior' },
+      { value: 'M', label: 'Sensor 2 – Central' },
+      { value: 'A', label: 'Sensor 3 – Superior' },
+  ];
 
   return (
     <Form {...form}>
@@ -128,26 +182,104 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
         <DialogHeader className="p-6 pb-4">
           <DialogTitle>{sensor ? t('sensorForm.editTitle', 'Editar Sensor') : t('sensorForm.addTitle', 'Adicionar Novo Sensor')}</DialogTitle>
           <DialogDescription>
-            {sensor 
-              ? t('sensorForm.editDescription', 'Atualize os detalhes deste sensor. Os limites são em °{unit}.', { unit: 'C' })
-              : t('sensorForm.addDescription', 'Insira os detalhes para o novo sensor. Os limites estão em °{unit}.', { unit: 'C' })}
+            {t('sensorForm.addDescription', 'Insira os detalhes para o novo sensor. Os limites estão em °{unit}.', { unit: 'C' })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 md:space-y-6">
             <FormField
               control={form.control}
-              name="name"
+              name="sensorType"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('sensorForm.nameLabel', 'Nome do Sensor')}</FormLabel>
+                <FormItem className="space-y-3">
+                  <FormLabel>Tipo de Sensor</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('sensorForm.namePlaceholder', "Ex: Estufa Alpha - Zona 1")} {...field} />
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex space-x-4"
+                      disabled={!!sensor}
+                    >
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <RadioGroupItem value="individual" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Individual / Outro</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <RadioGroupItem value="grouped" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Agrupado por Estufa</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <Separator />
+
+            {sensorType === 'individual' ? (
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>{t('sensorForm.nameLabel', 'Nome do Sensor')}</FormLabel>
+                        <FormControl>
+                            <Input placeholder={t('sensorForm.namePlaceholder', "Ex: Sensor da Sala de Secagem")} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="greenhouse"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Estufa</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione a Estufa" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {greenhouses.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="level"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Nível na Estufa</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o Nível" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {levels.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            )}
+            
             <FormField
               control={form.control}
               name="location"
@@ -155,7 +287,7 @@ export default function SensorForm({ sensor, onSubmit, onCancel }: SensorFormPro
                 <FormItem>
                   <FormLabel>{t('sensorForm.locationLabel', 'Localização')}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('sensorForm.locationPlaceholder', "Ex: Canto Nordeste")} {...field} />
+                    <Input placeholder={t('sensorForm.locationPlaceholder', "Ex: Próximo à porta Leste")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

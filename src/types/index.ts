@@ -73,3 +73,16 @@ export interface User {
 }
 
 export type UserFormData = Omit<User, 'id' | 'createdAt'>;
+
+export type SensorFormData = {
+  sensorType: 'grouped' | 'individual';
+  name?: string;
+  greenhouse?: string;
+  level?: string;
+  location: string;
+  model: string;
+  ipAddress?: string;
+  macAddress?: string;
+  lowThreshold: number;
+  highThreshold: number;
+}
