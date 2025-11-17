@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -67,6 +66,7 @@ export default function AppHeader() {
     { href: '/sensor-charts', labelKey: 'nav.sensorCharts', icon: LineChart, defaultLabel: 'Gráficos' },
     { href: '/data-analysis', labelKey: 'nav.dataAnalysis', icon: Activity, defaultLabel: 'Análise de Dados' },
     { href: '/traceability', labelKey: 'nav.traceability', icon: ClipboardList, defaultLabel: 'Rastreabilidade' },
+    { href: '/ai-optimization', labelKey: 'nav.optimizeAlarms', icon: BrainCircuit, defaultLabel: 'Otimizar com IA' },
   ];
 
   const hardwareNavItems = [
