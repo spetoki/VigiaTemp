@@ -494,6 +494,8 @@
   "updates.noticeBoardTitle": "Mural de Avisos",
   "updates.historyTitle": "Últimas 5 Atualizações",
   "updates.historyDescription": "Veja o que há de novo nas versões mais recentes do VigiaTemp.",
+  "updates.updateNew3.title": "Agrupamento de Sensores por Estufa",
+  "updates.updateNew3.description": "Agora é possível agrupar 3 sensores (Baixo, Meio, Alto) em um único cartão no painel. O sistema identifica automaticamente os grupos pelo nome (ex: Estufa_1-B, Estufa_1-M, Estufa_1-A) e exibe a temperatura média, além das individuais.",
   "updates.updateNew1.title": "Zerar Registros de Temperatura",
   "updates.updateNew1.description": "Adicionada a funcionalidade de zerar os registros de temperatura mínima e máxima em cada sensor do painel, permitindo iniciar um novo ciclo de monitoramento facilmente através de um botão de reset.",
   "updates.updateNew2.title": "Exibição de Temperaturas Mínima e Máxima Registradas",

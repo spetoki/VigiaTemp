@@ -11,6 +11,14 @@ import { Badge } from '@/components/ui/badge';
 // Para adicionar uma nova atualização, adicione um item no topo da lista.
 const updates = [
     {
+        version: "v1.3.0",
+        date: "2024-08-05",
+        titleKey: "updates.updateNew3.title",
+        defaultTitle: "Agrupamento de Sensores por Estufa",
+        descriptionKey: "updates.updateNew3.description",
+        defaultDescription: "Agora é possível agrupar 3 sensores (Baixo, Meio, Alto) em um único cartão no painel. O sistema identifica automaticamente os grupos pelo nome (ex: Estufa_1-B, Estufa_1-M, Estufa_1-A) e exibe a temperatura média, além das individuais.",
+    },
+    {
         version: "v1.2.2",
         date: "2024-08-04",
         titleKey: "updates.updateNew1.title",
@@ -41,14 +49,6 @@ const updates = [
         defaultTitle: "Correção no Gráfico de Pizza",
         descriptionKey: "updates.update2.description",
         defaultDescription: "Corrigido um bug que causava um erro de compilação na página de Análise de Dados devido ao novo status 'Offline' não ser reconhecido pelo gráfico.",
-    },
-    {
-        version: "v1.1.4",
-        date: "2024-08-02",
-        titleKey: "updates.update3.title",
-        defaultTitle: "Detecção de Sensores Offline",
-        descriptionKey: "updates.update3.description",
-        defaultDescription: "Implementado um sistema de 'watchdog' que agora marca um sensor como 'Offline' se ele não enviar dados por mais de 5 minutos, garantindo a detecção de falhas silenciosas.",
     }
 ];
 
@@ -118,7 +118,7 @@ export default function UpdatesPage() {
                                 <p className="text-sm text-muted-foreground">{new Date(update.date).toLocaleDateString(t('localeCode', 'pt-BR'), { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                 <p className="text-sm text-foreground/80 pt-1">
                                     {t(update.descriptionKey, update.defaultDescription)}
-                                </p>
+                                 </p>
                             </div>
                         </div>
                     ))}

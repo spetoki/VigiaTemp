@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import SensorCard from '@/components/dashboard/SensorCard';
 import type { Sensor, Alert } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,13 +10,22 @@ import { getSensorStatus, formatTemperature } from '@/lib/utils';
 import { defaultCriticalSound } from '@/lib/sounds';
 import { getAlerts, addAlert } from '@/services/alert-service';
 import { getSensors } from '@/services/sensor-service';
-import type { Unsubscribe } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff, Rss } from 'lucide-react';
 import { Alert as AlertComponent, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
+import GreenhouseCard from '@/components/dashboard/GreenhouseCard';
+
+interface SensorGroup {
+  greenhouseName: string;
+  sensors: {
+    low: Sensor | undefined;
+    middle: Sensor | undefined;
+    high: Sensor | undefined;
+  };
+}
 
 export default function DashboardPage() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -177,6 +186,55 @@ export default function DashboardPage() {
     };
   }, [sensors, isMuted]);
 
+  const { groupedSensors, individualSensors } = useMemo(() => {
+    const groups: { [key: string]: Partial<Record<'low' | 'middle' | 'high', Sensor>> } = {};
+    const individuals: Sensor[] = [];
+    const groupedMacs = new Set<string>();
+
+    sensors.forEach(sensor => {
+      const match = sensor.name.match(/^(.*)-([BMA])$/);
+      if (match) {
+        const baseName = match[1];
+        const position = match[2];
+        if (!groups[baseName]) {
+          groups[baseName] = {};
+        }
+        if (position === 'B') groups[baseName].low = sensor;
+        if (position === 'M') groups[baseName].middle = sensor;
+        if (position === 'A') groups[baseName].high = sensor;
+        
+        if(sensor.macAddress) groupedMacs.add(sensor.macAddress);
+
+      }
+    });
+
+    // Remap to the structure GreenhouseCard expects and identify individuals
+    const finalGroups: SensorGroup[] = Object.entries(groups).map(([name, groupSensors]) => {
+      // Add all sensors in this group to the set of grouped macs
+      Object.values(groupSensors).forEach(s => {
+        if(s?.macAddress) groupedMacs.add(s.macAddress);
+      });
+      return {
+        greenhouseName: name.replace(/_/g, ' '),
+        sensors: {
+          low: groupSensors.low,
+          middle: groupSensors.middle,
+          high: groupSensors.high,
+        },
+      };
+    });
+
+    // Any sensor whose MAC address is not in a group is an individual
+    sensors.forEach(sensor => {
+      // A sensor is individual if its name does not match the grouping pattern
+      if (!sensor.name.match(/^(.*)-([BMA])$/)) {
+        individuals.push(sensor);
+      }
+    });
+
+    return { groupedSensors: finalGroups, individualSensors: individuals };
+  }, [sensors]);
+
 
   if (isLoading) {
     return (
@@ -227,9 +285,17 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {sensors.length > 0 ? (
+      {(groupedSensors.length > 0 || individualSensors.length > 0) ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sensors.map(sensor => (
+          {groupedSensors.map(group => (
+            <GreenhouseCard 
+                key={group.greenhouseName} 
+                greenhouseName={group.greenhouseName} 
+                sensors={group.sensors} 
+                onUpdate={fetchSensors} 
+            />
+          ))}
+          {individualSensors.map(sensor => (
             <SensorCard key={sensor.id} sensor={sensor} onUpdate={fetchSensors} />
           ))}
         </div>
