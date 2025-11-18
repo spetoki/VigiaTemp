@@ -53,6 +53,15 @@ export default function TraceabilityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const pdfRef = useRef<HTMLDivElement>(null);
+
+  const isFormValid =
+    formData.name.trim() !== '' &&
+    formData.lotDescription.trim() !== '' &&
+    formData.isoClassification.trim() !== '' &&
+    formData.wetCocoaWeight.trim() !== '' &&
+    formData.dryCocoaWeight.trim() !== '' &&
+    formData.fermentationTime.trim() !== '' &&
+    formData.dryingTime.trim() !== '';
   
   const fetchLots = useCallback(async () => {
     setIsLoading(true);
@@ -111,6 +120,14 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) {
+        toast({
+            title: "Campos Incompletos",
+            description: "Por favor, preencha todos os campos obrigatórios.",
+            variant: "destructive"
+        });
+        return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -262,21 +279,21 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="wetCocoaWeight">{t('traceability.wetCocoaWeightLabel', 'Peso Cacau Mole (kg)')}</Label>
-                                <Input type="number" id="wetCocoaWeight" value={formData.wetCocoaWeight} onChange={handleChange} required placeholder="Ex: 500.5" />
+                                <Input type="number" id="wetCocoaWeight" value={formData.wetCocoaWeight} onChange={handleChange} required placeholder="Ex: 500.5" step="0.01" min="0" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="dryCocoaWeight">{t('traceability.dryCocoaWeightLabel', 'Peso Cacau Seco (kg)')}</Label>
-                                <Input type="number" id="dryCocoaWeight" value={formData.dryCocoaWeight} onChange={handleChange} required placeholder="Ex: 210.2" />
+                                <Input type="number" id="dryCocoaWeight" value={formData.dryCocoaWeight} onChange={handleChange} required placeholder="Ex: 210.2" step="0.01" min="0" />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="fermentationTime">{t('traceability.fermentationTimeLabel', 'Tempo de Fermentação (dias)')}</Label>
-                                <Input type="number" id="fermentationTime" value={formData.fermentationTime} onChange={handleChange} required placeholder="Ex: 7" />
+                                <Input type="number" id="fermentationTime" value={formData.fermentationTime} onChange={handleChange} required placeholder="Ex: 7" step="1" min="0" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="dryingTime">{t('traceability.dryingTimeLabel', 'Tempo de Secagem (dias)')}</Label>
-                                <Input type="number" id="dryingTime" value={formData.dryingTime} onChange={handleChange} required placeholder="Ex: 10" />
+                                <Input type="number" id="dryingTime" value={formData.dryingTime} onChange={handleChange} required placeholder="Ex: 10" step="1" min="0" />
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -285,7 +302,7 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
                         </div>
                         
                         <div className="flex justify-end pt-4">
-                            <Button type="submit" disabled={isSubmitting}>
+                            <Button type="submit" disabled={isSubmitting || !isFormValid}>
                                 {isSubmitting ? (
                                     <>
                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -412,3 +429,5 @@ Data de Registro: ${new Date(selectedLot.createdAt).toLocaleDateString(t('locale
     </div>
   );
 }
+
+    
