@@ -90,9 +90,10 @@ export default function AIOptimizationPage() {
             return;
         }
 
+        // Fetch data for the last 30 days
         const allDataPromises = sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'month'));
         const allDataArrays = await Promise.all(allDataPromises);
-        const combinedData = allDataArrays.flat();
+        let combinedData = allDataArrays.flat().sort((a, b) => a.timestamp - b.timestamp); // Sort oldest to newest
 
         if (combinedData.length === 0) {
             toast({
@@ -103,11 +104,28 @@ export default function AIOptimizationPage() {
             return;
         }
         
-        const jsonData = JSON.stringify(combinedData, null, 2);
+        const MAX_SIZE_KB = 900;
+        const MAX_SIZE_BYTES = MAX_SIZE_KB * 1024;
+        let jsonData = JSON.stringify(combinedData, null, 2);
+        let wasTruncated = false;
+
+        // If size exceeds limit, truncate oldest entries
+        while (new TextEncoder().encode(jsonData).length > MAX_SIZE_BYTES && combinedData.length > 1) {
+            combinedData.shift(); // Remove the oldest entry
+            jsonData = JSON.stringify(combinedData, null, 2);
+            wasTruncated = true;
+        }
+        
         form.setValue('historicalData', jsonData);
+
+        let toastDescription = `${combinedData.length} registros de temperatura foram carregados.`;
+        if (wasTruncated) {
+            toastDescription += ` Os dados foram limitados a ~${MAX_SIZE_KB}KB para otimização.`;
+        }
+        
         toast({
-            title: "Dados Carregados",
-            description: `${combinedData.length} registros de temperatura dos últimos 30 dias foram carregados.`,
+            title: "Dados Carregados com Sucesso",
+            description: toastDescription,
         });
 
     } catch (error) {
@@ -183,7 +201,7 @@ export default function AIOptimizationPage() {
                         ) : (
                             <Download className="mr-2 h-4 w-4" />
                         )}
-                        Carregar últimos 30 dias
+                        Carregar Dados (máx. 900KB)
                       </Button>
                     </div>
                     <FormControl>
@@ -252,3 +270,5 @@ export default function AIOptimizationPage() {
     </div>
   );
 }
+
+    
