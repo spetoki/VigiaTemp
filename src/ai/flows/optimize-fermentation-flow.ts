@@ -51,10 +51,10 @@ const optimizeFermentationFlow = ai.defineFlow(
     outputSchema: OptimizeFermentationOutputSchema,
   },
   async (input) => {
-    // A transformação para string agora é feita no componente, então passamos o JSON diretamente
+    // A transformação para string agora é feita aqui para garantir o formato correto.
     const { output } = await optimizePrompt({
         ...input,
-        historicalData: JSON.stringify(input.historicalData, null, 2),
+        historicalData: JSON.stringify(JSON.parse(input.historicalData), null, 2),
     });
 
     if (!output) {
@@ -64,5 +64,3 @@ const optimizeFermentationFlow = ai.defineFlow(
     return output;
   }
 );
-
-    
