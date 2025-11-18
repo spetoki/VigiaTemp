@@ -4,38 +4,21 @@
  * @fileOverview Fluxo de IA para otimizar os limites de temperatura da fermentação de cacau.
  *
  * - optimizeFermentation: Função que invoca o fluxo de IA.
- * - OptimizeFermentationInput: Tipo de entrada para o fluxo.
- * - OptimizeFermentationOutput: Tipo de saída do fluxo.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-
-// Esquema de entrada com validação usando Zod
-export const OptimizeFermentationInputSchema = z.object({
-  cacaoVariety: z.string().describe('A variedade do cacau (ex: Criollo, Forasteiro).'),
-  microclimateInfo: z.string().describe('Informações sobre o microclima da estufa (umidade, ventilação, etc.).'),
-  historicalData: z.array(z.object({
-    timestamp: z.number().describe('O carimbo de data/hora da medição em milissegundos Unix.'),
-    temperature: z.number().describe('A temperatura medida em Celsius.'),
-  })).describe('Uma série de dados históricos de temperatura.'),
-});
-export type OptimizeFermentationInput = z.infer<typeof OptimizeFermentationInputSchema>;
-
-// Esquema de saída com validação usando Zod
-export const OptimizeFermentationOutputSchema = z.object({
-  lowThreshold: z.number().describe('O limite de temperatura inferior ideal sugerido em Celsius.'),
-  highThreshold: z.number().describe('O limite de temperatura superior ideal sugerido em Celsius.'),
-  explanation: z.string().describe('Uma explicação detalhada do porquê esses limites foram sugeridos, justificando a recomendação com base nos dados fornecidos.'),
-});
-export type OptimizeFermentationOutput = z.infer<typeof OptimizeFermentationOutputSchema>;
-
+import { 
+    OptimizeFermentationInputSchema, 
+    OptimizeFermentationOutputSchema,
+    type OptimizeFermentationInput,
+    type OptimizeFermentationOutput
+} from '@/types/ai-schemas';
 
 // Função exportada que será chamada pelo componente React
 export async function optimizeFermentation(input: OptimizeFermentationInput): Promise<OptimizeFermentationOutput> {
   return await optimizeFermentationFlow(input);
 }
-
 
 // Definição do prompt da IA
 const optimizePrompt = ai.definePrompt({
@@ -50,7 +33,7 @@ const optimizePrompt = ai.definePrompt({
     2.  **Microclima:** {{microclimateInfo}}. Condições como umidade alta ou baixa, ventilação e exposição solar influenciam a inércia térmica e o desenvolvimento de leveduras e bactérias.
     3.  **Dados Históricos de Temperatura:** Analise a série de dados a seguir para entender as tendências, picos e vales de temperatura atuais.
         \`\`\`json
-        {{{jsonStringify historicalData}}}
+        {{{historicalData}}}
         \`\`\`
 
     Com base em todos esses dados, forneça:
@@ -68,9 +51,9 @@ const optimizeFermentationFlow = ai.defineFlow(
     outputSchema: OptimizeFermentationOutputSchema,
   },
   async (input) => {
+    // A transformação para string agora é feita no componente, então passamos o JSON diretamente
     const { output } = await optimizePrompt({
         ...input,
-        // O Handlebars não consegue acessar diretamente um array de objetos, então o transformamos em string.
         historicalData: JSON.stringify(input.historicalData, null, 2),
     });
 
@@ -81,3 +64,5 @@ const optimizeFermentationFlow = ai.defineFlow(
     return output;
   }
 );
+
+    

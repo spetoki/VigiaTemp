@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useSettings } from '@/context/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -14,23 +13,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BrainCircuit, Lightbulb, Loader2, Thermometer, AlertCircle, Sparkles, Download } from 'lucide-react';
-import { optimizeFermentation, OptimizeFermentationOutput } from '@/ai/flows/optimize-fermentation-flow';
+import { optimizeFermentation } from '@/ai/flows/optimize-fermentation-flow';
 import { getSensors, getHistoricalData } from '@/services/sensor-service';
 import type { HistoricalDataPoint } from '@/types';
+import { OptimizeFermentationInputSchema, type OptimizeFermentationOutput } from '@/types/ai-schemas';
+import type * as z from 'zod';
 
-
-const formSchema = z.object({
-  cacaoVariety: z.string().min(3, "A variedade do cacau é obrigatória."),
-  microclimateInfo: z.string().min(20, "A descrição do microclima é obrigatória (mín. 20 caracteres)."),
-  historicalData: z.string().refine((data) => {
-    try {
-      const parsed = JSON.parse(data);
-      return Array.isArray(parsed) && parsed.length > 0 && 'timestamp' in parsed[0] && 'temperature' in parsed[0];
-    } catch (e) {
-      return false;
-    }
-  }, "Os dados históricos são obrigatórios e devem ser um JSON válido com 'timestamp' e 'temperature'."),
-});
+const formSchema = OptimizeFermentationInputSchema;
 
 export default function AIOptimizationPage() {
   const { t, storageKeys } = useSettings();
@@ -44,7 +33,7 @@ export default function AIOptimizationPage() {
     defaultValues: {
       cacaoVariety: '',
       microclimateInfo: '',
-      historicalData: '',
+      historicalData: '[]',
     },
   });
 
