@@ -79,49 +79,71 @@ export default function AIOptimizationPage() {
             return;
         }
 
-        // Fetch data for the last 30 days
-        const allDataPromises = sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'month'));
+        // Fetch data for the last 7 days
+        const allDataPromises = sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'week'));
         const allDataArrays = await Promise.all(allDataPromises);
-        let combinedData = allDataArrays.flat().sort((a, b) => a.timestamp - b.timestamp); // Sort oldest to newest
+        let combinedData = allDataArrays.flat();
 
         if (combinedData.length === 0) {
             toast({
                 title: "Sem Dados Históricos",
-                description: "Não foram encontrados registros de temperatura nos últimos 30 dias para os sensores.",
+                description: "Não foram encontrados registros de temperatura nos últimos 7 dias para os sensores.",
             });
             form.setValue('historicalData', '[]');
             return;
         }
         
-        const MAX_SIZE_KB = 900;
-        const MAX_SIZE_BYTES = MAX_SIZE_KB * 1024;
-        let jsonData = JSON.stringify(combinedData, null, 2);
-        let wasTruncated = false;
+        // Group data by day and then into 5 periods within each day
+        const dataByDay: { [day: string]: HistoricalDataPoint[] } = {};
+        combinedData.forEach(point => {
+            const date = new Date(point.timestamp);
+            const dayKey = date.toISOString().split('T')[0];
+            if (!dataByDay[dayKey]) {
+                dataByDay[dayKey] = [];
+            }
+            dataByDay[dayKey].push(point);
+        });
 
-        // If size exceeds limit, truncate oldest entries
-        while (new TextEncoder().encode(jsonData).length > MAX_SIZE_BYTES && combinedData.length > 1) {
-            combinedData.shift(); // Remove the oldest entry
-            jsonData = JSON.stringify(combinedData, null, 2);
-            wasTruncated = true;
-        }
+        const aggregatedData: { timestamp: number; temperature: number }[] = [];
+        const periodsPerDay = 5;
+
+        Object.keys(dataByDay).forEach(dayKey => {
+            const dayData = dataByDay[dayKey];
+            const dayStart = new Date(dayKey).getTime();
+            const periodDuration = (24 * 60 * 60 * 1000) / periodsPerDay;
+
+            for (let i = 0; i < periodsPerDay; i++) {
+                const periodStart = dayStart + i * periodDuration;
+                const periodEnd = periodStart + periodDuration;
+                
+                const pointsInPeriod = dayData.filter(p => p.timestamp >= periodStart && p.timestamp < periodEnd);
+
+                if (pointsInPeriod.length > 0) {
+                    const sum = pointsInPeriod.reduce((acc, p) => acc + p.temperature, 0);
+                    const average = sum / pointsInPeriod.length;
+                    aggregatedData.push({
+                        timestamp: periodStart + periodDuration / 2, // Use midpoint of the period
+                        temperature: parseFloat(average.toFixed(1))
+                    });
+                }
+            }
+        });
+
+        aggregatedData.sort((a, b) => a.timestamp - b.timestamp);
         
+        const jsonData = JSON.stringify(aggregatedData, null, 2);
         form.setValue('historicalData', jsonData);
 
-        let toastDescription = `${combinedData.length} registros de temperatura foram carregados.`;
-        if (wasTruncated) {
-            toastDescription += ` Os dados foram limitados a ~${MAX_SIZE_KB}KB para otimização.`;
-        }
-        
         toast({
-            title: "Dados Carregados com Sucesso",
-            description: toastDescription,
+            title: "Dados Carregados e Agregados",
+            description: `${aggregatedData.length} médias de temperatura dos últimos 7 dias foram carregadas.`,
         });
 
     } catch (error) {
         toast({
             variant: 'destructive',
             title: "Erro ao Carregar Dados",
-            description: "Não foi possível buscar os dados históricos dos sensores.",
+            description: "Não foi possível buscar e processar os dados históricos.",
         });
     } finally {
         setIsLoadingData(false);
@@ -190,7 +212,7 @@ export default function AIOptimizationPage() {
                         ) : (
                             <Download className="mr-2 h-4 w-4" />
                         )}
-                        Carregar Dados (máx. 900KB)
+                        Carregar Dados (Últimos 7 dias)
                       </Button>
                     </div>
                     <FormControl>
@@ -259,5 +281,3 @@ export default function AIOptimizationPage() {
     </div>
   );
 }
-
-    
