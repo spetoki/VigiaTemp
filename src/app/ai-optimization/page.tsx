@@ -13,8 +13,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BrainCircuit, Lightbulb, Loader2, Thermometer, AlertCircle, Sparkles } from 'lucide-react';
+import { BrainCircuit, Lightbulb, Loader2, Thermometer, AlertCircle, Sparkles, Download } from 'lucide-react';
 import { optimizeFermentation, OptimizeFermentationOutput } from '@/ai/flows/optimize-fermentation-flow';
+import { getSensors, getHistoricalData } from '@/services/sensor-service';
+import type { HistoricalDataPoint } from '@/types';
+
 
 const formSchema = z.object({
   cacaoVariety: z.string().min(3, "A variedade do cacau é obrigatória."),
@@ -30,9 +33,10 @@ const formSchema = z.object({
 });
 
 export default function AIOptimizationPage() {
-  const { t } = useSettings();
+  const { t, storageKeys } = useSettings();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [result, setResult] = useState<OptimizeFermentationOutput | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -72,6 +76,51 @@ export default function AIOptimizationPage() {
       setIsSubmitting(false);
     }
   }
+
+  const handleLoadHistoricalData = async () => {
+    setIsLoadingData(true);
+    try {
+        const sensors = await getSensors(storageKeys.sensors);
+        if (sensors.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: "Nenhum Sensor Encontrado",
+                description: "É preciso ter pelo menos um sensor cadastrado para carregar dados.",
+            });
+            return;
+        }
+
+        const allDataPromises = sensors.map(sensor => getHistoricalData(storageKeys.sensors, sensor.id, 'month'));
+        const allDataArrays = await Promise.all(allDataPromises);
+        const combinedData = allDataArrays.flat();
+
+        if (combinedData.length === 0) {
+            toast({
+                title: "Sem Dados Históricos",
+                description: "Não foram encontrados registros de temperatura nos últimos 30 dias para os sensores.",
+            });
+            form.setValue('historicalData', '[]');
+            return;
+        }
+        
+        const jsonData = JSON.stringify(combinedData, null, 2);
+        form.setValue('historicalData', jsonData);
+        toast({
+            title: "Dados Carregados",
+            description: `${combinedData.length} registros de temperatura dos últimos 30 dias foram carregados.`,
+        });
+
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: "Erro ao Carregar Dados",
+            description: "Não foi possível buscar os dados históricos dos sensores.",
+        });
+    } finally {
+        setIsLoadingData(false);
+    }
+  };
+
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -126,7 +175,17 @@ export default function AIOptimizationPage() {
                 name="historicalData"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('optimizeAlarmsForm.historicalDataLabel', 'Dados Históricos de Temperatura (JSON)')}</FormLabel>
+                    <div className="flex justify-between items-center">
+                      <FormLabel>{t('optimizeAlarmsForm.historicalDataLabel', 'Dados Históricos de Temperatura (JSON)')}</FormLabel>
+                      <Button type="button" variant="outline" size="sm" onClick={handleLoadHistoricalData} disabled={isLoadingData}>
+                        {isLoadingData ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Download className="mr-2 h-4 w-4" />
+                        )}
+                        Carregar últimos 30 dias
+                      </Button>
+                    </div>
                     <FormControl>
                       <Textarea placeholder={t('optimizeAlarmsForm.historicalDataPlaceholder', 'Ex: [{"timestamp": 1672531200000, "temperature": 25.5}, ...]')} {...field} rows={6} />
                     </FormControl>
